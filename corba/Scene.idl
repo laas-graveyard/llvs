@@ -1,0 +1,54 @@
+#ifndef __SCENE_IDL__
+#define __SCENE_IDL__
+
+/** 
+ * Scene IDL
+ * 2005.03.15 Olivier Stasse, JRL CNRS/AIST
+ */
+
+
+struct DoubleMatrix
+{
+  long nrows, ncols;
+  sequence<double> data;
+};
+
+typedef sequence<octet> IdentifierInformation;
+
+struct SceneFeature
+{
+  DoubleMatrix y;    // Estimate of the feature position
+  DoubleMatrix Pyy;  // The covariance between the vehicle estimate and the Feature position
+  long label;        // Label of the feature
+  boolean SuccessfulMeasurementFlag; // True if the feature has been detected. 
+  boolean SelectedFlag; // True if the feature has been selected.
+  DoubleMatrix h;    // Predicted measurements
+  DoubleMatrix z;    // Actual measurements
+  DoubleMatrix S;    // Jacobian
+  IdentifierInformation Identifier; // Contains the information needed to define a feature 
+                                      // currently it is a 11x11 pixels patch.
+};
+
+typedef sequence<SceneFeature> SceneFeatureSeq;
+  
+struct SceneObject
+{
+  // Sequence of Features.
+  SceneFeatureSeq Features;
+    
+  // State vector.
+  DoubleMatrix xv;
+    
+  // Covariance matrix.
+  DoubleMatrix Pxx;
+    
+  // Number of features
+  long NoFeatures;
+
+  // Selected features
+  long NoSelected;
+};
+
+
+#endif
+

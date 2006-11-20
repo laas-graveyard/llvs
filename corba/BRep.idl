@@ -1,0 +1,148 @@
+/**
+ * IDL file for the Boundary representation
+ *
+ * $Id$
+ *
+ * Copyright 2004 (c), JRL CNRS/AIST, Olivier Stasse.
+ * 
+ *
+ */
+
+#include "common.idl"
+
+
+
+struct CBREP_Point
+{
+  long      	label;			
+  long       	n;			
+  long	        row;			
+  long	        col;			
+
+  float    	rowd;			
+  float	        cold;		
+  float 	Xr;		
+  float 	Yr;		
+  float 	x;		
+  float 	y;		
+  float 	z;		
+  float	        normals;		
+  
+  float 	Normal[3];
+  float 	Tangent[3];
+
+  float	        curvature;	
+  float  	error;		
+
+  octet 	red;		
+  octet	        green;		
+  octet	        blue;		
+
+};
+
+typedef sequence<CBREP_Point>   CBREP_PointSeq;
+
+
+struct CBREP_Segment
+{
+  long label;
+  long n;
+  long npoint;
+
+
+  float curvature;
+  float error;
+  float intensity_sigma;
+
+  CBREP_PointSeq point;
+
+  octet red;
+  octet green;
+  octet blue;
+};
+
+
+typedef sequence<CBREP_Segment> CBREP_SegmentSeq;
+
+struct CBREP_Bound
+{
+  long          label;
+  long          n ;
+  long          nsegment;
+  long          npoint;
+  
+  CBREP_SegmentSeq segment;
+  CBREP_PointSeq   point;
+};
+
+typedef sequence<CBREP_Bound>   CBREP_BoundSeq;
+
+
+struct CBREP_Cnet
+{
+  long  	label;
+  long	n;
+
+  long	mapcol;
+  long	maprow;
+
+  float	Position[3];
+  float	Normal[3];
+
+  octet    red;
+  octet    green;
+  octet    blue;
+
+};
+
+typedef sequence<CBREP_Cnet>  CBREP_CnetSeq;
+
+/* ! Boundary Representation - Region structure */
+struct CBREP_Region
+{
+  long label;         /* Label */
+  long n;             /* Region Identifier */
+
+  long nbound;        /* Number of boundaries */
+  long nsegment;      /* Number of segments */
+  long npoint;        /* Number of points */
+  long ncnet;         /* Number of nodes in the graph */
+
+  long area;          /* Surface */
+  long width;         /* Width of the region */
+  long type;          /* */
+  float intensity;    /* */
+  float std_deviation; 
+
+  CBREP_BoundSeq bound;     /* Sequence of boundaries */
+  CBREP_SegmentSeq segment;    /* Sequence of segment */
+  CBREP_PointSeq point;        /* Sequence of point */
+  CBREP_CnetSeq cnet;             /* Sequence of nodes */
+};
+
+typedef sequence<CBREP_Region>  CBREP_RegionSeq;
+
+
+/* ! Structure CBREP */
+struct CBREP
+{
+  long	label;			
+  long	n;			
+  long	nregion;		
+  long	nbound;			
+  long	nsegment;		
+  long	npoint;			
+  long	ncnet;			
+  long	colstart;		
+  long	rowstart;		
+  long	ncol;			
+  long	nrow;			
+  CBREP_RegionSeq	region;	
+  CBREP_BoundSeq	        bound;	
+  CBREP_SegmentSeq       segment;
+  CBREP_PointSeq	        point; 		
+  CBREP_CnetSeq	        cnet;		
+  long                  CameraID; /* 0, 1, 2, 3 */
+};
+
+typedef sequence<CBREP> CBREPSeq;

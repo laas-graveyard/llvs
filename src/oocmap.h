@@ -1,0 +1,11 @@
+#define CORBA_Object_var	CORBA::Object_var
+#define CORBA_ORB		CORBA::ORB
+#define CORBA_ORB_var		CORBA::ORB_var
+#define CORBA_ORB_ptr		CORBA::ORB_ptr
+#define CORBA_is_nil		CORBA::is_nil
+#define CosNaming_NamingContext	CosNaming::NamingContext
+#define CosNaming_NamingContext_var	CosNaming::NamingContext_var
+#define CosNaming_Name		CosNaming::Name
+#define CORBA_string_dup	CORBA::string_dup
+#define CORBA_SystemException	CORBA::SystemException
+#define CORBA_Double		CORBA::Double
