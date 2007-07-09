@@ -36,12 +36,15 @@
    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <LowLevelVisionServer.h>
 #include <SingleCameraSLAMProcess.h>
 #include <MonoSLAM/robot.h>
 #include <MonoSLAM/model_creators.h>
 #include "hrp_model_creators.h"
 #include <sys/time.h>
 #include <time.h>
+
+#include <MonoSLAM/robot_patch.h>
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "HPR2SingleCameraSLAMProcess:" << x << endl
@@ -63,7 +66,8 @@ using namespace VW;
 #include <VNL/Algo/matrixinverse.h>
 
 HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
-							 CosNaming::NamingContext_var cxt)
+							 CosNaming::NamingContext_var cxt,
+							 LowLevelVisionServer *aLLVS)
   : m_TrackingState(false),
     m_MappingState(false),
     m_VisionFlag(true),
@@ -82,6 +86,7 @@ HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
     m_PRUNE_PROBABILITY_THRESHOLD(0.05),
     m_ERASE_PARTIALLY_INIT_FEATURE_AFTER_THIS_MANY_ATTEMPTS(10)
 {
+  m_LLVS = aLLVS;
   m_orb = orb;
   m_cxt = cxt;
 
@@ -125,7 +130,7 @@ HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
   m_grabbed_image = new ImageMono<unsigned char>(320,240);
   m_grabbed_image->AllocImageData(320,240);
 
-  MonoSLAM_Motion_Model_Creator mm_creator;
+  HRP2MonoSLAM_Motion_Model_Creator mm_creator;
   MonoSLAM_Feature_Measurement_Model_Creator fmm_creator;
   // Locally defined creator for internal measurement models
   HRP_Internal_Measurement_Model_Creator imm_creator;
@@ -146,6 +151,8 @@ HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
 				    m_MIN_NUMBER_OF_PARTICLES,
 				    m_PRUNE_PROBABILITY_THRESHOLD,
 				    m_ERASE_PARTIALLY_INIT_FEATURE_AFTER_THIS_MANY_ATTEMPTS);
+
+  ODEBUG3("Finished the instanciation of m_MonoSLAMHRP");
 }
 
 HRP2SingleCameraSLAMProcess::~HRP2SingleCameraSLAMProcess()
@@ -263,7 +270,7 @@ int HRP2SingleCameraSLAMProcess::RealizeTheProcess()
       waist_velocity(1) = lWaistVelocity[1];
       waist_velocity(2) = 0.0;
       
-      camera_height(0) = 1.40;
+      //      camera_height(0) = 1.40;
 
       for(int li=0;li<7;li++)
 	posorientation(li)= lPosOrientation[li];
@@ -300,6 +307,8 @@ int HRP2SingleCameraSLAMProcess::RealizeTheProcess()
       // right now just the position.
       for(int i=0;i<3;i++)
 	posorientation(4+i)=M[i][3];
+
+      camera_height(0) = posorientation(6);
 
     }
   else 
@@ -347,9 +356,11 @@ int HRP2SingleCameraSLAMProcess::RealizeTheProcess()
 	      << m_GyroFlag << " "
 	      << m_WaistVelocityFlag << " " 
 	      << m_CameraHeightFlag );
-      ODEBUG("Orientation : " << posorientation << " " << lPosOrientation[7] <<
+      ODEBUG3("Orientation : " << posorientation << " " << lPosOrientation[7] <<
 	      " 0 0 " << sin(0.5*lPosOrientation[7]) << " " << cos(0.5*lPosOrientation[7]) );
-      ODEBUG( gyro[0]<< " " << gyro[1]<<  " " << gyro[2]);
+      ODEBUG( "Gyro: " << gyro[0]<< " " << gyro[1]<<  " " << gyro[2]);
+      ODEBUG("m_MonoSLAMHRP :" << m_MonoSLAMHRP << endl <<
+	      "m_MonoSLAMHRP->GetRobotNoConst() :" << m_MonoSLAMHRP->GetRobotNoConst() << endl);
       m_MonoSLAMHRP->GetRobotNoConst()->load_new_image(m_grabbed_image);
       ODEBUG("here ");
       m_MonoSLAMHRP->GoOneStepHRP(m_grabbed_image, 
@@ -461,6 +472,14 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	ok = 0;
     }
 
+  if (aParameter=="SetSLAMImage")
+    {
+      istringstream aIstrm(aValue);
+      int indexImage;
+      aIstrm >> indexImage;
+      m_LLVS->SetTheSLAMImage(indexImage);
+      ODEBUG("Index image for SLAM:" << indexImage);
+    }
 
   if (aParameter=="ConnectToGGAA")
     {
@@ -600,10 +619,14 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
 	for(unsigned int i=0;i<S.Cols();i++)
 	  aSO_var->Features[l].S.data[j*lncols + i] = S[j][i];
  
-      aSO_var->Features[l].Identifier.length(11*11);
+
+      
+      RobotPatchFeature * aRPF =  (RobotPatchFeature *)ListOfFeatures[l]->get_identifier();
+      
+      //      ImageMonoExtraData * p = (ImageMonoExtraData *)ListOfFeatures[l]->get_identifier();
+      VW::ImageMono<unsigned char> *p = aRPF->big_image;
+
 #if 1
-      ImageMonoExtraData * p = (ImageMonoExtraData *)ListOfFeatures[l]->get_identifier();
-#if 0
       {
 	static int local_counter = 0;
 	char Buffer[1024];
@@ -612,15 +635,28 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
 	p->WriteImage(Buffer);
       }
 #endif
+      int patchw = p->GetWidth();
+      int patchh = p->GetHeight();
       unsigned char *pbuf = (unsigned char *)p->GetRawBuffer();
-      for(unsigned int j=0;j<11;j++)
-	for(unsigned int i=0;i<11;i++)
-	  aSO_var->Features[l].Identifier[j*11+i] =pbuf[j*11+i];
-#else
-      for(unsigned int j=0;j<11;j++)
-	for(unsigned int i=0;i<11;i++)
-	  aSO_var->Features[l].Identifier[j*11+i] =0;
-#endif
+      
+      aSO_var->Features[l].Identifier.length(patchw*patchh+2*sizeof(int));
+      
+      unsigned char *ppw = (unsigned char *)&patchw;
+      unsigned int loffset = 0;
+
+      for(unsigned int i=0;i<sizeof(int);i++)
+	aSO_var->Features[l].Identifier[i] = ppw[i];
+      loffset+=sizeof(int);
+
+      unsigned char *pph = (unsigned char *)&patchh;
+      for(unsigned int i=0;i<sizeof(int);i++)
+	aSO_var->Features[l].Identifier[i+loffset] = pph[i];
+      loffset+=sizeof(int);
+      
+      
+      for(unsigned int j=0;j<patchh;j++)
+	for(unsigned int i=0;i<patchw;i++)
+	  aSO_var->Features[l].Identifier[loffset+j*patchw+i] =pbuf[j*patchw+i];
 
     }
   return 0;
@@ -731,7 +767,7 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
   double lPosOrientationPast[7]={-1.0,-1.0,-1.0,0.0,0.0,0.0,-1.0};;
   int index1=-1, index2=-1;
   // The 60 ms delay
-  timeref += 0.03;
+  timeref += 0.06;
 
   
   double timedelay;
@@ -760,7 +796,6 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 	  dtimeend = timeend.tv_sec + 0.000001 * timeend.tv_usec;
 	  timedelay = 0.5 * (dtimebegin-dtimeend) + 
 	    PrevTimestamp - dtimebegin;
-	  ODEBUG("Time delay: " << timedelay);
 	  timeref += timedelay;
 	  timeref2 += timedelay;
 	}

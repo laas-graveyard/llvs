@@ -17,7 +17,7 @@ using std::showbase;
 #define ODEBUG3(x) cerr << "HPR2IEEE1304DCImagesInputMethod:" << x << endl
 #define ODEBUG3_CONT(x) cerr << x 
 
-#if 0
+#if 1
 #define ODEBUG(x) cerr << "HPR2IEEE1304DCImagesInputMethod:" <<  x << endl
 #define ODEBUG_CONT(x) cerr << "HPR2IEEE1304ImagesInputMethod:" <<  x << endl
 #else
@@ -192,8 +192,8 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
 
   for(int k=0;k<3;k++)
     {
-      m_ImagesWidth[k]  = 640;
-      m_ImagesHeight[k] = 480;
+      m_ImagesWidth[k]  = 1024;
+      m_ImagesHeight[k] = 768;
     }
 
   /* Set the format of the board */

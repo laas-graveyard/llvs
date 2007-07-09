@@ -348,7 +348,7 @@ HRP2IEEE1394ImagesInputMethod::HRP2IEEE1394ImagesInputMethod() : HRP2ImagesInput
 
   m_GrabbingPeriod.resize(m_Board->nchildren());
   
-  m_Format = "RAW";
+  m_Format = "RGB";
 
   for(int k=0;k<3;k++)
     {

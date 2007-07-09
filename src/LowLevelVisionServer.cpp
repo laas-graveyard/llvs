@@ -262,7 +262,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   
 #endif
   /* Single Camera SLAM process */
-  m_SingleCameraSLAM = new HRP2SingleCameraSLAMProcess(m_orb,m_cxt);
+  m_SingleCameraSLAM = new HRP2SingleCameraSLAMProcess(m_orb,m_cxt,this);
   m_SingleCameraSLAM->SetInputImages(&m_epbm[m_TheSLAMImage]);
   m_SingleCameraSLAM->SetLevelOfVerbosity(Verbosity);
   m_SingleCameraSLAM->StopProcess();
@@ -600,7 +600,7 @@ LowLevelVisionServer::TriggerSynchro()
   static struct timeval time_last;
   struct timeval time_current;
 
-  ODEBUG("TriggerSynchro() beginning");
+  ODEBUG3("TriggerSynchro() beginning");
   gettimeofday(&time_current,0);
   if (start!=1)
     {
@@ -618,7 +618,7 @@ LowLevelVisionServer::TriggerSynchro()
     cout << "Trigger" << endl;
 	
   m_SynchroTrigger = true;
-  ODEBUG("TriggerSynchro() endiing");
+  ODEBUG3("TriggerSynchro() endiing");
   return 0;
 }
 
@@ -721,7 +721,8 @@ LowLevelVisionServer::ApplyingProcess()
 	  //sleep(1);
 	  //  cout << "Coucou 1" << endl;
 	}
-      while(!m_SynchroTrigger); 
+      while((!m_SynchroTrigger) ||
+	    (ResFromGIFF==-1)); 
       m_SynchroTrigger = false;
     }
   else
@@ -777,8 +778,9 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("Start to grab images");
   gettimeofday(&before2,0);
   /* Get the image from the input method */
-  ResFromGIFF=  GetImageFromFrameGrabber();
-  ODEBUG("images grabbed");
+  if (ResFromGIFF==-1)
+    ResFromGIFF=GetImageFromFrameGrabber();
+  ODEBUG("images grabbed" << ResFromGIFF);
 
   
   gettimeofday(&before3,0);
@@ -842,7 +844,7 @@ LowLevelVisionServer::ApplyingProcess()
       (ResFromGIFF!=-1))
       m_DP->RealizeTheProcess(); 
 
-  ODEBUG("Disparity computed " << m_DP);
+  ODEBUG("Disparity computed " << m_DP << " " << ResFromGIFF);
 
   /* Applying Optical Flow */
   if ((m_OP!=0)&&
@@ -975,27 +977,18 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	SetImagesGrabbedSize(m_Width,m_Height);
        
       
-#if 0
-      r = m_ImagesInputMethod->GetImage(m_BinaryImages+0,
-					m_BinaryImages+1,
-					m_BinaryImages+2,
-					m_BinaryImages+3);
-#else
       struct timeval tv_current;
       double CurrentTime;
       gettimeofday(&tv_current,0);
       CurrentTime = tv_current.tv_sec + 0.000001 * tv_current.tv_usec;
       
       int lNbOfCameras = m_ImagesInputMethod->GetNumberOfCameras();
-      ODEBUG("Number of cameras" << lNbOfCameras);
 		    
       for(int li=0;li<lNbOfCameras;li++)
 	{
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
-	      ODEBUG("Before get single image");
 	      r = m_ImagesInputMethod->GetSingleImage(m_BinaryImages+li,li,m_timestamps[li]);
-	      ODEBUG("Before get single image");
 	      result=0;
 	      if ((m_CheckEntry) && (r==0) && (li!=2))
 		StoreImageOnStack(li);
@@ -1004,7 +997,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	}
 
       
-#endif
+
       /* Test if a reallocation has taking place 
        * This may be the case while reading a file.
        */
@@ -2861,7 +2854,7 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
     *ptdst++ = *ptsrc++;
 
   m_StoredTimeStamp[m_IndexSI] = m_timestamps[image];
-
+  m_SideOfTheImage[m_IndexSI]=(double)image;
 
   if ((m_StoredCameraCov!=0) && (m_SingleCameraSLAM!=0))
     {
@@ -3061,6 +3054,7 @@ StereoVision_ptr LowLevelVisionServer::getStereoVision()
 void LowLevelVisionServer::SetTheSLAMImage(int anIndex)
 {
   m_TheSLAMImage = (unsigned long int) anIndex;
+  m_SingleCameraSLAM->SetInputImages(&m_epbm[m_TheSLAMImage]);
 }
 
 int LowLevelVisionServer::GetTheSLAMImage()

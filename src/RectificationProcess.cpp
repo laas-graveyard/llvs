@@ -226,7 +226,7 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
 int HRP2RectificationProcess::RealizeTheProcess()
 {     
 
-  ODEBUG( m_Computing << " " << m_sp );
+  ODEBUG3( m_Computing << " " << m_sp );
   if (m_Computing==0)
     return 0;
 

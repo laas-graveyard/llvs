@@ -47,6 +47,8 @@
 
 #include <Scene.h>
 
+
+class LowLevelVisionServer;
 #include "GetGyroAndAccelerometer.h"
 
 #include <FindFeaturesInImage.h>
@@ -58,7 +60,8 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
  public:
   /*! Constructor */
   HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
-			      CosNaming::NamingContext_var cxt);
+			      CosNaming::NamingContext_var cxt,
+			      LowLevelVisionServer * aLLVS);
   
   /*! Destructor */
   virtual ~HRP2SingleCameraSLAMProcess();
@@ -172,6 +175,9 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
 
   /* ! Reference to the ORB. */
   CORBA::ORB_var m_orb;
+
+  /*! Reference to LLVS */
+  LowLevelVisionServer * m_LLVS;
 
   /* ! Reference to the naming context. */
   CosNaming::NamingContext_var m_cxt;

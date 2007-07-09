@@ -46,7 +46,7 @@
 #define ODEBUG3(x) cerr << "HPR2DisparityProcess:" << x << endl
 #define ODEBUG3_CONT(x) cerr << x 
 
-#if 0
+#if 1
 #define ODEBUG(x) cerr << "HPR2DisparityProcess:" <<  x << endl
 #define ODEBUG_CONT(x) cerr << "HPR2DisparityProcess:" <<  x << endl
 #else
@@ -484,6 +484,7 @@ float * HRP2DisparityProcess::GetBoundingBoxes()
 
 int HRP2DisparityProcess::RealizeTheProcess()
 {
+  ODEBUG3((int)m_Computing);
   if (!m_Computing)
     return 0;
   EPBM lInput[2];
@@ -512,10 +513,13 @@ int HRP2DisparityProcess::RealizeTheProcess()
        lInput[0] = m_InputImage[0];
        lInput[1] = m_InputImage[1];
     }
-#if 0
-  char FileName[256] = "/tmp/checkInput1.epbm";
+#if 1
+  static int lstaticImageIndex = 0;
+  char FileName[256];
+  sprintf(FileName,"/tmp/checkLeftInput%06d.epbm",lstaticImageIndex);
   epbm_save(FileName,&m_InputImage[0],0);
-  strcpy(FileName,"/tmp/checkInput2.epbm");
+  sprintf(FileName,"/tmp/checkRightInput%06d.epbm",lstaticImageIndex);
+  lstaticImageIndex++;
   epbm_save(FileName,&m_InputImage[1],0);
 #endif
 

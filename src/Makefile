@@ -30,7 +30,9 @@ SRCS= 	ColorDetection.cpp \
 	models_threed_gyro.cpp \
 	models_orientation.cpp \
 	ImageDifference.cpp \
-	StereoVision_impl.cpp 
+	StereoVision_impl.cpp \
+	models_wpg_motion.cpp \
+	models_wpg_hybrid_motion.cpp 
 
 
 # Header files needed for the LowLevelVisionServer
@@ -56,7 +58,9 @@ HRDSSPECS= ColorDetection.h \
 	models_threed_gyro.h \
 	models_orientation.h \
 	ImageDifference.h \
-	StereoVision_impl.h
+	StereoVision_impl.h \
+	models_wpg_motion.h \
+	models_wpg_hybrid_motion.h 	
 
 
 SRCDIR=$(PWD)
@@ -81,7 +85,7 @@ LIBS= -L../../lib -L$(VVVDIR)/lib
 LIBS+= -lGeometry -lImageProcessing
 
 # Andy libraries
-LIBS+= -lMonoSLAM  -lSceneImproc -lScene  -lVW -lVNL
+LIBS+= -lMonoSLAM  -lSceneImproc -lScene  -lVWGL -lVW -lVNL -lGL -lGLU -lglut
 
 # JRL libraries
 LIBS+=    -ldisparitymap
