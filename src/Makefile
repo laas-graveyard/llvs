@@ -70,7 +70,7 @@ HRDS= $(HRDSSPECS) \
 	visionsensor_skel.h \
 	integrator.h 
 
-TOP =../../../
+TOP =/home/grxuser/src/OpenHRP/
 include $(TOP)Make.rules
 
 # LIBRARIES FLAGS 

@@ -50,7 +50,7 @@
 #include <string>
 #include <vector>
 
-#ifdef __OMNIORB4__
+#ifdef OMNIORB4
 #include <omniORB4/CORBA.h>
 #endif
 
@@ -72,7 +72,10 @@ extern "C"
 #include <VW/Image/imagemono.h>
 #include <VW/Image/imageyuv.h>
 
+#if 0
 #include <VisualServoingServer.h>
+#endif
+
 #include <ColorDetectionOperators.h>
 #include <ProjectiveMatrix.h>
 #include <Triangulation.h>
@@ -142,7 +145,9 @@ class HRP2ColorDetectionProcess : public HRP2VisionBasicProcess
   int m_NbOfCameras;
 
   /*! CORBA object for accessing the visual servoing plugin. */
+#if 0
   VisualServoingServer * m_VisualServoing;
+#endif
 
   /*! CORBA naming context provided by LLVS */
   CosNaming::NamingContext_var m_cxt;

@@ -40,12 +40,13 @@
 #ifndef _HRP2_INPUT_IMAGES_SIMULATOR_METHOD_H_
 #define _HRP2_INPUT_IMAGES_SIMULATOR_METHOD_H_
 
-#ifdef __OMNIORB4__
+#ifdef OMNIORB4
 #include <omniORB4/CORBA.h>
 #endif
 
 #ifdef __ORBIX__
 #include <OBE/CORBA.h>
+#include <OBE/CosNaming.h>
 #endif
 
 

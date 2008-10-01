@@ -42,14 +42,26 @@
 #ifndef __HRP2_SingleCameraSLAM_H__
 #define __HRP2_SingleCameraSLAM_H__
 
+#ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include <OBE/CosNaming.h>
-
 #include <Scene.h>
+#endif
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#include "Scene.hh"
+#endif
+#ifdef __ORBIX__
+#include "GetGyroAndAccelerometer.h"
+#endif
+
+#ifdef OMNIORB4
+#include "GetGyroAndAccelerometer.hh"
+#endif
 
 
 class LowLevelVisionServer;
-#include "GetGyroAndAccelerometer.h"
 
 #include <FindFeaturesInImage.h>
 #include "VisionBasicProcess.h"

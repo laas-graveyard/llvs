@@ -14,7 +14,15 @@
 #include <string>
 
 #include "oocmap.h"
+
+#ifdef __ORBIX__
 #include "StereoVision_skel.h"
+#endif
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#include "StereoVision.hh"
+#endif
 
 // **********************************************************************
 //

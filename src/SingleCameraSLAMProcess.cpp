@@ -60,7 +60,6 @@
 
 using namespace VW;
 
-#include "GetGyroAndAccelerometer.h"
 
 #include <VNL/matrix.h>
 #include <VNL/Algo/matrixinverse.h>
@@ -654,8 +653,8 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       loffset+=sizeof(int);
       
       
-      for(unsigned int j=0;j<patchh;j++)
-	for(unsigned int i=0;i<patchw;i++)
+      for(int j=0;j<patchh;j++)
+	for( int i=0;i<patchw;i++)
 	  aSO_var->Features[l].Identifier[loffset+j*patchw+i] =pbuf[j*patchw+i];
 
     }

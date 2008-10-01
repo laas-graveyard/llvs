@@ -43,9 +43,15 @@
 #ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include "LowLevelVisionSystem_skel.h"
+#include "LowLevelVisionSystem.h"
 #endif
 
-#include "LowLevelVisionSystem.h"
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#include "LowLevelVisionSystem.hh"
+#endif
+
+
 #include "Camera_impl.h"
 #include "StereoVision_impl.h"
 

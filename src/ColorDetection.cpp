@@ -173,6 +173,7 @@ int HRP2ColorDetectionProcess::TryConnectionToVisualServoing()
       ODEBUG3("Visual Servoing not found");
     }
 
+#if 0
   try
     {
       m_VisualServoing = VisualServoingServer::_narrow(anObject);
@@ -181,6 +182,7 @@ int HRP2ColorDetectionProcess::TryConnectionToVisualServoing()
     {
       ODEBUG3("Visual Servoing not narrowed");
     }
+#endif
   
 
   return 0;
@@ -240,6 +242,7 @@ int HRP2ColorDetectionProcess::RealizeTheProcess()
 	  ODEBUG3("QHead :" << QHead <<endl );
 	       
 	
+#if 0
 	  if (!CORBA::is_nil(m_VisualServoing))
 	    {
 	      try 
@@ -280,6 +283,7 @@ int HRP2ColorDetectionProcess::RealizeTheProcess()
 	      else
 		m_NbOfProcessWithoutTrialConnection++;
 	    }
+#endif
 	}
       /*
       if ((x==-1) && (y==-1)) 

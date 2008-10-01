@@ -41,9 +41,15 @@
 #include <stdlib.h>
 #include "SimulatorInputMethod.h"
 
-#include <OBE/CosNaming.h>
+#ifdef __ORBIX__
 #include "common.h"
 #include "visionsensor.h"
+#endif
+
+#ifdef OMNIORB4
+#include "common.hh"
+#include "visionsensor.hh"
+#endif
 
 HRP2SimulatorInputMethod::HRP2SimulatorInputMethod(int argc, char *argv[], CORBA::ORB_var ns) 
   : HRP2ImagesInputMethod()

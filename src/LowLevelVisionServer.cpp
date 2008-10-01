@@ -45,8 +45,14 @@
 //#define _GNU_SOURCE
 #include <getopt.h>
 
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#endif /* OMNIORB4 */
+
+#ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include <OBE/CosNaming.h>
+#endif
 
 extern "C" 
 {
@@ -3045,7 +3051,7 @@ CORBA::Long LowLevelVisionServer::GetImageIdentifier()
 StereoVision_ptr LowLevelVisionServer::getStereoVision()
   throw(CORBA::SystemException)
 {
-  StereoVision_var tmp_StereoVision = new StereoVision;
+  StereoVision_var tmp_StereoVision;
 
   tmp_StereoVision = m_StereoVision_impl->_this();
   return tmp_StereoVision._retn();

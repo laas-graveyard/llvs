@@ -39,8 +39,17 @@
 #ifndef _HRP2_BREP_DETECTION_PROCESS_H_
 #define _HRP2_BREP_DETECTION_PROCESS_H_
 
+#ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include "BRep.h"
+#endif
+
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#include "BRep.hh"
+#endif
+
 #include "VisionBasicProcess.h"
 
 extern "C"

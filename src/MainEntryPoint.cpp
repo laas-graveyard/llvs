@@ -7,8 +7,14 @@
 #include <signal.h>
 #include <getopt.h>
 
+#ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include <OBE/CosNaming.h>
+#endif
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#endif
 
 extern "C" {
 #include <ct3001.h>

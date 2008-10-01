@@ -39,7 +39,13 @@
 #include <iostream>
 
 #include "BRepDetectionProcess.h"
+#ifdef __ORBIX__
 #include "BRep.h"
+#endif
+
+#ifdef OMNIORB4
+#include "BRep.hh"
+#endif
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "HPR2BRepDetectionProcess:" << x << endl

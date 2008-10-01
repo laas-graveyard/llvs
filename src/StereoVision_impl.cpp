@@ -2,13 +2,21 @@
  * StereoVisionクラス実装ファイル
  */
 
-#include <OBE/CORBA.h>
-
-#include "StereoVision_impl.h"
 
 #include <iostream>
 #include <stdio.h>
 using namespace std;
+
+#ifdef _ORBIX_
+#include <OBE/CORBA.h>
+#endif
+
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#endif
+#include "StereoVision_impl.h"
+
 #include "oocmap.h"
 
 #define ODEBUG2(x)

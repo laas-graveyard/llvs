@@ -41,9 +41,14 @@ CVS Information:
 
 #ifdef __ORBIX__
 #include <OBE/CORBA.h>
-#endif
 #include "LowLevelVisionServer.h"
 #include "LowLevelVisionSystem_skel.h"
+#endif
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#include "LowLevelVisionSystem.hh"
+#endif
 
 #include <string>
 extern "C"
