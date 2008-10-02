@@ -1,5 +1,6 @@
-/** @doc This object implements the abstract
-    part of the acquisition of images.
+/** @doc This object implements the link between 
+    the Integrated Simulation Environnment with the
+    overall vision system.
 
    CVS Information:
    $Id$
@@ -36,15 +37,20 @@
    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef _HRP2_INPUT_METHOD_H_
-#define _HRP2_INPUT_METHOD_H_
+#ifndef _HRP2_INPUT_IMAGES_SIMULATOR_METHOD_H_
+#define _HRP2_INPUT_IMAGES_SIMULATOR_METHOD_H_
+
+#ifdef OMNIORB4
+#include <omniORB4/CORBA.h>
+#endif
+
+#ifdef __ORBIX__
+#include <OBE/CORBA.h>
+#include <OBE/CosNaming.h>
+#endif
 
 
-#include <string>
-#include <sys/time.h>
-using namespace std;
-
-/*! This class defines the abstract class for the input method
+/* This object defines the abstract class for the input method
    related to the low level HRP2 vision system.
    This will be used to input either files, either grabbed images,
    or event simulated ones.
@@ -52,30 +58,38 @@ using namespace std;
    Copyright CNRS,JRL/AIST, 2004,
    Olivier Stasse
 
-   07/12/2004: Modification for the new camera.
-   16/05/2004: Creation
+   11/06/2004: Creation
 */
-class HRP2ImagesInputMethod
+
+#include <string>
+using namespace std;
+
+#include "ImagesInputMethod.h"
+ 
+/*! This object implements the grabbing of the images from the simulator. 
+ *  
+ */
+class HRP2SimulatorInputMethod : public HRP2ImagesInputMethod
 {
  public:
   
   /*! Constantes */
-  static const int CAMERA_LEFT = 0;
-  static const int CAMERA_RIGHT = 1;
-  static const int CAMERA_UP = 2;
-  static const int CAMERA_WIDE = 3;
+  static const int COLOR = 0;
+  static const int BW = 1;
+
   /*! Constructor */
-  HRP2ImagesInputMethod();
+  HRP2SimulatorInputMethod(int argc, char *argv[],CORBA::ORB_var ns);
   
   /*! Destructor */
-  virtual ~HRP2ImagesInputMethod();
+  virtual ~HRP2SimulatorInputMethod();
 
   /*! Takes a new image.
    * Input: 
-   * unsigned char * Image : A pointer where to store the image.
-   * int camera : Reference to the image itself.
+   * unsigned char * ImageLeft : A pointer where to store the bottom left image.
+   * unsigned char * ImageRight : A pointer where to store the bottom right image.
+   * unsigned char * ImageUp : A pointer where to store the upper image.
    */
-  virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
+  virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
   /*! Set the size of the image willing to be grabbed. */
   virtual int SetImageSize(int lw, int lh, int CameraNumber);
@@ -86,29 +100,10 @@ class HRP2ImagesInputMethod
   /*! Get the current format of the image */
   virtual string GetFormat();
 
-  /*! Set the level of verbosity */
-  int SetLevelOfVerbosity(int VerbosityParameter);
-
-  /*! Get the level of verbosity */
-  int GetLevelOfVerbosity();
-
-  /*! Get the number of camera */
-  virtual int GetNumberOfCameras();
-
-  /*! Get the next time for grabbing an image. */
-  virtual double NextTimeForGrabbing(int CameraNumber);
-
  protected:
-  /*! Members of the class storing the size of the images. 
-     All the three images have the same size. 
-  */
-  unsigned int m_ImagesWidth[4], m_ImagesHeight[4];
 
-  /*! Depth of the images. */
-  unsigned int m_depth;
-
-  /*! Level of verbosity */
-  int m_Verbosity;
+  /*! Color mode */
+  unsigned char m_ColorMode;
 };
   
-#endif /* _HRP2_INPUT_METHOD_H_ */
+#endif /* _HRP2_INPUT_SIMULATOR_METHOD_H_ */

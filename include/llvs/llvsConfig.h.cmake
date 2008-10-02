@@ -17,4 +17,7 @@
 /* Define to 1 if OmniORB4 is installed */ 
 #define LLVS_HAVE_OMNIORB4 ${LLVS_HAVE_OMNIORB4}
 
+/* Define to 1 if MMX is installed */ 
+#define LLVS_HAVE_MMX ${LLVS_HAVE_MMX}
+
 #endif /* _LLVS_CONFIG_H_IN_ */

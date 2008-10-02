@@ -46,14 +46,15 @@
 #endif
 
 
-#include <llvs/llvsConfig.h>
+#include <llvsConfig.h>
 
-#include "Camera_impl.h"
+#include <Corba/Camera_impl.h>
+#include <Corba/StereoVision_impl.h>
 
-#include "StereoVision_impl.h"
+#include <VisionBasicProcess.h>
 
 /*! Inclusion specific to VVV */
-#ifdef LLVS_HAVE_VVV=="TRUE"
+#if (LLVS_HAVE_VVV>0)
 
 class Camera_impl ;
 extern "C"
@@ -67,25 +68,21 @@ extern "C"
 #include "VVV/EdgeDetectionProcess.h"
 #include "VVV/BRepDetectionProcess.h"
 #include "VVV/DisparityProcess.h"
-
+#include "VVV/FindFeaturesInImage.h"
+#include "VVV/ColorDetection.h"
+#include "VVV/MireDetectionProcess.h"
+#include "VVV/ImageDifference.h"
 #endif
 
-#ifdef ((LLVS_HAVE_VW=="TRUE") &  (LLVS_HAVE_SCENE=="TRUE"))
+#if ((LLVS_HAVE_VW>0) &  (LLVS_HAVE_SCENE>0))
 #include "SingleCameraSLAMProcess.h"
 #endif
 
 #include "ImagesInputMethod.h"
 
-#ifdef LLVS_HAVE_OPENCV
+#if (LLVS_HAVE_OPENCV>0)
 
-#include "OpticalFlowProcess.h"
-#include "MotionEvaluationProcess.h"
-#include "MireDetectionProcess.h"
-#include "FindFeaturesInImage.h"
-#include "ImageDifference.h"
-#endif 
-
-#include "ColorDetection.h"
+#endif
 
 #include <vector>
 using namespace std;
@@ -149,10 +146,7 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
  CORBA::Long LoadCalibrationInformation();
 
  /*! Load image size used during calibration */
- CORBA::Long CalibLoadSize(CONST char *file, long int *width, long int *height);
-
- /*! Load camera parameter matrix */
- CORBA::Long CalibLoadPinholeParameter(CONST char *file, EPBM_PinHoleParameter *pin);
+ CORBA::Long CalibLoadSize(const char *file, long int *width, long int *height);
 
  /*! Set the grabbed image size 
   * Because of some algorithms used, right now this size is used for ALL the cameras
@@ -169,9 +163,6 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
 
  /*! Applies the flow of operations */
  CORBA::Long ApplyingProcess();
-
- /*! Rectify the images */
- CORBA::Long RectifyImages(EPBM *, EPBM *, int, int);
  
  /*! Interface: Trigger the grabbing of an image */
  CORBA::Long TriggerSynchro() 
@@ -191,10 +182,6 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
  static const CORBA::Long CAMERA_LEFT  = 0;
  static const CORBA::Long CAMERA_RIGHT = 1;
  static const CORBA::Long CAMERA_UP    = 2;
-
- /*! Image rectification using a small modification */
- CORBA::Long scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST EPBM *I, EPBM *O,
-				   int OriginalWidth,int OriginalHeight);
 
  /*! Interface : returns the synchronization mode */
  LowLevelVisionSystem::InputMode GetInputMode()
@@ -233,9 +220,6 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
  
  /*! Get the direct access for one image */
  unsigned char * GetImageMemory(int CameraID);
-
- /*! Returns a link to the disparity process to get the range image */
- HRP2DisparityProcess * GetDisparityProcess();
 
  /*! Interface: Get an image */
  virtual CORBA::Long getImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
@@ -412,61 +396,39 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
  /* ! Get the SLAM image */
  int GetTheSLAMImage();
 
+#if (LLVS_HAVE_VVV>0)
+
+ /*! \name Interface specific to VVV. 
+  @{ */
+
+ /*! Image rectification using a small modification */
+ CORBA::Long scm_ConvertImageLocal(const SCM_PARAMETER *sp, const EPBM *I, EPBM *O,
+				   int OriginalWidth,int OriginalHeight);
+
+ /*! Load camera parameter matrix */
+ CORBA::Long CalibLoadPinholeParameter(const char *file, EPBM_PinHoleParameter *pin);
+
+ /*! Rectify the images */
+ CORBA::Long RectifyImages(EPBM *, EPBM *, int, int);
+
+ /*! Returns a link to the disparity process to get the range image */
+ HRP2DisparityProcess * GetDisparityProcess();
+
+ /* @} */
+#endif
+
  protected:
-
- /*! Disparity Process */
- HRP2DisparityProcess *m_DP;
-
- /*! Optical Flow Process */
- HRP2OpticalFlowProcess *m_OP;
-
- /*! Motion Evualation Process */
- HRP2MotionEvaluationProcess *m_MEP;
-
-  /*! Rectification process. */
- HRP2RectificationProcess *m_Rectification;
-
- /*! Mire detection process. */
- HRP2MireDetectionProcess *m_MireDetectionProcess;
 
  /*! List of Low Level Vision Process. */
  vector <HRP2VisionBasicProcess *> m_ListOfProcesses;
 
- /*! EdgeDetectionProcess */
- HRP2EdgeDetectionProcess * m_EdgeDetection;
-
- /*! BRepDetectionProcess */
- HRP2BRepDetectionProcess * m_BRepDetection;
-
- /*! SingleCameraSLAMProcess */
- HRP2SingleCameraSLAMProcess * m_SingleCameraSLAM;
-
- /*! FindFeaturesProcess */
- HRP2FindFeaturesInImage * m_FFII; 
-
- /*! Image Difference */
- HRP2ImageDifferenceProcess * m_ImgDiff;
-
- /*! Process to perform color detection */
- HRP2ColorDetectionProcess * m_ColorDetection;
-
  /*! Default value are 80 and 60 */
  CORBA::Long m_Width, m_Height;
-
- /*! VVV structures related to the calibration information */
-
- /*! Camera parameter */
- EPBM_PinHoleParameter m_PinHoleParameter[4];
- 
- /*! Intensity parameters */
- EPBM_IntensityParameter m_IntensityParameter[4];
-
- /*! Distorsion parameters */
- EPBM_DistortionParameter m_DistortionParameter[4];
 
  /*! Image Size used during calibration */
  CORBA::Long m_CalibrationWidth[3], m_CalibrationHeight[4];
 
+#if (LLVS_HAVE_VVV>0)
  /*! Initial image in the VVV formalism. */
  EPBM m_epbm[4];
 
@@ -479,6 +441,57 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
  /*! File descriptor to the frame grabber */
  VFGB m_VFGBforTheFrameGrabber;
 
+ /*! Structure storing all the camera models. */
+ SCM_PARAMETER m_sp;
+
+ /*! Disparity Process */
+ HRP2DisparityProcess *m_DP;
+
+  /*! Rectification process. */
+ HRP2RectificationProcess *m_Rectification;
+
+ /*! Mire detection process. */
+ HRP2MireDetectionProcess *m_MireDetectionProcess;
+
+ /*! Optical Flow Process */
+ HRP2OpticalFlowProcess *m_OP;
+
+ /*! Motion Evualation Process */
+ HRP2MotionEvaluationProcess *m_MEP;
+
+ /*! EdgeDetectionProcess */
+ HRP2EdgeDetectionProcess * m_EdgeDetection;
+
+ /*! BRepDetectionProcess */
+ HRP2BRepDetectionProcess * m_BRepDetection;
+
+ /*! FindFeaturesProcess */
+ HRP2FindFeaturesInImage * m_FFII; 
+
+ /*! Image Difference */
+ HRP2ImageDifferenceProcess * m_ImgDiff;
+
+ /*! Process to perform color detection */
+ HRP2ColorDetectionProcess * m_ColorDetection;
+
+ /*! VVV structures related to the calibration information */
+
+ /*! Camera parameter */
+ EPBM_PinHoleParameter m_PinHoleParameter[4];
+ 
+ /*! Intensity parameters */
+ EPBM_IntensityParameter m_IntensityParameter[4];
+
+ /*! Distorsion parameters */
+ EPBM_DistortionParameter m_DistortionParameter[4];
+
+#endif
+
+#if (LLVS_HAVE_SCENE>0)
+ /*! SingleCameraSLAMProcess */
+ HRP2SingleCameraSLAMProcess * m_SingleCameraSLAM;
+#endif
+
  /*! Binary maps of the images */
  unsigned char **m_BinaryImages;
 
@@ -487,9 +500,6 @@ class LowLevelVisionServer: public virtual POA_LowLevelVisionSystem,
 
  /*! Binary maps of the images undistorted */
  unsigned char **m_BinaryImages_undistorted;
-
- /*! Structure storing all the camera models. */
- SCM_PARAMETER m_sp;
 
  /*! A pointer to the object providing the images */
  HRP2ImagesInputMethod * m_ImagesInputMethod;

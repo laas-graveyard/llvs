@@ -50,11 +50,11 @@
 #include <string>
 #include <vector>
 
-#ifdef LLVS_HAVE_OPENCV
+#if (LLVS_HAVE_OPENCV>0)
 #include <cv.h>
 #endif /* LLVS_HAVE_OPENCV */
 
-#ifdef LLVS_HAVE_VVV
+#if (LLVS_HAVE_VVV>0)
 extern "C" 
 {
 #include "epbm.h"
@@ -131,7 +131,7 @@ class HRP2VisionBasicProcess
   /*! Get the parameters and their values */
   virtual int GetParametersAndValues(vector<string> & ListOfParameters, vector<string> & ListOfValues);
 
-#if ((LLVS_HAVE_OPENCV=='TRUE') && (LLVS_HAVE_VVV=='TRUE'))
+#if ((LLVS_HAVE_OPENCV>0) && (LLVS_HAVE_VVV>0))
   #warning "Here .."
   static const int HEADER_IPL=0;
   static const int EXISTING_IPL=1;
