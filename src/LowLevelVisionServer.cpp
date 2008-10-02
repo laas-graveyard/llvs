@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include <math.h>
 //#define _GNU_SOURCE
 #include <getopt.h>
 
