@@ -1,0 +1,427 @@
+#ifndef __COMMON_IDL__
+#define __COMMON_IDL__
+
+/**
+ * OpenHRP Common IDL
+ * 2001.01.09	Ichitaro Kohara, MSTC
+ */
+
+/**
+ * Joint Torque Sequence
+ */
+typedef sequence<double> TorqueSeq;
+
+/**
+ * Joint Datatype Specification
+ * ANGLE:		Angles
+ * VELOCITY:		Velocity
+ * ACCELERATION:	Acceleration
+ */
+enum DataId {ANGLE, VELOCITY, ACCELERATION};
+
+/**
+ * LinkData
+ * 0:Angle, 1:Velocity, 2:Acceleration
+ */
+typedef double LinkData[3];
+
+/**
+ * Sequence of LinkData
+ */
+typedef sequence<LinkData> LinkDataSeq;
+
+/**
+ * Link Parameter
+ * *Changes according to type of Parameter For:
+ *   double       only Value[0] is used
+ *   CMatrix[3x1] only Value[0,1,2] are used
+ *   CMatrix[3x3] all Value[0 to 8] are used
+ */
+typedef sequence<double, 9> Value;
+
+/**
+ * Force Sensor Value
+ */
+typedef sequence<double, 6> FSValue;
+
+/**
+ * LinkName Sequence
+ */
+typedef sequence<string> LinkNameSeq;
+
+/**
+ * Position and Attitude
+ * @param	posX	x coordinates
+ * @param	posY	y coordinates
+ * @param	posZ	z coordinates
+ * @param	axisX	x axis
+ * @param	axisY	y axis
+ * @param	axisZ	z axis
+ * @param	angle	angle
+ */
+struct Transform
+{
+	float posX;
+	float posY;
+	float posZ;
+	float axisX;
+	float axisY;
+	float axisZ;
+	float angle;
+};
+
+/**
+ * Addition starts here
+ * 2002.01.25   by K.Saito, KernelInc
+ */
+/**
+ * Position and Attitude
+ * @param	px	x coordinates
+ * @param	py	y coordinates
+ * @param	pz	z coordinates
+ * @param	qx	x axis
+ * @param	qy	y axis
+ * @param	qz	z axis
+ * @param	qw	w axis
+ */
+struct TransformQuaternion
+{
+    float px;
+    float py;
+    float pz;
+    float qx;
+    float qy;
+    float qz;
+    float qw;
+};
+
+/**
+ * <---- Additions end here
+ */
+
+/**
+ * Link Infomation
+ * @member	name		Name of Link
+ * @member	pos		Position
+ * @member	rot		Attitude
+ * @member	JointValue	Joint Angle
+ */
+struct LinkInfo
+{
+	string	name;
+	Value	pos;
+	Value	rot;
+	double	JointValue;
+	double	JointVel;
+	double	JointAcc;
+	Value	jpos;
+	Value	jatt;
+	Value	vel;  // for free joints
+	Value	acc;  // for free joints
+};
+
+/**
+ * Additions start here----->
+ * 2002.02.25   by K.Saito, KernelInc
+ */
+/**
+ * Link Value
+ * @member	name		Link Name
+ * @member	param		Parameter Name
+ * @member	value		Value
+ */
+
+struct LinkValue
+{
+	string	name;
+	string	param;
+	Value	data;
+};
+
+/**
+ * Link Value Sequence
+ */
+
+typedef sequence<LinkValue> LinkValueSeq;
+
+/**
+ * <----Additions end here
+ */
+
+
+/**
+ * Link Information Sequence
+ */
+typedef sequence<LinkInfo> LinkInfoSeq;
+
+/**
+ * Coordinates (x, y, z)(m)
+ */
+/**
+ * Normal Vector (x, y, z)(m)
+ */
+typedef float Vector3[3];
+
+/**
+ * Detailed Collision Information(collision point, normal vector)
+ *
+ * @member	coord	Collision Point in World Coordinates
+ * @member	normal	Normal Vector of collision in World Coordinates
+ */
+struct CollisionData
+{
+	Vector3	coord;
+	Vector3	normal;
+	double	idepth;
+};
+
+/**
+ * CollisionData Sequence
+ */
+typedef sequence<CollisionData> CollisionDataSeq;
+
+/**
+ * State of Simulated World
+ * @member	time		Simulated Time
+ * @member	linkinfo	Link Information
+ * @member	collision	Collision Information
+ */
+struct WorldState
+{
+	double				time;
+	LinkInfoSeq			linkinfo;
+	CollisionDataSeq	collision;
+};
+
+typedef sequence<double> dsequence;
+
+
+enum PixelFormat {ARGB, // 4byte/pixel
+		  GRAY, // 1byte/pixel
+		  DEPTH,// 4byte/pixel
+		  RGB}; // 3byte/pixel
+
+struct ImageData
+{
+  PixelFormat format;
+  long width, height;
+  sequence<octet> octetData;
+  sequence<long> longData;
+  sequence<float> floatData;
+};
+
+struct RobotState
+{
+  dsequence angle;
+  dsequence velocity;
+  dsequence torque;
+  sequence<dsequence> force;
+  sequence<dsequence> rate;
+  sequence<dsequence> accel;
+  sequence<dsequence> attitude;
+  dsequence zmp;
+  dsequence waistPos;
+  dsequence waistRpy;
+  sequence<ImageData> image;
+  sequence<long> dio;
+};
+
+/**
+ * Link Parameter
+ */
+typedef Value ValueMatrix;
+
+
+/**
+ * Definition of Sensor Types
+ * FORCE_SENSOR:	6 axis force sensor
+ * GYRO:		gyro
+ * ACCELERARION_SENSOR:	Accelerometer
+ * PRESSURE_SENSOR:	Pressure sensor
+ * PHOTO_INTERRUPTER:	Photo interrupter
+ * TORQUE_SENSOR:   	Joint Torque Sensor
+ */
+enum SensorType {
+    FORCE_SENSOR, 
+    GYRO, 
+    ACCELERATION_SENSOR, 
+    PRESSURE_SENSOR, 
+    PHOTO_INTERRUPTER,
+    VISION_SENSOR,
+    TORQUE_SENSOR
+};
+
+/**
+ * SensorInfo Interface
+ * @author  Keisuke Saito, Kernel Inc
+ * @date    2002.02.06
+ * @version 1.0
+ */
+interface SensorInfo
+{
+    readonly attribute long         id;
+    readonly attribute string       name;
+    readonly attribute SensorType   type;
+    readonly attribute ValueMatrix  relPos;
+    readonly attribute ValueMatrix  relAttitude;
+    readonly attribute ValueMatrix  maxValue;
+};
+
+/**
+ * SensorInfo Sequence
+ */
+typedef sequence<SensorInfo> SensorInfoSeq;
+
+/**
+ * ParserModelObject Interface
+ * @author  Ichitaro Kohara, MSTC
+ * @date    2001.01.06
+ * @version 1.0
+ * @version 1.1
+ */
+interface ParserModelObject
+{
+    readonly attribute boolean      positionGiven;
+    readonly attribute boolean      rotateJoint;
+    readonly attribute double       mass;
+    readonly attribute double       jointValue;
+    readonly attribute double       jointVel;
+    readonly attribute double       jointAcc;
+
+    readonly attribute ValueMatrix  absPos;
+    readonly attribute ValueMatrix  relPos;
+    readonly attribute ValueMatrix  relComPos;
+    readonly attribute ValueMatrix  absComPos;
+    readonly attribute ValueMatrix  relComAcc;
+
+    readonly attribute ValueMatrix  omega;
+    readonly attribute ValueMatrix  omega_d;
+    readonly attribute ValueMatrix  relAcc;
+    readonly attribute ValueMatrix  absVel;
+    readonly attribute ValueMatrix  absComVel;
+
+    readonly attribute ValueMatrix  relForce;
+    readonly attribute ValueMatrix  relTorque;
+
+    readonly attribute ValueMatrix  absAttitude;
+    readonly attribute ValueMatrix  relAttitude;
+    readonly attribute ValueMatrix  inertia;
+    readonly attribute Value        dh;
+
+    readonly attribute Value    ulimit;
+    readonly attribute Value    llimit;
+    readonly attribute Value    uvlimit;
+    readonly attribute Value    lvlimit;
+
+    //--- for rotor inertia of servomotor  '01 Jun.29 s.kajita
+    readonly attribute double rotorInertia;
+    readonly attribute double rotorResistor;
+    readonly attribute double gearRatio;
+    readonly attribute double torqueConst;
+    readonly attribute double encoderPulse;
+
+    readonly attribute Value    bboxCenter;
+    readonly attribute Value    bboxSize;
+
+    readonly attribute string       name;
+    readonly attribute string       jointType;
+    readonly attribute short        jointId;
+    readonly attribute string       jointAxis;
+
+    readonly attribute long         mother;     // index
+    readonly attribute long         sister;     // index
+    readonly attribute long         daughter;   // index
+
+    //--- for sensor '02 Feb.6 k.saito,KernelInc
+  readonly attribute SensorInfoSeq  sensors;
+};
+
+typedef sequence<string> stringSeq;
+
+/**
+ * ParserModelObject Sequence
+ */
+typedef sequence<ParserModelObject> ParserModelObjectSeq;
+
+interface ParserCharObject
+{
+    readonly attribute string name;
+    readonly attribute stringSeq info;
+    readonly attribute ParserModelObjectSeq modelObjectSeq;
+};
+
+/**
+ * ModelInfo Interface
+ * @author  Keisuke Saito, KernelInc
+ * @date    2001.01.06
+ * @version 1.0
+ */
+interface ModelInfo
+{
+
+    /**
+     * sequence of float
+     */
+    typedef sequence<float> floatSeq;
+    typedef sequence<string> NameSeq;
+    
+    /** 
+     *  Returns URL location of object source
+     *  @return string URL
+     **/ 
+    string getUrl();
+    
+    /**
+     * returns structure of model
+     * @return  ParserCharObject information
+     */
+    ParserCharObject getCharObject();
+    
+    /** List of Objects
+     *  Returns list of JointName
+     *  @return JointName List
+     **/ 
+    NameSeq getJointList();
+    
+    /** Read Triangles
+     *   @param     jointName   joint name
+     *   @param     count       Number of triangles to read
+     *   @return    group of triangles
+     *              every 9 float values represent one triangle
+     **/
+    floatSeq readTriangles(
+        in string jointName,
+        in long count
+    );
+    
+    /**
+     * Interface destructor
+     */
+    void destroy();
+
+};
+
+interface OpenHRPObject
+{
+  oneway void shutdown();
+};
+
+interface CommandReceiver
+{
+  void sendMsg(in string msg);
+};
+
+interface Plugin : CommandReceiver
+{
+  void start();
+  void stop();
+};
+
+interface PluginManager : CommandReceiver
+{
+  void load(in string name);
+  Plugin create(in string pclass, in string name, in string args);
+  stringSeq getPluginNames();
+};
+#endif
+
