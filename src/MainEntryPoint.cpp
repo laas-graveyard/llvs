@@ -16,14 +16,6 @@
 #include <omniORB4/CORBA.h>
 #endif
 
-extern "C" {
-#include <ct3001.h>
-#include <pebutil.h>
-#include <calib.h>
-#include <vfgbtype.h>
-#include <vfgb.h>
-#include <vfgbct3001.h>
-}
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl

@@ -62,6 +62,7 @@ INCLUDE(FindVW)
 IF (VW_FOUND)
    SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${VW_CXX_FLAGS}")
    SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${VW_LD_FLAGS}")
+   SET(LLVS_HAVE_VW TRUE)
    MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
 ENDIF(VW_FOUND)
 
@@ -70,6 +71,7 @@ INCLUDE(FindVVV)
 IF (VVV_FOUND)
    SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${VVV_CXX_FLAGS}")
    SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${VVV_LD_FLAGS}")
+   SET(LLVS_HAVE_VVV TRUE)
    MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
 ENDIF(VVV_FOUND)
 
@@ -78,6 +80,7 @@ INCLUDE(FindOpenCV)
 IF (OPENCV_FOUND)
    SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${OPENCV_CXX_FLAGS}")
    SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${OPENCV_LD_FLAGS}")
+   SET(LLVS_HAVE_OPENCV TRUE)
    MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
 ENDIF(OPENCV_FOUND)
 
@@ -86,6 +89,7 @@ INCLUDE(FindScene)
 IF (SCENE_FOUND)
    SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${SCENE_CXX_FLAGS}")
    SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${SCENE_LD_FLAGS}")
+   SET(LLVS_HAVE_SCENE TRUE)
    MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
 ENDIF(SCENE_FOUND)
 
@@ -97,7 +101,7 @@ IF (OMNIORB4_FOUND)
   IF(omniORB4_include_DIR)
     SET(LLVS_CXX_FLAGS "-I${omniORB4_include_DIR}")
   ENDIF(omniORB4_include_DIR)
-
+  SET(LLVS_HAVE_OMNIORB4 TRUE)
   SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${omniORB4_link_FLAGS}")
 
 ENDIF (OMNIORB4_FOUND)
@@ -105,15 +109,38 @@ ENDIF (OMNIORB4_FOUND)
 SET(LLVS_SRC_FILES "")
 SET(LLVS_HEADERS_FILES "")   
 
+#----------------------------------------------------
+# Generate the package dependent file sotConfig.h
+#----------------------------------------------------
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/include/llvs/llvsConfig.h.cmake
+	${PROJECT_SOURCE_DIR}/include/llvs/llvsConfig.h
+)
+
+#----------------------------------------------------
+# Include the rules to make the server library,
+# the server itself,
+# and the necessary CORBA related files. 
+#----------------------------------------------------
 INCLUDE(${PROJECT_SOURCE_DIR}/corba/SourceList.cmake)
 INCLUDE(${PROJECT_SOURCE_DIR}/src/SourceList.cmake)
 INCLUDE(${PROJECT_SOURCE_DIR}/include/llvs/SourceList.cmake)
 
+MESSAGE(STATUS "LLVS_SRC_FILES: ${LLVS_SRC_FILES}")
+MESSAGE(STATUS "LLVS_HEADER_FILES: ${LLVS_HEADER_FILES}")
+#----------------------------------------------------
+# Create the library. 
+#----------------------------------------------------
 ADD_LIBRARY(${LLVS_INTERN_LIBS} ${LLVS_SRC_FILES} ${LLVS_HEADER_FILES})
-
 SET_TARGET_PROPERTIES(${LLVS_INTERN_LIBS} PROPERTIES COMPILE_FLAGS "${LLVS_CXX_FLAGS}")
 
+#----------------------------------------------------
+# Create the server.
+#----------------------------------------------------
 ADD_EXECUTABLE(LLVS_server ./src/MainEntryPoint.cpp )
 
-SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS "${LLVS_server_CXX_FLAGS} ${LLVS_CXX_FLAGS}")
-SET_TARGET_PROPERTIES(LLVS_server PROPERTIES LINK_FLAGS "${LLVS_server_LINK_FLAGS} ./libllvs-0.a ${LLVS_LINK_FLAGS}  ")
+SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS 
+  "${LLVS_server_CXX_FLAGS} ${LLVS_CXX_FLAGS}"
+  LINK_FLAGS 
+  "${LLVS_server_LINK_FLAGS} ./libllvs-0.a ${LLVS_LINK_FLAGS}  ")
+
+ADD_DEPENDENCIES(LLVS_server ${LLVS_INTERN_LIBS})

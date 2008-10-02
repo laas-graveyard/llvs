@@ -131,7 +131,7 @@ int HRP2ColorDetectionProcess::InitializeTheProcess()
             
     }
   // Try to connect to the remote object performing the task.
-  TryConnectionToVisualServoing();
+  //  TryConnectionToVisualServoing();
 
 
   return 0;
@@ -192,7 +192,7 @@ int HRP2ColorDetectionProcess::RealizeTheProcess()
 {
   if (!m_Computing)
     return 0;
-  
+
   unsigned int lw,lh;
   double x[m_NbOfCameras],y[m_NbOfCameras];
   int x1[2]={-1,-1},x2[2]={-1,-1};

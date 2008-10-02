@@ -1,15 +1,8 @@
 /** @doc This object implements the CORBA server providing
     Low Level Vision on the HRP-2 Vision processor.
 
-   CVS Information:
-   $Id$
-   $Author$
-   $Date$
-   $Revision$
-   $Source$
-   $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2008, 
    @author Olivier Stasse
    
    JRL-Japan, CNRS/AIST
@@ -40,6 +33,7 @@
 #define _HRP2_VISION_SERVER_
 
 #include <sys/time.h>
+
 #ifdef __ORBIX__
 #include <OBE/CORBA.h>
 #include "LowLevelVisionSystem_skel.h"
@@ -52,8 +46,14 @@
 #endif
 
 
+#include <llvs/llvsConfig.h>
+
 #include "Camera_impl.h"
+
 #include "StereoVision_impl.h"
+
+/*! Inclusion specific to VVV */
+#ifdef LLVS_HAVE_VVV=="TRUE"
 
 class Camera_impl ;
 extern "C"
@@ -63,18 +63,28 @@ extern "C"
 #include <vfgbutil.h>
 #include <vfgbtype.h>
 }
+#include "VVV/RectificationProcess.h"
+#include "VVV/EdgeDetectionProcess.h"
+#include "VVV/BRepDetectionProcess.h"
+#include "VVV/DisparityProcess.h"
+
+#endif
+
+#ifdef ((LLVS_HAVE_VW=="TRUE") &  (LLVS_HAVE_SCENE=="TRUE"))
+#include "SingleCameraSLAMProcess.h"
+#endif
 
 #include "ImagesInputMethod.h"
-#include "DisparityProcess.h"
+
+#ifdef LLVS_HAVE_OPENCV
+
 #include "OpticalFlowProcess.h"
 #include "MotionEvaluationProcess.h"
-#include "RectificationProcess.h"
 #include "MireDetectionProcess.h"
-#include "EdgeDetectionProcess.h"
-#include "BRepDetectionProcess.h"
-#include "SingleCameraSLAMProcess.h"
 #include "FindFeaturesInImage.h"
 #include "ImageDifference.h"
+#endif 
+
 #include "ColorDetection.h"
 
 #include <vector>

@@ -80,7 +80,7 @@ VVVDIR=/usr/local/VVV
 #VVVDIR=/home/stasse/src/OpenHRP/HRP2VisionSystem/src/libraries/VVV_bin2/
 
 # VVV libraries
-LIBS= -L../../lib -L$(VVVDIR)/lib 
+LIBS= -L../../lib -L$(VVVDIR)/vvv/lib 
 
 LIBS+= -lGeometry -lImageProcessing
 
@@ -107,7 +107,7 @@ LIBS+=  -lGL
 
 # COMPILATION FLAGS
 #CXX_FLAGS = -c -Wall -DOMNIORB4 -I$(OMNIORB4_DIR)/include -I$(COMMON) -I. -I/usr/local/include -DVERSION=$(VERSION) $(EXTRA_FLAGS)
-CXX_FLAGS += -O3 -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS
+CXX_FLAGS += -g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS
 
 # Flags needed for OMNIORB
 ifeq ($(ORB),OMNIORB4)
@@ -121,7 +121,7 @@ CXX_FLAGS += -D__ORBIX__ -I/usr/local/IONA/OBE/2.2/acpp/include/ -I../corba/ORBI
 endif
 
 # Flags specific to vision processes.
-CXX_FLAGS += -I../../include -I$(VVVDIR)/include -I. -I../../include/nScene
+CXX_FLAGS += -I../../include -I$(VVVDIR)/vvv/include -I$(VVVDIR)/vvm/include -I$(VVVDIR)/vvv/programs/pebstereo -I. -I../../include/nScene
 CXX_FLAGS += -I/usr/local/include/opencv -DWITH_IEEE1394 
 CXX_FLAGS += -I$(OPENHRPHOME)/HRP2VisionSystem/plugin/GetGyroAndAccelerometer/corba/cpp/
 CXX_FLAGS += -I$(OPENHRPHOME)/VisualServoing/plugin/corba/ORBIX/cpp/
@@ -182,7 +182,7 @@ ifeq ($(ORB),ORBIXE)
 LINK=$(CXX) -L../../lib -ldl
 $(TARGET): $(OBJS) $(OBJS_LLVS) $(SERVER_OBJS)
 	if [ ! -e ../server ]; then mkdir ../server; fi
-	$(LINK)  $(LINK_FLAGS) -Wall -o $(TARGET) $(OBJS) GetGyroAndAccelerometer.o  $(OBJS_LLVS)\
+	$(LINK)  $(LINK_FLAGS) -Wall -o $(TARGET) $(OBJS) GetGyroAndAccelerometer.o  $(OBJS_LLVS) \
 	-L../include -I../include -L$(OB_LIB_DIR) $(OB_LIBS)   $(SERVER_OBJS)  $(LINK_LIBS)  $(LIBS) 
 
 #  ../obj/kcpit.o ../obj/corbaClient.o \

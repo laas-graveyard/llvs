@@ -65,6 +65,8 @@ extern "C"
 #include <scm.h>
 }
 
+using namespace std; 
+
 #include "Camera_impl.h"
 #include "LowLevelVisionServer.h"
 /* #include "CT3001ImagesInputMethod.h"*/
@@ -121,9 +123,9 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   HRP2IEEE1394ImagesInputMethod *aIIIM;
 
   for(int i=0;i<4;i++)
-    m_depth[i] = 1;
+    m_depth[i] = 3;
 
-  m_ImageFormat = "GrayScaleChar";
+  m_ImageFormat = "RGB";
 
   m_EndOfConstructor = false;
   m_DumpImageMode = LowLevelVisionSystem::SINGLE;
@@ -157,12 +159,26 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   epbm_minitialize(m_epbm,4);
   epbm_minitialize(m_CorrectedImages,4);
   epbm_minitialize(m_epbm_distorted,4);
-
+  for(int i=0;i<4;i++)
+    if (m_depth[i]==1)
+      {
+	m_epbm[i].Magic2 = EPBM_BINARY_GRAY;
+	m_CorrectedImages[i].Magic2= EPBM_BINARY_GRAY;
+	m_epbm_distorted[i].Magic2=EPBM_BINARY_GRAY;
+      }
+    else if (m_depth[i]==3)
+      {
+	m_epbm[i].Magic2 = EPBM_BINARY_COLOR;
+	m_CorrectedImages[i].Magic2= EPBM_BINARY_COLOR;
+	m_epbm_distorted[i].Magic2=EPBM_BINARY_COLOR;
+      }
+  
   /* Create the appropriate object depending on the target. */
   m_TypeOfInputMethod = MethodForInputImages;
   m_TypeOfSynchro = SynchroMethodForInputImages;
 
   ODEBUG("Step 2");
+  cout << "Type of Input Method: " << m_TypeOfInputMethod << " " << LowLevelVisionSystem::FILES << endl;
   switch(m_TypeOfInputMethod)
     {
       
@@ -192,7 +208,10 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   ODEBUG("Step 3");
   if (m_ImagesInputMethod!=0)
-    m_ImagesInputMethod->SetLevelOfVerbosity(m_Verbosity);
+    {
+      //      m_ImagesInputMethod->SetLevelOfVerbosity(m_Verbosity);
+      m_ImagesInputMethod->SetLevelOfVerbosity(5);
+    }
 
   /* Fix the size of the image */
   SetImagesGrabbedSize(640,480);
@@ -447,7 +466,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
   if (m_ImagesInputMethod!=0)
     {
       m_ImageFormat = m_ImagesInputMethod->GetFormat();
-      ODEBUG("m_ImageFormat :" << m_ImageFormat);
+      ODEBUG3("m_ImageFormat :" << m_ImageFormat);
       if (m_ImageFormat=="PGM")
 	{
 	  for(int i=0;i<4;i++)
@@ -1116,6 +1135,7 @@ CORBA::Long LowLevelVisionServer::ProcessStatus(const char *aProcessName)
 CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
   throw(CORBA::SystemException)
 {
+  ODEBUG3("Process asked to be start :" << aProcessName);
   CORBA::Long r=1;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     {
@@ -1752,9 +1772,9 @@ LowLevelVisionServer::bindObjectToName(CORBA::Object_ptr objref)
       m_cxt->bind(objectName, objref);
     }
   catch(CosNaming::NamingContext::AlreadyBound& ex) 
-    //catch(...)
+  //  catch(...)
     {
-      m_cxt->rebind(objectName, objref);
+        m_cxt->rebind(objectName, objref);
     }
   // Note: Using rebind() will overwrite any Object previously bound
   //       to /test/Echo with obj.
