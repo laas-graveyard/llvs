@@ -44,7 +44,7 @@
 
 #include <sys/time.h>
 
-#include "FileImagesInputMethod.h"
+#include "Simu/FileImagesInputMethod.h"
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "HPR2FileImagesInputMethod:" << x << endl

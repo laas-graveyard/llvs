@@ -74,7 +74,6 @@ void SIGINT_handler(int asig)
       GlobalVisionServer->StopMainProcess();
       cout << "Stopped the processes "<< endl;
 
-
       GlobalVisionServer->RecordImagesOnDisk(0);
       
       /* Delete the object. */

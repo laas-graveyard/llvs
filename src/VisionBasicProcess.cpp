@@ -160,7 +160,7 @@ int HRP2VisionBasicProcess::GetParametersAndValues(vector<string> &ListOfParamet
   return 0;
 }
 
-#ifdef LLVS_HAVE_OPENCV
+#if (LLVS_HAVE_OPENCV>0)
 
 IplImage **HRP2VisionBasicProcess::ToIPL(unsigned char *Images[3],int Sizes[3][2])
 {

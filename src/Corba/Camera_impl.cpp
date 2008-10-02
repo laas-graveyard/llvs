@@ -37,11 +37,15 @@
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <math.h>
-#include "Camera_impl.h"
+#include <Corba/Camera_impl.h>
+
+#if (LLVS_HAVE_VVV>0)
 extern "C"
 {
 #include "scm.h"
 }
+#endif
+
 /* Constructor for this class */
 Camera_impl::Camera_impl(const char *location,LowLevelVisionServer *aLLVS)
 {
@@ -186,6 +190,7 @@ void Camera_impl::SetCameraParameter(long aWidth,long aHeight, long CalibrationW
   m_CameraParameter.CalibrationHeight = CalibrationHeight;
 }
 					 
+#if (LLVS_HAVE_VVV>0)
 void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_number)
 {
 
@@ -263,6 +268,7 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
     }
     
 }
+#endif
 
 void Camera_impl::GetOriginalProjectiveMatrix(double oP[3][4])
 {

@@ -4,12 +4,17 @@
 
 SET(LLVS_SRC_FILES_1 
 	ImagesInputMethod.cpp 
-	SimulatorInputMethod.cpp 
 	VisionBasicProcess.cpp 
 	LowLevelVisionServer.cpp 
-	FindFeaturesInImage.cpp 
-	ImageDifference.cpp 
+	./Simu/SimulatorInputMethod.cpp 
 	./Simu/FileImagesInputMethod.cpp )
+
+SET(LLVS_HEADER_FILES_1 
+	ImagesInputMethod.h
+	VisionBasicProcess.h 
+	LowLevelVisionServer.h 
+	./Simu/SimulatorInputMethod.h 
+	./Simu/FileImagesInputMethod.h )
 
 IF (OMNIORB4_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
@@ -30,7 +35,20 @@ IF (VVV_FOUND)
 	./VVV/EdgeDetectionProcess.cpp 
 	./VVV/BRepDetectionProcess.cpp 
      	./VVV/ColorDetection.cpp 
+	./VVV/FindFeaturesInImage.cpp 
+	./VVV/ImageDifference.cpp 
 	)
+  SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+        ./VVV/DisparityProcess.h 
+	./VVV/MotionEvaluationProcess.h 
+	./VVV/RectificationProcess.h 
+	./VVV/EdgeDetectionProcess.h 
+	./VVV/BRepDetectionProcess.h 
+     	./VVV/ColorDetection.h 
+	./VVV/FindFeaturesInImage.h 
+	./VVV/ImageDifference.h 
+	)
+
 ENDIF (VVV_FOUND)
 
 

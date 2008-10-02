@@ -15,7 +15,7 @@ using namespace std;
 #ifdef OMNIORB4
 #include <omniORB4/CORBA.h>
 #endif
-#include "StereoVision_impl.h"
+#include <Corba/StereoVision_impl.h>
 
 #include "oocmap.h"
 
