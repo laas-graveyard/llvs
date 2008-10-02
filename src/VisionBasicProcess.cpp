@@ -40,6 +40,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+
 HRP2VisionBasicProcess::HRP2VisionBasicProcess(int Instance)
   : m_Instance(Instance)
 {
@@ -159,7 +160,7 @@ int HRP2VisionBasicProcess::GetParametersAndValues(vector<string> &ListOfParamet
   return 0;
 }
 
-#ifdef __OPENCV__
+#ifdef LLVS_HAVE_OPENCV
 
 IplImage **HRP2VisionBasicProcess::ToIPL(unsigned char *Images[3],int Sizes[3][2])
 {

@@ -54,6 +54,7 @@
 #include <OBE/CosNaming.h>
 #endif
 
+#if (LLVS_HAVE_VVV=='TRUE')
 extern "C" 
 {
 #include <ct3001.h>
@@ -64,16 +65,18 @@ extern "C"
 #include <vfgbct3001.h>
 #include <scm.h>
 }
+#endif
 
 using namespace std; 
 
-#include "Camera_impl.h"
+#include "Corba/Camera_impl.h"
 #include "LowLevelVisionServer.h"
-/* #include "CT3001ImagesInputMethod.h"*/
-#include "IEEE1394ImagesInputMethod.h"
-#include "FileImagesInputMethod.h"
+#include "Simu/FileImagesInputMethod.h"
 #include "SimulatorInputMethod.h"
 
+#if (LLVS_HAVE_VVV=='TRUE')
+#include "IEEE1394ImagesInputMethod.h"
+#endif
 
 
 #define ODEBUG2(x)

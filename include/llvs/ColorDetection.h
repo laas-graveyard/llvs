@@ -144,10 +144,6 @@ class HRP2ColorDetectionProcess : public HRP2VisionBasicProcess
    */
   int m_NbOfCameras;
 
-  /*! CORBA object for accessing the visual servoing plugin. */
-#if 0
-  VisualServoingServer * m_VisualServoing;
-#endif
 
   /*! CORBA naming context provided by LLVS */
   CosNaming::NamingContext_var m_cxt;

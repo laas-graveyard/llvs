@@ -3,11 +3,9 @@
 # Copyright CNRS/AIST
 
 SET(LLVS_SRC_FILES_1 
-     	ColorDetection.cpp 
 	ImagesInputMethod.cpp 
 	SimulatorInputMethod.cpp 
 	VisionBasicProcess.cpp 
-	OpticalFlowProcess.cpp 
 	LowLevelVisionServer.cpp 
 	FindFeaturesInImage.cpp 
 	ImageDifference.cpp 
@@ -30,7 +28,9 @@ IF (VVV_FOUND)
 	./VVV/MotionEvaluationProcess.cpp 
 	./VVV/RectificationProcess.cpp 
 	./VVV/EdgeDetectionProcess.cpp 
-	./VVV/BRepDetectionProcess.cpp )
+	./VVV/BRepDetectionProcess.cpp 
+     	./VVV/ColorDetection.cpp 
+	)
 ENDIF (VVV_FOUND)
 
 

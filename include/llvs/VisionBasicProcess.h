@@ -50,13 +50,17 @@
 #include <string>
 #include <vector>
 
-#ifdef __OPENCV__
+#ifdef LLVS_HAVE_OPENCV
 #include <cv.h>
+#endif /* LLVS_HAVE_OPENCV */
+
+#ifdef LLVS_HAVE_VVV
 extern "C" 
 {
 #include "epbm.h"
 }
-#endif 
+#endif /* LLVS_HAVE_VVV */
+
 using namespace::std;
 
 /*! This object is used to derive all the vision process
@@ -127,7 +131,8 @@ class HRP2VisionBasicProcess
   /*! Get the parameters and their values */
   virtual int GetParametersAndValues(vector<string> & ListOfParameters, vector<string> & ListOfValues);
 
-#ifdef __OPENCV__
+#if ((LLVS_HAVE_OPENCV=='TRUE') && (LLVS_HAVE_VVV=='TRUE'))
+  #warning "Here .."
   static const int HEADER_IPL=0;
   static const int EXISTING_IPL=1;
   static const int NEW_IPL=2;
