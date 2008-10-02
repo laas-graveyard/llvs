@@ -1,0 +1,22 @@
+#include "common.idl"
+
+/* 03/24/2005
+ * Olivier Stasse, JRL/ CNRS, AIST
+ */
+
+struct OneTimeGyroAndAccelerometer
+{
+  double Gyro[3]; // Angular velocity
+  double Accelerometer[3]; // Linear acceleration
+  double timestamp;
+  double WaistVelocity[2]; // Vx Vy
+  double HeadPosition[4][4];
+  double HeadOrientation[5];
+};
+
+typedef sequence<OneTimeGyroAndAccelerometer> seqGyroAndAccelerometerOutput;
+
+interface GyroAndAccelerometerServer : Plugin
+{
+  void getGyroAndAccelerometer(out seqGyroAndAccelerometerOutput aseqGAAO, out double PrevTimeStamp);
+};
