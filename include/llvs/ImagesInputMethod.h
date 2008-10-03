@@ -64,6 +64,7 @@ class HRP2ImagesInputMethod
   static const int CAMERA_RIGHT = 1;
   static const int CAMERA_UP = 2;
   static const int CAMERA_WIDE = 3;
+
   /*! Constructor */
   HRP2ImagesInputMethod();
   

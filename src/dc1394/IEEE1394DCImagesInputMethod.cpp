@@ -35,32 +35,20 @@ using std::showbase;
  **************************************************************/
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
 {
-  m_Board = 0;
+  m_numCameras = 0;
+
   /* File descriptor to the frame grabber. */
-  ODEBUG("Through the constructor " << VFGBTYPE_IEEE1394);
+  ODEBUG("Through the constructor ");
   InitializeBoard();
   ODEBUG("Through the constructor");
 
-  m_LastGrabbingTime.resize(m_Board->nchildren());
-  for(int li=0;li<m_Board->nchildren();li++)
+  m_LastGrabbingTime.resize(m_numCameras);
+  for(int li=0;li<m_numCameras;li++)
     m_LastGrabbingTime[li]=-1.0;
 
-  m_GrabbingPeriod.resize(m_Board->nchildren());
+  m_GrabbingPeriod.resize(m_numCameras);
   
   m_Format = "PGM";
-
-  for(int k=0;k<3;k++)
-    {
-      m_ImagesWidth[k]  = 1024;
-      m_ImagesHeight[k] = 768;
-    }
-
-  /* Set the format of the board */
-
-
-  for(int i=0;i<4;i++)
-    m_TmpImage[i] = 0;
-
   m_Computing = 1;
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
@@ -94,7 +82,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
 	  
 	}
     }
-  for(int i=0;i<m_Board->nchildren();i++)
+  for(int i=0;i<m_numCameras;i++)
     FromFrameRateToTime(i);
     
   StartContinuousShot();
@@ -103,12 +91,10 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
 
 void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, string aFeature, string &aValue)
 {
-  if (m_Board==0)
-    return;
 
   int iCamera=0;
-  Ieee1394Camera::Feature lFeature=Ieee1394Camera::BRIGHTNESS;
-  
+  dc1394feature_info_t lFeature;
+
   if (aCamera=="LEFT")
     iCamera = 0;
   else if (aCamera=="RIGHT")
@@ -119,22 +105,21 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
     iCamera = 3;
 
   if (aFeature=="BRIGHTNESS")
-    lFeature = Ieee1394Camera::BRIGHTNESS;
+    lFeature->feature_id = DC1394_FEATURE_BRIGHTNESS;
   else if (aFeature=="AUTO_EXPOSURE")
-    lFeature = Ieee1394Camera::AUTO_EXPOSURE;
+    lFeature->feature_id = DC1394_FEATURE_EXPOSURE;
   else if (aFeature=="WHITE_BALANCE")
-    lFeature = Ieee1394Camera::WHITE_BALANCE;
+    lFeature->feature_id = DC1394_FEATURE_WHITE_BALANCE;
   else if (aFeature=="GAMMA")
-    lFeature = Ieee1394Camera::GAMMA;
+    lFeature->feature_id = DC1394_FEATURE_GAMMA;
   else if (aFeature=="SHUTTER")
-    lFeature = Ieee1394Camera::SHUTTER;
+    lFeature->feature_id = DC1394_FEATURE_SHUTTER;
    else if (aFeature=="GAIN")
-    lFeature = Ieee1394Camera::GAIN;
+    lFeature->feature_id = DC1394_FEATURE_GAIN;
 
   u_int avalue=0;
 
-  
-  m_Board->GetFeatureForCamera(iCamera,lFeature,avalue);
+  dc1304_feature_get_value(&m_DC1394Cameras[iCamera],lFeature,&avalue);
   char Buffer[1024];
   bzero(Buffer,1024);
   sprintf(Buffer,"%d",avalue);
@@ -143,13 +128,8 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
 
 void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, string aFeature, string aValue)
 {
-  if (m_Board==0)
-    return;
+  dc1394feature_info_t lFeature;
 
-  int iCamera=0;
-  Ieee1394Camera::Feature lFeature=Ieee1394Camera::BRIGHTNESS;
-  
-  StopContinuousShot();
   if (aCamera=="LEFT")
     iCamera = 0;
   else if (aCamera=="RIGHT")
@@ -160,21 +140,23 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
     iCamera = 3;
 
   if (aFeature=="BRIGHTNESS")
-    lFeature = Ieee1394Camera::BRIGHTNESS;
+    lFeature->feature_id = DC1394_FEATURE_BRIGHTNESS;
   else if (aFeature=="AUTO_EXPOSURE")
-    lFeature = Ieee1394Camera::AUTO_EXPOSURE;
+    lFeature->feature_id = DC1394_FEATURE_EXPOSURE;
   else if (aFeature=="WHITE_BALANCE")
-    lFeature = Ieee1394Camera::WHITE_BALANCE;
+    lFeature->feature_id = DC1394_FEATURE_WHITE_BALANCE;
   else if (aFeature=="GAMMA")
-    lFeature = Ieee1394Camera::GAMMA;
+    lFeature->feature_id = DC1394_FEATURE_GAMMA;
   else if (aFeature=="SHUTTER")
-    lFeature = Ieee1394Camera::SHUTTER;
+    lFeature->feature_id = DC1394_FEATURE_SHUTTER;
    else if (aFeature=="GAIN")
-    lFeature = Ieee1394Camera::GAIN;
+    lFeature->feature_id = DC1394_FEATURE_GAIN;
 
+  
+  StopContinuousShot();
   u_int avalue;
   avalue = atoi(aValue.c_str());
-  m_Board->SetFeatureForCamera(iCamera,lFeature,avalue);
+  dc1304_feature_set_value(&m_DC1394Cameras[iCamera],lFeature,avalue);
   StartContinuousShot();  
 }
 
@@ -182,12 +164,8 @@ HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 {
 
   /* Close the frame grabber. */
-  if (m_Board!=0)
-    {
-      m_Board->stopContinuousShot();
-      delete m_Board;
-    }
-  
+  StopBoard();
+
   for(int i=0;i<4;i++)
     {
       if (m_TmpImage[i] != 0)
@@ -249,8 +227,10 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsi
 {
   unsigned char * ImagesDst[4];
 
-  if (m_Board==0)
-    return 0;
+  vector<dc1394video_frame_t *> frame;
+  dc1394error_t err;
+
+  frame.resize(m_numCameras);
 
 #define LOCAL_TYPE unsigned char *
 
@@ -269,7 +249,15 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsi
 
       try
 	{
-	  m_Board->snapc(ImagesTab);
+	  /*-----------------------------------------------------------------------
+	   *  capture one frame
+	   *-----------------------------------------------------------------------*/
+	  for(unsigned int i=0;i<m_numCameras;i++)
+	    {
+	      err=dc1394_capture_dequeue(m_DC1394Cameras[i], DC1394_CAPTURE_POLICY_WAIT, &frame[i]);
+	      DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not capture a frame");
+	    }
+
 	}
       catch(std::exception &except)
 	{
@@ -292,14 +280,21 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsi
       ODEBUG("Get Images " );
       try
 	{
-	  m_Board->snapc(ImagesTab);
+	  /*-----------------------------------------------------------------------
+	   *  capture one frame
+	   *-----------------------------------------------------------------------*/
+	  for(unsigned int i=0;i<m_numCameras;i++)
+	    {
+	      err=dc1394_capture_dequeue(m_DC1394Cameras[i], DC1394_CAPTURE_POLICY_WAIT, &frame[i]);
+	      DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not capture a frame");
+	    }
+
 	}
       catch(std::exception &except)
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
 
-      //m_Board->get_images(ImagesTab);
       ODEBUG("Get Images finito...");
 
       for(int k=0;k<4;k++)
@@ -312,8 +307,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsi
 
 	  int intervalw, intervalh, indexd, indexs;
 	  unsigned int BWidth, BHeight;
-	  BWidth = m_Board->width();
-	  BHeight = m_Board->height();
+	  BWidth = m_BoardImagesWidth[k];
+	  BHeight = m_BoardImagesHeight[k];
 	  intervalw = BWidth / m_ImagesWidth[k];
 	  intervalh =  BHeight/ m_ImagesHeight[k];
 	  
@@ -1003,78 +998,110 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 {
   try 
     {
+
+      /*! List of camera. */
+      dc1394camera_list_t * list;
+  
       m_HandleDC1394 =  dc1394_new ();
-      
+      dc1394error_t err;
+      err = dc1394_camera_enumerate(m_HandleDC1394, &list);
+
+      j = 0;
+      for (i = 0; i < list->num; i++) {
+        m_DC1394Cameras[j] = dc1394_camera_new (m_HandleDC1394, list->ids[i].guid);
+        if (!m_DC1394Cameras[j]) {
+	  dc1394_log_warning("Failed to initialize camera with guid %llx", list->ids[i].guid);
+	  continue;
+        }
+        j++;
+      }
+      m_numCameras = j;
+      dc1394_camera_free_list (list);
+    
     }
   catch(...)
     {
       ODEBUG3("Unable to initialize the board correctly\n");
+      return;
     }
+  InitializeCameras();
   ODEBUG("InitializeBoard");
 }
+
+void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
+{
+  res=DC1394_VIDEO_MODE_640x480_YUV411;
+  fps=DC1394_VIDEO_FRAMERATE_30;
+  
+  for (i = 0; i < m_numCameras; i++) 
+    {
+      
+      err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
+      DC1394_ERR_CLN_RTN(err,cleanup(),"Could not set ISO speed");
+      
+      err=dc1394_video_set_mode(m_DC1394Cameras[i], res);
+      DC1394_ERR_CLN_RTN(err,cleanup(),"Could not set video mode");
+      
+      err=dc1394_video_set_framerate(m_DC1394Cameras[i], fps);
+      DC1394_ERR_CLN_RTN(err,cleanup(),"Could not set framerate");
+      
+      err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
+      DC1394_ERR_CLN_RTN(err,cleanup(),
+			 "Could not setup camera-\nmake sure \
+                          that the video mode and framerate \
+                          are\nsupported by your camera");
+
+      m_BoardImagesWidth[i]= 640;
+      m_BoardImagesHeight[i]= 480;
+
+    }
+}
+    
+
 
 
 void HRP2IEEE1394DCImagesInputMethod::StartContinuousShot()
 {
-  m_Board->continuousShot();
+  dc1394error_t err;
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
+    {
+      err=dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_ON);
+      DC1394_ERR_CLN_RTN(err,cleanup(),"Could not start camera iso transmission");
+    }
+
 }
 
 void HRP2IEEE1394DCImagesInputMethod::StopContinuousShot()
 {
-  m_Board->stopContinuousShot();
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
+    {
+      dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
+      dc1394_capture_stop(m_DC1394Cameras[i]);
+    }
 }
 
 
 void HRP2IEEE1394DCImagesInputMethod::StopBoard()
 {
-  delete m_Board;
-  m_Board = 0;
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
+    {
+      dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
+      dc1394_capture_stop(m_DC1394Cameras[i]);
+      dc1394_camera_free(m_DC1394Cameras[i]);
+    }
+  dc1394_free (m_HandleDC1394);
+  
   ODEBUG("StopBoard");
 }
 
 int HRP2IEEE1394DCImagesInputMethod::GetNumberOfCameras()
 {
-  if (m_Board==0)
-    return 0 ;
-    
-  return m_Board->nchildren();
+  return m_numCameras;
 }
 
 void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime(int CameraNumber)
 {
-  TU::Ieee1394Camera::FrameRate IndexOfFR[7] = 
-  { Ieee1394Camera::FrameRate_1_875, 
-    Ieee1394Camera::FrameRate_3_75, 
-    Ieee1394Camera::FrameRate_7_5, 
-    Ieee1394Camera::FrameRate_15, 
-    Ieee1394Camera::FrameRate_30, 
-    Ieee1394Camera::FrameRate_60, 
-    Ieee1394Camera::FrameRate_x};
   
-  double TimeValue[7]=
-  {
-    1.0/1.875,
-    1.0/3.75,
-    1.0/7.5,
-    1.0/15,
-    1.0/30,
-    1.0/60
-  };
-  Ieee1394Camera::FrameRate aFR = m_Board->_cameras[CameraNumber]->getFrameRate();
-  int li=0;
-  bool lFound=false;
-
-  for(li=0;li<7;li++)
-    if (aFR==IndexOfFR[li])
-      {
-	lFound=true;
-	break;
-      }
-
-  if (lFound)
-    m_GrabbingPeriod[CameraNumber] = TimeValue[li];
-  else 
-    m_GrabbingPeriod[CameraNumber] = 1e32;
 }
 
 

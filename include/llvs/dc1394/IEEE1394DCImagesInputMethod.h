@@ -48,12 +48,12 @@ using namespace std;
 class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
 {
  public:
-  
-  /*! Constantes */
+
   static const int CAMERA_LEFT = 0;
   static const int CAMERA_RIGHT = 1;
   static const int CAMERA_UP = 2;
-
+  static const int CAMERA_WIDE = 3;
+    
   /*! Constructor */
   HRP2IEEE1394ImagesInputMethod(void);
   
@@ -140,19 +140,20 @@ class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP
   void FromFrameRateToTime(int CameraNumber);
 
  protected:
-
+  /*! Number of cameras */
+  unsigned int m_numCameras;
   
   /*! Pointer to the copy memory. */
-  unsigned char * m_TmpImage[4];
+  vector<unsigned char *> m_TmpImage;
 
   /*! Format */
-  string m_Format;
+  vector<string> m_Format;
 
   /*! Prefixes for cameras */
-  string m_Prefixes[4];
+  vector<string> m_Prefixes;
   
   /*! Prefixes for features */
-  string m_Features[6];
+  vector<string> m_Features;
 
   /*! Keep time for each camera. */
   vector <double> m_LastGrabbingTime;
@@ -166,6 +167,13 @@ class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP
 
   /*! Handle on the 1394 device */
   dc1394_t * m_HandleDC1394;
+  
+  /*! Cameras Ids */
+  vector<dc1394camera_t> m_DC1394Cameras;
+
+  /*! Local Images size */
+  vector<int> m_BoardImagesWidth;
+  vector<int> m_BoardImagesHeight;
   /*! @} */
 };
   
