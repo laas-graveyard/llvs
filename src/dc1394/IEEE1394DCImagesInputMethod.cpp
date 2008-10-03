@@ -1,14 +1,9 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+
+
 using namespace std;
-extern "C"
-{
-#include <epbm.h>
-#include <vfgb.h>
-#include <vfgbutil.h>
-#include <vfgbtype.h>
-}
 
 
 using std::showbase;
@@ -28,146 +23,10 @@ using std::showbase;
 
 
 #include "IEEE1394DCImagesInputMethod.h"
-using namespace TU;
+
 /************************************************************************
 *  static functions							*
 ************************************************************************/
-static std::istream&
-operator >>(std::istream& in, IEEE1394Boardv2::Camera& camera)
-{
-    using namespace	std;
-    
-    struct
-    {
-	const u_int		item;
-	const char* const	name;
-    } items[] =
-    {
-	{Ieee1394Camera::YUV444_160x120,   "160x120-YUV(4:4:4)"},	// 0
-	{Ieee1394Camera::YUV422_320x240,   "320x240-YUV(4:2:2)"},
-	{Ieee1394Camera::YUV411_640x480,   "640x480-YUV(4:1:1)"},
-	{Ieee1394Camera::YUV422_640x480,   "640x480-YUV(4:2:2)"},
-	{Ieee1394Camera::RGB24_640x480,    "640x480-RGB"},
-	{Ieee1394Camera::MONO8_640x480,    "640x480-Y(mono)"},
-	{Ieee1394Camera::YUV422_800x600,   "800x600-YUV(4:2:2)"},
-	{Ieee1394Camera::RGB24_800x600,    "800x600-RGB"},
-	{Ieee1394Camera::MONO8_800x600,    "800x600-Y(mono)"},
-	{Ieee1394Camera::YUV422_1024x768,  "1024x768-YUV(4:2:2)"},
-	{Ieee1394Camera::RGB24_1024x768,   "1024x768-RGB"},
-	{Ieee1394Camera::MONO8_1024x768,   "1024x768-Y(mono)"},
-	{Ieee1394Camera::YUV422_1280x960,  "1280x960-YUV(4:2:2)"},
-	{Ieee1394Camera::RGB24_1280x960,   "1280x960-RGB"},
-	{Ieee1394Camera::MONO8_1280x960,   "1280x960-Y(mono)"},
-	{Ieee1394Camera::YUV422_1600x1200, "1600x1200-YUV(4:2:2)"},
-	{Ieee1394Camera::RGB24_1600x1200,  "1600x1200-RGB"},
-	{Ieee1394Camera::MONO8_1600x1200,  "1600x1200-Y(mono)"},
-
-	{Ieee1394Camera::FrameRate_1_875, "1.875fps"},			// 18
-	{Ieee1394Camera::FrameRate_3_75,  "3.75fps"},
-	{Ieee1394Camera::FrameRate_7_5,   "7.5fps"},
-	{Ieee1394Camera::FrameRate_15,    "15fps"},
-	{Ieee1394Camera::FrameRate_30,    "30fps"},
-	{Ieee1394Camera::FrameRate_60,    "60fps"},
-
-	{Ieee1394Camera::BRIGHTNESS,	"BRIGHTNESS"},			// 24
-	{Ieee1394Camera::AUTO_EXPOSURE, "AUTO_EXPOSURE"},
-	{Ieee1394Camera::SHARPNESS,	"SHARPNESS"},
-	{Ieee1394Camera::WHITE_BALANCE, "WHITE_BALANCE"},
-	{Ieee1394Camera::HUE,		"HUE"},
-	{Ieee1394Camera::SATURATION,	"SATURATION"},
-	{Ieee1394Camera::GAMMA,		"GAMMA"},
-	{Ieee1394Camera::SHUTTER,	"SHUTTER"},
-	{Ieee1394Camera::GAIN,		"GAIN"},
-	{Ieee1394Camera::IRIS,		"IRIS"},
-	{Ieee1394Camera::FOCUS,		"FOCUS"},
-	{Ieee1394Camera::TEMPERATURE,	"TEMPERATURE"},
-	{Ieee1394Camera::ZOOM,		"ZOOM"},
-	{Ieee1394Camera::PAN,		"PAN"},
-	{Ieee1394Camera::TILT,		"TILT"}
-    };
-    const int	nitems = sizeof(items) / sizeof(items[0]);
-
-    int	fmt  = -1;
-    int	rate = -1;
-    for (char c; in.get(c) && c != '\n'; )
-    {
-	in.putback(c);
-	char	s[32];
-	in >> s;
-
-	for (int i = 0; i < nitems; i++)
-	    if (strcmp(s, items[i].name) == 0)
-	    {
-		if (i < 18)
-		    fmt = i;
-		else if (i < 24)
-		    rate = i;
-		else
-		{
-		    int	val;
-		    in >> val;
-		    if (val == -1)
-			camera.setAutoMode(
-			    Ieee1394Camera::uintToFeature(items[i].item));
-		    else
-		    {
-			camera.setManualMode(
-			    Ieee1394Camera::uintToFeature(items[i].item));
-			if (items[i].item ==
-			    Ieee1394Camera::WHITE_BALANCE)
-			{
-			    int	val2;
-			    in >> val2;
-			    camera.setWhiteBalance(val, val2);
-			}
-			else
-			    camera.setValue(
-				Ieee1394Camera::uintToFeature(items[i].item),
-				val);
-		    }
-		}
-		break;
-	    }
-    }
-    
-    if (fmt != -1 && rate != -1)
-      {
-	ODEBUG("Format " << items[fmt].name << " Rate : " << items[rate].name); 
-
-	
-	camera.setFormatAndFrameRate(
-	    Ieee1394Camera::uintToFormat(items[fmt].item),
-	    Ieee1394Camera::uintToFrameRate(items[rate].item));
-	ODEBUG("Ok");
-	switch (camera.pixelFormat())
-	  {
-	  case Ieee1394Camera::YUV_444:
-	    ODEBUG("YUV_444");
-	    break;
-	  case Ieee1394Camera::RGB_24:
-	    ODEBUG("RGB_24");
-	    break;
-	  case Ieee1394Camera::YUV_422:
-	    ODEBUG("YUV_422");
-	    break;
-	  case Ieee1394Camera::MONO_16:
-	    ODEBUG("MONO_16");
-	    break;
-	  case Ieee1394Camera::YUV_411:
-	    ODEBUG("YUV_411");
-	    break;
-	  case Ieee1394Camera::MONO_8:
-	    ODEBUG("MONO_8");
-	    break;
-	  default:
-	    break;
-	  }
-      }
-    else 
-      ODEBUG("No Format No Frame");
-    return in;
-}
-
 
 
 
@@ -1144,7 +1003,8 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 {
   try 
     {
-      m_Board = new IEEE1394Boardv2(0);
+      m_HandleDC1394 =  dc1394_new ();
+      
     }
   catch(...)
     {

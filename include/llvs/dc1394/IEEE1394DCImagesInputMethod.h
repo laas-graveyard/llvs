@@ -1,14 +1,6 @@
 /** @doc This object implements a visual process
     to get IEEE camera images using the DC libraries.
-    This has been created from a program by Nicolas Mansard.
     
-    CVS Information:
-   $Id$
-   $Author$
-   $Date$
-   $Revision$
-   $Source$
-   $Log$
 
    Copyright (c) 2003-2006, 
    @author Olivier Stasse, 
@@ -44,6 +36,10 @@
 #include <ImagesInputMethod.h>
 #include <VisionBasicProcess.h>
 #include <string>
+
+/*! Includes for 1394 communications. */
+#include <libraw1394/raw1394.h>
+#include "dc1394/dc1394.h"
 
 #include <vector>
 using namespace std;
@@ -145,8 +141,6 @@ class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP
 
  protected:
 
-  /*! File descriptor to the frame grabber */
-  IEEE1394Boardv2 * m_Board;
   
   /*! Pointer to the copy memory. */
   unsigned char * m_TmpImage[4];
@@ -165,7 +159,14 @@ class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP
   
   /*! Keep the period for each grabbing. */
   vector<double> m_GrabbingPeriod;
-    
+  
+  /*! \name Fields specific to 1394 access. 
+    @{
+   */
+
+  /*! Handle on the 1394 device */
+  dc1394_t * m_HandleDC1394;
+  /*! @} */
 };
   
 #endif 
