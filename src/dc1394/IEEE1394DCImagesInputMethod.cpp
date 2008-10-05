@@ -22,7 +22,7 @@ using std::showbase;
 
 
 
-#include "IEEE1394DCImagesInputMethod.h"
+#include <dc1394/IEEE1394DCImagesInputMethod.h>
 
 /************************************************************************
 *  static functions							*

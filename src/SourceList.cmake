@@ -7,14 +7,19 @@ SET(LLVS_SRC_FILES_1
 	VisionBasicProcess.cpp 
 	LowLevelVisionServer.cpp 
 	./Simu/SimulatorInputMethod.cpp 
-	./Simu/FileImagesInputMethod.cpp )
+	./Simu/FileImagesInputMethod.cpp
+	./dc1394/IEEE1394DCImagesInputMethod.cpp )
 
 SET(LLVS_HEADER_FILES_1 
 	ImagesInputMethod.h
 	VisionBasicProcess.h 
 	LowLevelVisionServer.h 
 	./Simu/SimulatorInputMethod.h 
-	./Simu/FileImagesInputMethod.h )
+	./Simu/FileImagesInputMethod.h 
+	./dc1394/IEEE1394DCImagesInputMethod.h )
+
+IF (DC1394_FOUND)
+ENDIF(DC1394_FOUND)
 
 IF (OMNIORB4_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}

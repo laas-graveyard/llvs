@@ -18,7 +18,7 @@ SET(LLVS_INTERN_LIBS "llvs-0")
 # Specify the compile flags for the overall library
 
 # To be used for debugging
-SET(LLVS_CXX_FLAGS "-g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS")
+SET(LLVS_CXX_FLAGS "-g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/local/")
 # Normal settings
 #SET(LLVS_CXX_FLAGS "-O3 -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS")
 
