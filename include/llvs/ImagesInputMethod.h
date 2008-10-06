@@ -93,11 +93,27 @@ namespace llvs
       /*! Get the level of verbosity */
       int GetLevelOfVerbosity();
 
-      /*! Get the number of camera */
+      /*! \brief Get the number of camera */
       virtual unsigned int GetNumberOfCameras();
 
-      /*! Get the next time for grabbing an image. */
+      /*! \brief Get the next time for grabbing an image. */
       virtual double NextTimeForGrabbing(int CameraNumber);
+
+      /*! \brief Returns true if the initialization phase was correct and there is one camera connected
+	(abstract method) */
+      virtual bool CameraPresent()=0;
+
+      /*! \brief Initialize the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Initialize()=0;
+
+      /*! \brief Cleanup the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Cleanup()=0;
 
     protected:
 

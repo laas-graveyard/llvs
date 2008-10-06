@@ -31,6 +31,9 @@
 using namespace llvs;
 pthread_t MainThread;
 LowLevelVisionServer *GlobalVisionServer=0;
+PortableServer::POA_var poa;
+PortableServer::ObjectId_var GlobalVisionServerID;
+pthread_t aThread;
 
 void * LLVSThread(void *arg)
 {
@@ -68,21 +71,29 @@ void * LLVSThread(void *arg)
 
 void SIGINT_handler(int asig)
 {
-  //  cout << "Went through SIGINT_handler : "<< asig << endl;
+  cout << "Went through SIGINT_handler : "<< asig << " " << pthread_self() << endl;
   if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
     {
-      /* Stop the processes */
-      GlobalVisionServer->StopMainProcess();
+
       cout << "Stopped the processes "<< endl;
+      pthread_join(aThread,0);
 
       GlobalVisionServer->RecordImagesOnDisk(0);
-      
+
+      poa->deactivate_object(GlobalVisionServerID);
+
       /* Delete the object. */
       delete GlobalVisionServer;
       cout << "delete VisionServer "<< endl;
       
       GlobalVisionServer=0;
-      exit(0);
+    }
+  else
+    {
+      /* Stop the processes */
+      GlobalVisionServer->StopMainProcess();
+
+      pthread_exit(0);
     }
 }
 
@@ -274,13 +285,13 @@ int main(int argc, char * argv[])
 
       ODEBUG("Flag 1");
 
-      PortableServer::POA_var poa = PortableServer::POA::_narrow(obj);
+      poa = PortableServer::POA::_narrow(obj);
       
       ODEBUG("Flag 1.5");
       aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
-      poa->activate_object(aVS);
+      GlobalVisionServerID = poa->activate_object(aVS);
       ODEBUG("Flag 2");
       if (aVS!=0)
 	{
@@ -379,7 +390,6 @@ int main(int argc, char * argv[])
 	  /* Thread creation */
 	  {
 	    pthread_attr_t Thread_Attr;
-	    pthread_t aThread;
 
 	    pthread_attr_init(&Thread_Attr);
 	    pthread_create(&aThread, &Thread_Attr,LLVSThread, (void *)aVS);

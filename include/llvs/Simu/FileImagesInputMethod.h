@@ -89,6 +89,23 @@ namespace llvs {
       /*! Returns the number of cameras */
       unsigned int GetNumberOfCameras();
 
+      /*! \brief Returns true if one camera is present */
+      bool CameraPresent();
+
+
+      /*! \brief Initialize the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Initialize();
+
+      /*! \brief Cleanup the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Cleanup();
+
+
     protected:
 
       /* Name of the file to read from */

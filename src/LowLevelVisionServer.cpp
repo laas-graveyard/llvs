@@ -76,7 +76,11 @@ using namespace std;
 #include "Simu/SimulatorInputMethod.h"
 
 #if (LLVS_HAVE_VVV>0)
-#include "IEEE1394ImagesInputMethod.h"
+#include "VVV/IEEE1394ImagesInputMethod.h"
+#endif
+
+#if (LLVS_HAVE_DC1394_V2>0)
+#include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
 
@@ -177,6 +181,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
       
     case LowLevelVisionSystem::FRAMEGRABBER :
 #if (LLVS_HAVE_VVV>0)
+    if(m_ImagesInputMethod==0)
       {
 	HRP2IEEE1394ImagesInputMethod *aIIIM=0;
 
@@ -185,6 +190,18 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 	m_ListOfProcesses.insert(m_ListOfProcesses.end(),aIIIM);
       }
 #endif
+
+#if (LLVS_HAVE_DC1394_V2>0)
+    if(m_ImagesInputMethod==0)
+      {
+	HRP2IEEE1394DCImagesInputMethod *aIIIM=0;
+
+	aIIIM = 	new HRP2IEEE1394DCImagesInputMethod();
+	m_ImagesInputMethod = (HRP2ImagesInputMethod *)aIIIM;
+	m_ListOfProcesses.insert(m_ListOfProcesses.end(),aIIIM);
+      }
+#endif
+
       break;
 
     case LowLevelVisionSystem::FILES :
@@ -205,12 +222,20 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
     }
 
-  if (m_ImagesInputMethod)
+  if (!m_ImagesInputMethod)
     {
-      cerr << "No camera system detected or simulation method set on" << endl;
+      cerr << "No vision system detected or simulation method set on" << endl;
       cerr << "Stopping now..." << endl;
       return;
     }
+
+  if (!m_ImagesInputMethod->CameraPresent())
+    {
+      cerr << "No camera detected or simulation method set on" << endl;
+      cerr << "Stopping now..." << endl;
+      return;
+    }
+
   /* Resize all the associated vectors */
   int lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
   m_Width.resize(lNbCams);
@@ -219,6 +244,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_BinaryImages.resize(lNbCams);
   m_BinaryImages_corrected.resize(lNbCams);
   m_BinaryImages_undistorted.resize(lNbCams);
+  m_timestamps.resize(lNbCams);
 
 #if (LLVS_HAVE_VVV>0)
   m_epbm.resize(lNbCams);
@@ -724,9 +750,15 @@ LowLevelVisionServer::ApplyingProcess()
   static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
-  if ((!m_Computing) || (!m_EndOfConstructor))
+  if ((!m_Computing) || (!m_EndOfConstructor)
+      || (m_ImagesInputMethod==0))
     {
       ODEBUG("Do not go in ");
+      return -1;
+    }
+  if (!m_ImagesInputMethod->CameraPresent())
+    {
+      ODEBUG3("No camera available");
       return -1;
     }
 
@@ -1073,6 +1105,15 @@ CORBA::Long LowLevelVisionServer::StopMainProcess()
   throw(CORBA::SystemException)
 {
   m_Computing = 0;
+
+  for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
+    m_ListOfProcesses[i]->StopProcess();
+
+  sleep(1);
+
+  if (m_ImagesInputMethod!=0)
+    m_ImagesInputMethod->Cleanup();
+
   return 1;
 }
 
@@ -3113,3 +3154,4 @@ int LowLevelVisionServer::GetTheSLAMImage()
 {
   return (int) m_TheSLAMImage;
 }
+

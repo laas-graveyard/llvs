@@ -330,12 +330,15 @@ class HRP2IEEE1394ImagesInputMethod : public HRP2ImagesInputMethod, public HRP2V
   void StartContinuousShot();
   void StopContinuousShot();
   
-  /*! Returns the next time when the camera CameraNumber
+  /*! \brief Returns the next time when the camera CameraNumber
     will  grab. */
   virtual double NextTimeForGrabbing(int CameraNumber);
   
-  /*! From FrameRate to Time */
+  /*! \brief From FrameRate to Time */
   void FromFrameRateToTime(int CameraNumber);
+  
+  /*! \brief Returns true if at least one camera is present. */
+  virtual bool CameraPresent();
 
  protected:
 
@@ -359,6 +362,10 @@ class HRP2IEEE1394ImagesInputMethod : public HRP2ImagesInputMethod, public HRP2V
   
   /*! Keep the period for each grabbing. */
   vector<double> m_GrabbingPeriod;
+
+  /*! \brief This field tells us if one camera has been detected or not. */
+  bool m_AtLeastOneCameraPresent;
+  
     
 };
   

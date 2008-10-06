@@ -66,11 +66,13 @@ using namespace std;
 
 #include "ImagesInputMethod.h"
  
-/*! This object implements the grabbing of the images from the simulator. 
+/*! \brief This object implements the grabbing of the images from the simulator. 
  *  
  */
 namespace llvs 
-{ 
+{
+  /*! \class This class defines how to simulate the input send to the Low Level Vision Server. 
+   */
   class HRP2SimulatorInputMethod : public HRP2ImagesInputMethod
     {
     public:
@@ -85,22 +87,36 @@ namespace llvs
       /*! Destructor */
       virtual ~HRP2SimulatorInputMethod();
 
-      /*! Takes a new image.
-       * Input: 
-       * unsigned char * ImageLeft : A pointer where to store the bottom left image.
-       * unsigned char * ImageRight : A pointer where to store the bottom right image.
-       * unsigned char * ImageUp : A pointer where to store the upper image.
+      /*! \brief Takes a new image.
+       * @param[in] unsigned char * ImageLeft : A pointer where to store the bottom left image.
+       * @param[in] unsigned char * ImageRight : A pointer where to store the bottom right image.
+       * @param[in] unsigned char * ImageUp : A pointer where to store the upper image.
        */
       virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
-      /*! Set the size of the image willing to be grabbed. */
+      /*! \brief Set the size of the image willing to be grabbed. */
       virtual int SetImageSize(int lw, int lh, int CameraNumber);
 
-      /*! Get the current image size for the appropriate camera */
+      /*! \brief Get the current image size for the appropriate camera */
       virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
 
-      /*! Get the current format of the image */
+      /*! \brief Get the current format of the image */
       virtual string GetFormat();
+
+      /*! \brief Tells if at least one camera is present. */
+      virtual bool CameraPresent();
+
+      /*! \brief Initialize the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Initialize();
+
+      /*! \brief Cleanup the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Cleanup();
 
     protected:
 

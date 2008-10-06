@@ -703,3 +703,19 @@ unsigned int HRP2FileImagesInputMethod::GetNumberOfCameras()
     }
   return m_ReadImageData.size();
 }
+
+bool HRP2FileImagesInputMethod::CameraPresent()
+{
+  if (m_NbOfImages>0)
+    return true;
+  return false;
+}
+
+int HRP2FileImagesInputMethod::Initialize()
+{
+  return 0;
+}
+int HRP2FileImagesInputMethod::Cleanup()
+{
+  return 0;
+}

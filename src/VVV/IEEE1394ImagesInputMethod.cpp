@@ -1405,3 +1405,8 @@ double HRP2IEEE1394ImagesInputMethod::NextTimeForGrabbing(int CameraNumber)
 {
   return m_LastGrabbingTime[CameraNumber]+ m_GrabbingPeriod[CameraNumber];
 }
+
+bool HRP2IEEE1394ImagesInputMethod::CameraPresent()
+{
+  return m_AtLeastOneCameraPresent;
+}

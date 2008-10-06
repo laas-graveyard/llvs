@@ -20,4 +20,7 @@
 /* Define to 1 if MMX is installed */ 
 #define LLVS_HAVE_MMX ${LLVS_HAVE_MMX}
 
+/* Define to 1 if DC1394 v2 is installed */
+#define LLVS_HAVE_DC1394_V2 ${LLVS_HAVE_DC1394_V2}
+
 #endif /* _LLVS_CONFIG_H_IN_ */

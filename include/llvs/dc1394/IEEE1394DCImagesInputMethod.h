@@ -37,6 +37,8 @@
 #include <VisionBasicProcess.h>
 #include <string>
 
+#include <pthread.h>
+
 /*! Includes for 1394 communications. */
 #include <libraw1394/raw1394.h>
 #include <dc1394/dc1394.h>
@@ -115,8 +117,32 @@ namespace llvs
       void GetCameraFeatureValue(string aCamera, string aFeature, string &aValue);
       void SetCameraFeatureValue(string aCamera, string aFeature, string aValue);
 
-      /*! Returns the number of cameras */
+      /*! \name Reimplement the ImagesInputMethod abstract interface 
+	@{
+       */
+
+      /*! \brief Returns the number of cameras 
+	Here the number of IEEE 1394 cameras detected.
+       */
       virtual unsigned int GetNumberOfCameras();
+      
+      /*! \brief Returns true if one camera is detected. */
+      bool CameraPresent();
+      
+      /*! \brief Initialize the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Initialize();
+
+      /*! \brief Cleanup the grabbing system. 
+	@return: a negative value in case of an error,
+	0 otherwise.
+       */
+      virtual int Cleanup();
+
+      
+      /*! @} */
 
       void StartContinuousShot();
       void StopContinuousShot();
@@ -129,6 +155,7 @@ namespace llvs
       void FromFrameRateToTime(int CameraNumber);
 
     protected:
+
       /*! Number of cameras */
       unsigned int m_numCameras;
   
@@ -150,6 +177,9 @@ namespace llvs
       /*! Keep the period for each grabbing. */
       vector<double> m_GrabbingPeriod;
   
+      /*! \brief Mutex to protect the device. */
+      pthread_mutex_t m_mutex_device;
+
       /*! \name Fields specific to 1394 access. 
 	@{
       */
@@ -163,9 +193,12 @@ namespace llvs
       /*! \brief Ref towards 1394 data structure */
       vector<dc1394video_frame_t *> m_VideoFrames;
 
-      /*! Local Images size */
-      vector<int> m_BoardImagesWidth;
-      vector<int> m_BoardImagesHeight;
+      /*! \brief Local Images size the width and the height for each image.*/
+      vector<int> m_BoardImagesWidth, m_BoardImagesHeight;
+
+      /*! \brief This field tells us if one camera has been detected or not. */
+      bool m_AtLeastOneCameraPresent;
+
       /*! @} */
     };
 };  
