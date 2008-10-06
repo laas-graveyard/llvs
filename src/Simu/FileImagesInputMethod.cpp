@@ -56,6 +56,7 @@
 #endif
 
 using namespace std;
+using namespace llvs;
 
 HRP2FileImagesInputMethod::HRP2FileImagesInputMethod(int MethodForInputImages) : HRP2ImagesInputMethod()
 {
@@ -64,7 +65,6 @@ HRP2FileImagesInputMethod::HRP2FileImagesInputMethod(int MethodForInputImages) :
   m_ReadImageData.clear();
   m_InitValue = 0;
   m_Verbosity=5;
-  m_depth=3;
 }
 
 HRP2FileImagesInputMethod::~HRP2FileImagesInputMethod()
@@ -366,6 +366,9 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 						 unsigned char **ImageUp,
 						 int mode)
 {
+  if (m_depth.size()!=4)
+    m_depth.resize(4);
+
   int res=0;
   ifstream aifstream;
   unsigned char **ImageWide=0;
@@ -378,12 +381,12 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
       int r;
       int depth;
       r = ReadEPBMImageHeader(aifstream,0,depth);
-      m_depth = depth;
       if ((r==2) && (mode!=1))
 	{
 	  if (*ImageLeft!=0)
 	    delete *ImageLeft;
 	  *ImageLeft = new unsigned char[m_ImagesWidth[0]*m_ImagesHeight[0]*depth];
+		
 	  fprintf(stderr,"Reallocation for ImageLeft\n");
 	  res =2;
 	}
@@ -392,6 +395,8 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 	{
 	  if (ReadEPBMBodyImage(aifstream,ImageLeft,m_ImagesWidth[0],m_ImagesHeight[0], depth)==1)
 	    return res;
+	  	    
+	  m_depth[0] = depth;
 	}
       else if (mode==1)
 	{
@@ -400,7 +405,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 				   m_ReadImageData[0]->width,
 				   m_ReadImageData[0]->height,
 				   m_ReadImageData[0]->depth))==1)
-	    return res;
+	    {
+	      m_depth[0] = m_ReadImageData[0]->depth;
+	      return res;
+	    }
+	  m_depth[0] = m_ReadImageData[0]->depth;
 	}
 
 
@@ -421,7 +430,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
       if (mode==0)
 	{
 	  if (ReadEPBMBodyImage(aifstream,ImageRight,m_ImagesWidth[1],m_ImagesHeight[1],depth)==1)
-	    return res;
+	    {
+	      m_depth[1] = depth;
+	      return res;
+	    }
+	  m_depth[1] = depth;
 	}
       else if (mode==1)
 	{
@@ -430,7 +443,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 				m_ReadImageData[1]->width,
 				m_ReadImageData[1]->height,
 				m_ReadImageData[1]->depth)==1)
-	    return res;
+	    {
+	      m_depth[2] = depth;
+	      return res;
+	    }
+	  m_depth[2] = depth;
 	}
 
       
@@ -447,7 +464,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
       if (mode==0)
 	{
 	  if (ReadEPBMBodyImage(aifstream,ImageUp,m_ImagesWidth[2],m_ImagesHeight[2],depth)==1)
-	    return res;
+	    {
+	      m_depth[2] = depth;
+	      return res;
+	    }
+	  m_depth[2] = depth;
 	}
       else if (mode==1)
 	{
@@ -456,7 +477,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 				m_ReadImageData[2]->width,
 				m_ReadImageData[2]->height,
 				m_ReadImageData[2]->depth)==1)
-	    return res;
+	    {
+	      m_depth[2] = m_ReadImageData[2]->depth;
+	      return res;
+	    }
+	  m_depth[2] = m_ReadImageData[2]->depth;
 	}
 
       
@@ -476,7 +501,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
       if (mode==0)
 	{
 	  if (ReadEPBMBodyImage(aifstream,ImageRight,m_ImagesWidth[3],m_ImagesHeight[3],depth)==1)
-	    return res;
+	    {
+	      m_depth[3] = depth;
+	      return res;
+	    }
+	  m_depth[3] = depth;
 	}
       else if (mode==1)
 	{
@@ -485,7 +514,11 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
 				m_ReadImageData[3]->width,
 				m_ReadImageData[3]->height,
 				m_ReadImageData[3]->depth)==1)
-	    return res;
+	    {
+	      m_depth[3] = m_ReadImageData[3]->depth;
+	      return res;
+	    }
+	  m_depth[3] = m_ReadImageData[3]->depth;
 	}
 
     }
@@ -638,17 +671,23 @@ int HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, int camera,
 }
 
 
-string HRP2FileImagesInputMethod::GetFormat()
+string HRP2FileImagesInputMethod::GetFormat(unsigned int CameraNumber)
 {
   string aFormat("RGB");
-  if ( m_depth==1)
+
+  if ((CameraNumber<0) || (CameraNumber>m_depth.size()))
+    {
+      aFormat="Error unknown format";
+    }
+
+  if (m_depth[CameraNumber]==1)
     aFormat = "PGM";
 
-  ODEBUG3("m_depth: " << m_depth);
+  ODEBUG3("m_depth: " << m_depth[CameraNumber]);
   return aFormat;
 }
 
-int HRP2FileImagesInputMethod::GetNumberOfCameras()
+unsigned int HRP2FileImagesInputMethod::GetNumberOfCameras()
 {
   if (m_NbOfImages==0)
     {

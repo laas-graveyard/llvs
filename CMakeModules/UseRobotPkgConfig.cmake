@@ -24,7 +24,7 @@
     SET(${_link_DIR})
     SET(${_link_FLAGS})
     SET(${_cflags})
-    SET(${_package}_FOUND "1")
+    SET(${_package}_FOUND "0")
 
     # if pkg-config has been found
     IF(ROBOT_PKGCONFIG_EXECUTABLE)
@@ -35,6 +35,9 @@
 
       # and if the package of interest also exists for pkg-config, then get the information
       IF(NOT _return_VALUE)
+
+        SET(${_package}_FOUND "0")
+
         # MESSAGE(STATUS "${_package} exists !")	
         EXEC_PROGRAM(${ROBOT_PKGCONFIG_EXECUTABLE} ARGS  ${_package} --variable=includedir 
           OUTPUT_VARIABLE ${_include_DIR} )

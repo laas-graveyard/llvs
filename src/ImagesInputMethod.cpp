@@ -37,7 +37,7 @@
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "ImagesInputMethod.h"
-
+using namespace llvs;
 HRP2ImagesInputMethod::HRP2ImagesInputMethod()
 {
   
@@ -72,7 +72,7 @@ int HRP2ImagesInputMethod::GetImageSize(int &lw, int &lh, int CameraNumber)
   return 0;
 }
 
-string HRP2ImagesInputMethod::GetFormat()
+string HRP2ImagesInputMethod::GetFormat(unsigned int CameraNumber)
 {
   string aFormat("none");
   return aFormat;
@@ -89,7 +89,7 @@ int HRP2ImagesInputMethod::GetLevelOfVerbosity()
   return m_Verbosity;
 }
 
-int HRP2ImagesInputMethod::GetNumberOfCameras()
+unsigned int HRP2ImagesInputMethod::GetNumberOfCameras()
 {
   return 0;
 }

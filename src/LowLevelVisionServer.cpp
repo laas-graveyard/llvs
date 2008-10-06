@@ -89,6 +89,8 @@ using namespace std;
 #define ODEBUG(x) 
 #endif
 
+using namespace llvs;
+
 union PixelEncode_t
 {
   int aInt;
@@ -104,11 +106,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 {
   m_Computing = 0;
   m_Verbosity = Verbosity;
-  m_Width = 0;
-  m_Height = 0;
-  m_BinaryImages = 0;
-  m_BinaryImages_undistorted=0;
-  m_BinaryImages_corrected=0;
 #if (LLVS_HAVE_VVV>0)
   m_Rectification = 0;
   m_MireDetectionProcess= 0;
@@ -130,11 +127,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   ODEBUG("Step 0");
   m_CheckEntry = 0;
 
-  for(int i=0;i<4;i++)
-    m_depth[i] = 3;
-
-  m_ImageFormat = "RGB";
-
   m_EndOfConstructor = false;
   m_DumpImageMode = LowLevelVisionSystem::SINGLE;
   m_DumpInformations.clear();
@@ -146,16 +138,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_StoredCameraPosOri=0;
   m_ImageCounter = 0;
   m_TheSLAMImage = 0;
-  /* ******* Create the Camera parameter objects *********** */
-  /* Also this is redundant with the VVV parameter, they exist
-     for sake of compatibility with CORBA. 
-  */
 
-  for(int i=0;i<4;i++)
-    {
-      m_Cameras[i] = new Camera_impl(0,this);
-      m_Cameras_var[i] = m_Cameras[i]->_this();
-    }
 
   /* ******* Create the Stereo Vision object *********** */
   /* It is an interface to call the VVV scripts . */
@@ -220,6 +203,37 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     default:
       break;
 
+    }
+
+  if (m_ImagesInputMethod)
+    {
+      cerr << "No camera system detected or simulation method set on" << endl;
+      cerr << "Stopping now..." << endl;
+      return;
+    }
+  /* Resize all the associated vectors */
+  int lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
+  m_Width.resize(lNbCams);
+  m_Height.resize(lNbCams);
+  m_depth.resize(lNbCams);
+  m_BinaryImages.resize(lNbCams);
+  m_BinaryImages_corrected.resize(lNbCams);
+  m_BinaryImages_undistorted.resize(lNbCams);
+
+#if (LLVS_HAVE_VVV>0)
+  m_epbm.resize(lNbCams);
+  m_CorrectedImages.resize(lNbCams);
+  m_epbm_distorted.resize(lNbCams);
+#endif
+  
+  /* ******* Create the Camera parameter objects *********** */
+  m_Cameras.resize(lNbCams);
+  m_Cameras_var.resize(lNbCams);
+
+  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
+    {
+      m_Cameras[i] = new Camera_impl(0,this);
+      m_Cameras_var[i] = m_Cameras[i]->_this();
     }
 
   ODEBUG("Step 3");
@@ -396,29 +410,24 @@ LowLevelVisionServer::~LowLevelVisionServer()
 CORBA::Long 
 LowLevelVisionServer::FreeBinaryImages()
 {
-  if (m_BinaryImages!=0)
+  for(unsigned int i=0;i<m_BinaryImages.size();i++)
     {
-      int i;
-      
-      for(i=0;i<4;i++)
-	if (m_BinaryImages[i]!=0)
-	  delete m_BinaryImages[i];
-      
-      delete m_BinaryImages;
-      
+      if (m_BinaryImages[i]!=0)
+	delete m_BinaryImages[i];
     }
-
-  
-  int i;
   
 #if (LLVS_HAVE_VVV>0)
-  for(i=0;i<4;i++)
-    if (m_CorrectedImages[i].Image!=0)
-      delete (unsigned char *)m_CorrectedImages[i].Image;
+  for(unsigned int i=0;i<m_CorrectedImages[i].size();i++)
+    {
+      if (m_CorrectedImages[i].Image!=0)
+	delete (unsigned char *)m_CorrectedImages[i].Image;
+    }
 
-  for(i=0;i<4;i++)
-    if (m_epbm_distorted[i].Image!=0)
-      delete (unsigned char *)m_epbm_distorted[i].Image;
+  for(unsigned int i=0;i<m_epbm_distorted.size();i++)
+    {
+      if (m_epbm_distorted[i].Image!=0)
+	delete (unsigned char *)m_epbm_distorted[i].Image;
+    }
 #endif
   return 0;
 }
@@ -434,157 +443,121 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
      is the same than previously. Otherwise a different 
      calibration data set should be used.
   */
-  if ((m_Width!=0) && (m_Height!=0))
+  if (m_ImagesInputMethod==0)
+    return -1;
+
+  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
     {
-      if (((double)lw/(double)lh)!=((double)m_Width/(double)m_Height))
+      if ((m_Width[i]!=0) && (m_Height[i]!=0))
 	{
-	  res= -1;
+	  if (((double)lw/(double)lh)!=((double)m_Width[i]/(double)m_Height[i]))
+	    {
+	      res= -1;
+	    }
+	  
+	  RatioForFocal = (double)lw / m_Width[i];
+	}
+      else 
+	{
+	  
+	  /* This is the first size assignment */
+	  RatioForFocal = 1.0;
+	  first_assignment = 1;
 	}
       
-      RatioForFocal = (double)lw / m_Width;
-    }
-  else 
-    {
-	  
-      /* This is the first size assignment */
-      RatioForFocal = 1.0;
-      first_assignment = 1;
-    }
-
-  m_Width = lw;
-  m_Height = lh;
+      m_Width[i] = lw;
+      m_Height[i] = lh;
 
   
-  if (m_ImagesInputMethod!=0)
-    {
-      for(int i=0;i<4;i++)
-	m_ImagesInputMethod->SetImageSize(m_Width, m_Height,i);      
-    }
+      m_ImagesInputMethod->SetImageSize(m_Width[i], m_Height[i],i);      
+
 
 #if (LLVS_HAVE_VVV>0)
-  m_VFGBforTheFrameGrabber._width = lw;
-  m_VFGBforTheFrameGrabber._height = lh;
+      m_VFGBforTheFrameGrabber._width = lw;
+      m_VFGBforTheFrameGrabber._height = lh;
 #endif
-  /*
-  ct3001_image_set_size((CT3001_SYSCONF*)(m_VFGBforTheFrameGrabber._sys),
+      /*
+	ct3001_image_set_size((CT3001_SYSCONF*)(m_VFGBforTheFrameGrabber._sys),
 			m_VFGBforTheFrameGrabber._width,
 			m_VFGBforTheFrameGrabber._height);
-  */
-  //  FreeBinaryImages();
-
-
-  unsigned char ** local_BinaryImages;
-  for(int i=0;i<4;i++)
-    {
-      m_Cameras[i]->SetAcquisitionSize(m_Width,m_Height);
+      */
+      //  FreeBinaryImages();
+      
+      
+      unsigned char ** local_BinaryImages;
+      m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
 #if (LLVS_HAVE_VVV>0)
       if (m_CorrectedImages[i].Image!=0)
 	{
 	  delete (unsigned char *)m_CorrectedImages[i].Image;
 	}
-
+      
       if (m_epbm_distorted[i].Image!=0)
 	{
 	  delete (unsigned char *)m_epbm_distorted[i].Image;
 	}
 #endif
-
-    }  
-  
-  if (m_ImagesInputMethod!=0)
-    {
-      m_ImageFormat = m_ImagesInputMethod->GetFormat();
+	  
+      m_ImageFormat = m_ImagesInputMethod->GetFormat(i);
       ODEBUG3("m_ImageFormat :" << m_ImageFormat);
       if (m_ImageFormat=="PGM")
-	{
-	  for(int i=0;i<4;i++)
-	    m_depth[i]=1;
-	}
+	m_depth[i]=1;
       else if (m_ImageFormat=="RAW")
-	{
-	  for(int i=0;i<4;i++)
-	    m_depth[i]=1;
-	}
+	m_depth[i]=1;
       else if (m_ImageFormat=="RGB")
-	{
-	  for(int i=0;i<4;i++)
-	    m_depth[i]=3;
-	}
-    }
-
-  /*
-  cout << "Depth" << endl;
-  for(int i=0;i<4;i++)
-    cout << m_depth[i] << " ";
-  cout << endl;
-  */
-
-  if (m_BinaryImages!=0)
-    {
-      for(int i=0;i<4;i++)
-	delete [] m_BinaryImages[i];
-
-      delete [] m_BinaryImages;
-      m_BinaryImages=0;
-    }
-
-
-  m_BinaryImages = new unsigned char *[4];
-  for(int i=0;i<4;i++)
-    {
+	m_depth[i]=3;
+      
+      /*
+	cout << "Depth" << endl;
+	for(int i=0;i<4;i++)
+	cout << m_depth[i] << " ";
+	cout << endl;
+      */
+      
+      delete [] m_BinaryImages[i];
+      
       m_BinaryImages[i] = new unsigned char[lw*lh*m_depth[i]];
-      //  printf("%p %i\n",m_BinaryImages[i],i);
-    }
-
-  /* NO NEED TO FREE corrected and undistorted
-     as it is already done with m_CorrectedImages and m_epbm_distorted */
-  m_BinaryImages_corrected = new unsigned char *[4];
-  for(int i=0;i<4;i++)
-    m_BinaryImages_corrected[i] = new unsigned char[lw*lh*m_depth[i]];
-
-  m_BinaryImages_undistorted = new unsigned char *[4];
-  for(int i=0;i<4;i++)
-    {
+      
+      /* NO NEED TO FREE corrected and undistorted
+	 as it is already done with m_CorrectedImages and m_epbm_distorted */
+      m_BinaryImages_corrected[i] = new unsigned char[lw*lh*m_depth[i]];
+      
       m_BinaryImages_undistorted[i] = new unsigned char [lw*lh*m_depth[i]];
-      //      printf("%p\n",m_BinaryImages_undistorted[i]);
+      
+	  
+#if (LLVS_HAVE_VVV>0)
+      epbm_set_default_value(&(m_epbm[i]),0);
+      if (m_depth[i]==1)
+	{
+	  m_epbm[i].Magic2 = EPBM_BINARY_GRAY;
+	  m_CorrectedImages[i].Magic2= EPBM_BINARY_GRAY;
+	  m_epbm_distorted[i].Magic2=EPBM_BINARY_GRAY;
+	}
+      else if (m_depth[i]==3)
+	{
+	  m_epbm[i].Magic2 = EPBM_BINARY_COLOR;
+	  m_CorrectedImages[i].Magic2= EPBM_BINARY_COLOR;
+	  m_epbm_distorted[i].Magic2=EPBM_BINARY_COLOR;
+	}
+      
+      m_epbm[i].Image = m_BinaryImages[i];
+      m_CorrectedImages[i].Image = m_BinaryImages_corrected[i];
+      m_epbm_distorted[i].Image = m_BinaryImages_undistorted[i];
+      m_epbm[i].Width = m_CorrectedImages[i].Width = 
+	m_epbm_distorted[i].Width = lw;
+      m_epbm[i].Height = m_CorrectedImages[i].Height =
+	m_epbm_distorted[i].Height =  lh;
+      
+      if (m_ImagesInputMethod!=0)
+	
+	{
+	  m_ImagesInputMethod->GetImageSize(m_epbm[i].Width,m_epbm[i].Height,i);
+	}
+	  
+      m_epbm[i].Label |= EPBM_HAVE_PINHOLEPARAMETER_MASK;
+#endif
     }
 
-  for(int i=0; i<4; i++)
-  { 
-    
-#if (LLVS_HAVE_VVV>0)
-    epbm_set_default_value(&(m_epbm[i]),0);
-    if (m_depth[i]==1)
-      {
-	m_epbm[i].Magic2 = EPBM_BINARY_GRAY;
-	m_CorrectedImages[i].Magic2= EPBM_BINARY_GRAY;
-	m_epbm_distorted[i].Magic2=EPBM_BINARY_GRAY;
-      }
-    else if (m_depth[i]==3)
-      {
-	m_epbm[i].Magic2 = EPBM_BINARY_COLOR;
-	m_CorrectedImages[i].Magic2= EPBM_BINARY_COLOR;
-	m_epbm_distorted[i].Magic2=EPBM_BINARY_COLOR;
-      }
-
-    m_epbm[i].Image = m_BinaryImages[i];
-    m_CorrectedImages[i].Image = m_BinaryImages_corrected[i];
-    m_epbm_distorted[i].Image = m_BinaryImages_undistorted[i];
-    m_epbm[i].Width = m_CorrectedImages[i].Width = 
-      m_epbm_distorted[i].Width = lw;
-    m_epbm[i].Height = m_CorrectedImages[i].Height =
-      m_epbm_distorted[i].Height =  lh;
-    
-    if (m_ImagesInputMethod!=0)
-
-      {
-	m_ImagesInputMethod->GetImageSize(m_epbm[i].Width,m_epbm[i].Height,i);
-      }
-    
-    m_epbm[i].Label |= EPBM_HAVE_PINHOLEPARAMETER_MASK;
-#endif
-  }
-  
 #if (LLVS_HAVE_VVV>0)
   if (m_Rectification!=0)
     {
@@ -978,15 +951,15 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 
   if (m_ImagesInputMethod!=0)
     {
-      string lFormat =     m_ImagesInputMethod->GetFormat();
+      string lFormat =     m_ImagesInputMethod->GetFormat(0);
       if ((lFormat=="PGM") && (m_depth[0]==3))
-	SetImagesGrabbedSize(m_Width,m_Height);
+	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
       
       if ((lFormat=="RAW") && (m_depth[0]==3))
-	SetImagesGrabbedSize(m_Width,m_Height);
+	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
 
       if ((lFormat=="RGB") && (m_depth[0]==1))
-	SetImagesGrabbedSize(m_Width,m_Height);
+	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
        
       
       struct timeval tv_current;
@@ -1000,15 +973,13 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	{
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
-	      r = m_ImagesInputMethod->GetSingleImage(m_BinaryImages+li,li,m_timestamps[li]);
+	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[li],li,m_timestamps[li]);
 	      result=0;
 	      if ((m_CheckEntry) && (r==0) && (li!=2))
 		StoreImageOnStack(li);
 
 	    }
 	}
-
-      
 
       /* Test if a reallocation has taking place 
        * This may be the case while reading a file.
@@ -1231,7 +1202,7 @@ LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, COR
   ODEBUG2( "LowLevelVisionServer::SetImage : beginning " << aWidth << " " << aHeight );
 
   /* Set the image, currently only used by the simulator */
-  if ((m_Width!=aWidth) || (m_Height!=aHeight))
+  if ((m_Width[0]!=aWidth) || (m_Height[0]!=aHeight))
     SetImagesGrabbedSize(aWidth,aHeight);
 
   ODEBUG("LowLevelVisionServer::SetImage : before copying the image " );
@@ -1895,41 +1866,40 @@ string LowLevelVisionServer::GetCalibrationDirectory()
 }
 
 /* Get the image size */
-void LowLevelVisionServer::GetImageSizes(int Sizes[4][2])
+void LowLevelVisionServer::GetImageSizes(vector<ImageSize> &Sizes)
 {
-  for(int i=0;i<4;i++)
+  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
     {
-      Sizes[i][0] = m_Width;
-      Sizes[i][1] = m_Height;
+      Sizes[i].Width  = m_Width[i];
+      Sizes[i].Height = m_Height[i];
     }
 }
 
 /* Get one image size */
-void LowLevelVisionServer::GetImageSize(int Size[2],int CameraID)
+void LowLevelVisionServer::GetImageSize(int Size[2],unsigned int CameraID)
 {
   Size[0] = -1;
   Size[1] = -1;
-  if ((CameraID<0) || (CameraID>2))
+  if ((CameraID<0) || (CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
     {
-      Size[0] = m_Width;
-      Size[1] = m_Height;
+      Size[0] = m_Width[CameraID];
+      Size[1] = m_Height[CameraID];
     }	
   
 }
 
 /* Get the direct access to the image memory */
-void LowLevelVisionServer::GetImageMemory(unsigned char *BinaryImages[4])
+void LowLevelVisionServer::GetImageMemory(vector<unsigned char *> &BinaryImages)
 {
-  BinaryImages[0] = m_BinaryImages[0];
-  BinaryImages[1] = m_BinaryImages[1];
-  BinaryImages[2] = m_BinaryImages[2];
-  BinaryImages[3] = m_BinaryImages[3];
+  for(unsigned int i=0;i<m_BinaryImages.size();i++)
+    BinaryImages[i] = m_BinaryImages[i];
+
 }
 
 /* Get the direct access to one image memory */
-unsigned char * LowLevelVisionServer::GetImageMemory(int CameraID)
+unsigned char * LowLevelVisionServer::GetImageMemory(unsigned int CameraID)
 {
-  if ((CameraID<0) || (CameraID>2))
+  if ((CameraID<0) || (CameraID>=m_BinaryImages.size()))
     return 0 ;
 
   return m_BinaryImages[CameraID];
@@ -1937,10 +1907,10 @@ unsigned char * LowLevelVisionServer::GetImageMemory(int CameraID)
 }
 
 /* Returns the related camera */
-Camera_impl * LowLevelVisionServer::GetCamera(int CameraNb)
+Camera_impl * LowLevelVisionServer::GetCamera(unsigned int CameraNb)
 {
   if ((CameraNb<0) ||
-      (CameraNb>3))
+      (CameraNb>=m_Cameras.size()))
     return 0;
   
   return m_Cameras[CameraNb];
@@ -1983,7 +1953,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  if ((CameraID<0) || (CameraID>4) )
+  if ((CameraID<0) || ((unsigned int)CameraID>=m_ImagesInputMethod->GetNumberOfCameras()) )
     {
       an2Image->octetData.length(0);
       an2Image->longData.length(0);
@@ -1992,10 +1962,10 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
     }
 
   CheckImageFormat(Format);
-  an2Image->octetData.length(m_Height*m_Width*m_depth[CameraID]);
+  an2Image->octetData.length(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);
   an2Image->longData.length(2);
 #if (LLVS_HAVE_VVV>0)
-  for(j=0;j<(int)(m_Height*m_Width*m_depth[CameraID]);j++)
+  for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
     //    an2Image->octetData[j] = m_BinaryImages_undistorted[CameraID][j];
     an2Image->octetData[j] = ((unsigned char *)m_epbm[CameraID].Image)[j];
 #endif
@@ -2004,7 +1974,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
   an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
   anImage = an2Image._retn();
   ODEBUG("m_depth["<<CameraID << "]="<<(int)m_depth[CameraID]<< endl);
-  return m_Height*m_Width*m_depth[CameraID];
+  return m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
 }
 
 /* Get a rectified image */
@@ -2015,7 +1985,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   int i,j, index =0 ;
 
 
-  if ((CameraID<0) || (CameraID>4))
+  if ((CameraID<0) || ((unsigned int) CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
     {
       an2Image->octetData.length(0);
       anImage = an2Image._retn();
@@ -2023,15 +1993,15 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
     }
   
   CheckImageFormat(Format);
-  an2Image->octetData.length(m_Height * m_Width*m_depth[CameraID]);
+  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
 #if (LLVS_HAVE_VVV>0)
-  for(j=0;j<(int)(m_Height*m_Width*m_depth[CameraID]);j++)
+  for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
     an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[CameraID].Image)[j];
   //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[CameraID].Image)[j];
 #endif
 
   anImage = an2Image._retn();
-  return m_Height*m_Width*m_depth[CameraID];
+  return m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
 }
 
 /* Get the edge image */
@@ -2042,7 +2012,7 @@ CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long CameraID, ImageData_o
   int i,j, index =0 ;
 
 
-  if ((CameraID<0) || (CameraID>4) 
+  if ((CameraID<0) || ((unsigned int)CameraID>m_ImagesInputMethod->GetNumberOfCameras()) 
 #if (LLVS_HAVE_VVV>0)
       || (m_EdgeDetection==0)
 #endif
@@ -2053,14 +2023,14 @@ CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long CameraID, ImageData_o
       return -1;
     }
   
-  an2Image->longData.length(m_Height * m_Width);
+  an2Image->longData.length(m_Height[CameraID] * m_Width[CameraID]);
 #if (LLVS_HAVE_VVV>0)
-  for(j=0;j<m_Height*m_Width;j++)
+  for(j=0;j<m_Height[CameraID]*m_Width[CameraID];j++)
     an2Image->longData[j] = ((unsigned int *)m_EdgeDetection->m_Edge[CameraID].Image)[j];
 #endif
   
   anImage = an2Image._retn();
-  return m_Height*m_Width;
+  return m_Height[CameraID]*m_Width[CameraID];
 
 }
 
@@ -2853,15 +2823,15 @@ CORBA::Long LowLevelVisionServer::GetBoundaryRepresentation(CBREPSeq_out aBrep)
 
 void LowLevelVisionServer::CreateStack()
 {
-  ODEBUG3("Here 1" << m_Width << " " << m_Height);
+  ODEBUG3("Here 1" << m_Width[0] << " " << m_Height[0]);
   m_MaxSI = 33*120;
   //m_MaxSI = 1;
   m_IndexSI = 0;
   m_NumberOfImagesToStack=1;
   m_IndexSensorsStack = 0;
 
-  ODEBUG3(m_Width*m_Height*m_MaxSI);
-  m_StoredImages= new unsigned char[m_Width * m_Height * m_MaxSI * m_depth[0]];
+  ODEBUG3(m_Width[0]*m_Height[0]*m_MaxSI);
+  m_StoredImages= new unsigned char[m_Width[0] * m_Height[0] * m_MaxSI * m_depth[0]];
   if (m_StoredImages==0)
     ODEBUG3("COULD NOT ALLOCATE ENOUGH MEMORY for stack");
   else 
@@ -2923,9 +2893,9 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
   if (m_StoredTimeStamp==0)
     return;
   
-  unsigned char *ptdst = m_StoredImages + m_IndexSI*m_Width*m_Height*m_depth[0];
+  unsigned char *ptdst = m_StoredImages + m_IndexSI*m_Width[0]*m_Height[0]*m_depth[0];
   unsigned char *ptsrc = m_BinaryImages[image];
-  for(unsigned int l=0;l<m_Height*m_Width*m_depth[0];l++)
+  for(unsigned int l=0;l<m_Height[0]*m_Width[0]*m_depth[0];l++)
     *ptdst++ = *ptsrc++;
 
   m_StoredTimeStamp[m_IndexSI] = m_timestamps[image];
@@ -3046,7 +3016,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       for(unsigned int i=0; i<m_MaxSI; i++)
 	{
 	  int k,l;
-	  unsigned char *pt = m_StoredImages+i*m_Width*m_Height*m_depth[0];
+	  unsigned char *pt = m_StoredImages+i*m_Width[0]*m_Height[0]*m_depth[0];
 	  char Buffer[1024];
 	  bzero(Buffer,1024);
 	  char BufExten[30];
@@ -3071,10 +3041,10 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	    {
 	      double TimeStamp=m_StoredTimeStamp[i].tv_sec + 0.000001 * m_StoredTimeStamp[i].tv_usec;
 	      if (m_depth[0]==1)
-		fprintf(fp,"P5\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width,(int)m_Height);
+		fprintf(fp,"P5\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width[0],(int)m_Height[0]);
 	      else if (m_depth[0]==3)
-		fprintf(fp,"P6\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width,(int)m_Height);
-	      fwrite(pt,m_Height * m_Width * m_depth[0] ,1,fp);
+		fprintf(fp,"P6\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width[0],(int)m_Height[0]);
+	      fwrite(pt,m_Height[0] * m_Width[0] * m_depth[0] ,1,fp);
 	      /*
 	      for(l=0;l<m_Height;l++)
 		{

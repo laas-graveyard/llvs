@@ -67,102 +67,105 @@ using namespace std;
  * Copyright 2004 (c), JRL/CNRS, AIST,
  *                    Olivier Stasse,
  */
-class LowLevelVisionServer;
-
-class Camera_impl : public virtual POA_HRP2Camera
+namespace llvs
 {
- public:
+  class LowLevelVisionServer;
+
+  class Camera_impl : public virtual POA_HRP2Camera
+    {
+    public:
   
-  /*! Constructor*/
-  Camera_impl(const char * location,LowLevelVisionServer *aLLVS);
+      /*! Constructor*/
+      Camera_impl(const char * location,LowLevelVisionServer *aLLVS);
   
-  /*! Destructor */
-  ~Camera_impl();
+      /*! Destructor */
+      ~Camera_impl();
 
-  /*! Interface : destroy() method */
-  void destroy();
+      /*! Interface : destroy() method */
+      void destroy();
   
-  /*! Interface : returns the camera parameter */
-  virtual HRP2Camera::CameraParameter * GetCameraParameter()
-    throw(CORBA::SystemException);
+      /*! Interface : returns the camera parameter */
+      virtual HRP2Camera::CameraParameter * GetCameraParameter()
+	throw(CORBA::SystemException);
 
-  /*! Interface : returns the intrinsic parameters */
-  virtual HRP2Camera::IntrinsicParameters GetIntrinsicParameters()
-   throw(CORBA::SystemException) ; 
+      /*! Interface : returns the intrinsic parameters */
+      virtual HRP2Camera::IntrinsicParameters GetIntrinsicParameters()
+	throw(CORBA::SystemException) ; 
 
-  /*! Interface : returns the projective parameters */
-  virtual HRP2Camera::ProjectiveParameters GetProjectiveParameters()
-    throw(CORBA::SystemException);
+      /*! Interface : returns the projective parameters */
+      virtual HRP2Camera::ProjectiveParameters GetProjectiveParameters()
+	throw(CORBA::SystemException);
 
-  /*! Interface : returns the depth Buffer */
-  virtual CORBA::Long SetAcquisitionSize(CORBA::Long aWidth, CORBA::Long aHeight)
-    throw(CORBA::SystemException);
+      /*! Interface : returns the depth Buffer */
+      virtual CORBA::Long SetAcquisitionSize(CORBA::Long aWidth, CORBA::Long aHeight)
+	throw(CORBA::SystemException);
   
-  /*! Set the father */
-  void SetFather(LowLevelVisionServer *aFather);
+      /*! Set the father */
+      void SetFather(LowLevelVisionServer *aFather);
 
-  /*! Get the father */
-  LowLevelVisionServer * GetFather();
+      /*! Get the father */
+      LowLevelVisionServer * GetFather();
     
-  /*! Set the identifier */
-  void SetIdentifier(int anID);
+      /*! Set the identifier */
+      void SetIdentifier(int anID);
 
-  /*! Get the identifier */
-  int GetIdentifier();
+      /*! Get the identifier */
+      int GetIdentifier();
 
-  /*! Set the Name */
-  void SetName(string aName);
+      /*! Set the Name */
+      void SetName(string aName);
 
-  /*! Get the Name */
-  string GetName();
+      /*! Get the Name */
+      string GetName();
 
-  /*! Set the Camera Type */
-  void SetCameraType(int aType);
+      /*! Set the Camera Type */
+      void SetCameraType(int aType);
 
-  /*! Get the Camera Type */
-  int GetCameraType();
+      /*! Get the Camera Type */
+      int GetCameraType();
 
-  /*! Set Intrinsic parameters */
-  void SetIntrinsicParameters(float aFocal, float aScale[2], float SkewFactor, float ImageCenter[2]);
+      /*! Set Intrinsic parameters */
+      void SetIntrinsicParameters(float aFocal, float aScale[2], float SkewFactor, float ImageCenter[2]);
 
-  /*! Set CameraParameter */
-  void SetCameraParameter(long aWidth, long aHeight, long CalibrationWidth, long CalibrationHeight);
+      /*! Set CameraParameter */
+      void SetCameraParameter(long aWidth, long aHeight, long CalibrationWidth, long CalibrationHeight);
 
-  /*! Reset the camera parameters */
-  void ResetCameraParameters(void);
+      /*! Reset the camera parameters */
+      void ResetCameraParameters(void);
 
-  /*! Reset the intrinsic parameters */
-  void ResetIntrinsicParameters(void);
+      /*! Reset the intrinsic parameters */
+      void ResetIntrinsicParameters(void);
 
 #if (LLVS_HAVE_VVV>0)
-  /*! Set Camera Projective Camera Parameters */
-  void SetCameraProjectiveParameters(SCM_PARAMETER *sp, int camera_number);
+      /*! Set Camera Projective Camera Parameters */
+      void SetCameraProjectiveParameters(SCM_PARAMETER *sp, int camera_number);
 #endif
 
-  /*! Set the verbosity level */
-  void SetVerbosity(int aVerbosity);
+      /*! Set the verbosity level */
+      void SetVerbosity(int aVerbosity);
 
-  /*! Get the verbosity level */
-  int GetVerbosity();
+      /*! Get the verbosity level */
+      int GetVerbosity();
 
-  /*! Get the original projective matrix */
-  void GetOriginalProjectiveMatrix(double oP[3][4]);
+      /*! Get the original projective matrix */
+      void GetOriginalProjectiveMatrix(double oP[3][4]);
 
- protected:
+    protected:
 
-  /*! Link to the LowLevelVisionServer */
-  LowLevelVisionServer * m_LLVSFather;
+      /*! Link to the LowLevelVisionServer */
+      LowLevelVisionServer * m_LLVSFather;
 
-  /*! Camera parameter */
-  HRP2Camera::CameraParameter m_CameraParameter;
+      /*! Camera parameter */
+      HRP2Camera::CameraParameter m_CameraParameter;
   
-  /*! Intrinsic camera parameters */
-  HRP2Camera::IntrinsicParameters m_IntrinsicParameter;
+      /*! Intrinsic camera parameters */
+      HRP2Camera::IntrinsicParameters m_IntrinsicParameter;
 
-  /* ! Projective camera parameters */
-  HRP2Camera::ProjectiveParameters m_ProjectiveParameters;
+      /* ! Projective camera parameters */
+      HRP2Camera::ProjectiveParameters m_ProjectiveParameters;
 
-  /*! Verbosity level */
-  int m_Verbosity;
+      /*! Verbosity level */
+      int m_Verbosity;
+    };
 };
 #endif /* _CAMERA_IMPL_H_ */

@@ -28,6 +28,7 @@
 
 #include "LowLevelVisionServer.h"
 
+using namespace llvs;
 pthread_t MainThread;
 LowLevelVisionServer *GlobalVisionServer=0;
 

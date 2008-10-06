@@ -69,41 +69,43 @@ using namespace std;
 /*! This object implements the grabbing of the images from the simulator. 
  *  
  */
-class HRP2SimulatorInputMethod : public HRP2ImagesInputMethod
-{
- public:
+namespace llvs 
+{ 
+  class HRP2SimulatorInputMethod : public HRP2ImagesInputMethod
+    {
+    public:
   
-  /*! Constantes */
-  static const int COLOR = 0;
-  static const int BW = 1;
+      /*! Constantes */
+      static const int COLOR = 0;
+      static const int BW = 1;
 
-  /*! Constructor */
-  HRP2SimulatorInputMethod(int argc, char *argv[],CORBA::ORB_var ns);
+      /*! Constructor */
+      HRP2SimulatorInputMethod(int argc, char *argv[],CORBA::ORB_var ns);
   
-  /*! Destructor */
-  virtual ~HRP2SimulatorInputMethod();
+      /*! Destructor */
+      virtual ~HRP2SimulatorInputMethod();
 
-  /*! Takes a new image.
-   * Input: 
-   * unsigned char * ImageLeft : A pointer where to store the bottom left image.
-   * unsigned char * ImageRight : A pointer where to store the bottom right image.
-   * unsigned char * ImageUp : A pointer where to store the upper image.
-   */
-  virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
+      /*! Takes a new image.
+       * Input: 
+       * unsigned char * ImageLeft : A pointer where to store the bottom left image.
+       * unsigned char * ImageRight : A pointer where to store the bottom right image.
+       * unsigned char * ImageUp : A pointer where to store the upper image.
+       */
+      virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
-  /*! Set the size of the image willing to be grabbed. */
-  virtual int SetImageSize(int lw, int lh, int CameraNumber);
+      /*! Set the size of the image willing to be grabbed. */
+      virtual int SetImageSize(int lw, int lh, int CameraNumber);
 
-  /*! Get the current image size for the appropriate camera */
-  virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+      /*! Get the current image size for the appropriate camera */
+      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
 
-  /*! Get the current format of the image */
-  virtual string GetFormat();
+      /*! Get the current format of the image */
+      virtual string GetFormat();
 
- protected:
+    protected:
 
-  /*! Color mode */
-  unsigned char m_ColorMode;
-};
-  
+      /*! Color mode */
+      unsigned char m_ColorMode;
+    };
+};  
 #endif /* _HRP2_INPUT_SIMULATOR_METHOD_H_ */

@@ -24,86 +24,87 @@
 
 using namespace std;
 
+namespace llvs {
 
-/*! This object defines the class for the input method using files
-  and related to the low level HRP2 vision system.
-  This will be used to input either one or several files.
-*/
-class HRP2FileImagesInputMethod : public HRP2ImagesInputMethod
-{
-  typedef struct s_SimpleImage
-  {
-    unsigned int width, height;
-    unsigned char *Data;
-    unsigned int depth;
-  } SimpleImage;
+  /*! This object defines the class for the input method using files
+    and related to the low level HRP2 vision system.
+    This will be used to input either one or several files.
+  */
+  class HRP2FileImagesInputMethod : public HRP2ImagesInputMethod
+    {
+      typedef struct s_SimpleImage
+      {
+	unsigned int width, height;
+	unsigned char *Data;
+	unsigned int depth;
+      } SimpleImage;
 
- public:
+    public:
   
-  /* Constants */
-  static const int ONEIMAGE = 0;
-  static const int DIRECTORY =1;
+      /* Constants */
+      static const int ONEIMAGE = 0;
+      static const int DIRECTORY =1;
 
-  /*! Constructor */
-  HRP2FileImagesInputMethod(int MethodForInputImages);
+      /*! Constructor */
+      HRP2FileImagesInputMethod(int MethodForInputImages);
   
-  /*! Destructor */
-  virtual ~HRP2FileImagesInputMethod();
+      /*! Destructor */
+      virtual ~HRP2FileImagesInputMethod();
 
-  /*! Takes a new image.
-   * Input: 
-   * unsigned char * ImageLeft : A pointer where to store the bottom left image.
-   * unsigned char * ImageRight : A pointer where to store the bottom right image.
-   * unsigned char * ImageUp : A pointer where to store the upper image.
-   */
-  virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
+      /*! Takes a new image.
+       * Input: 
+       * unsigned char * ImageLeft : A pointer where to store the bottom left image.
+       * unsigned char * ImageRight : A pointer where to store the bottom right image.
+       * unsigned char * ImageUp : A pointer where to store the upper image.
+       */
+      virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
-  /*! Takes a new image.
-   * Input: 
-   * unsigned char * Image : A pointer where to store the image.
-   * int camera : Reference to the image itself.
-   */
-  virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
+      /*! Takes a new image.
+       * Input: 
+       * unsigned char * Image : A pointer where to store the image.
+       * int camera : Reference to the image itself.
+       */
+      virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
 
-  /*! Get the current format of the image */
-  virtual string GetFormat();
+      /*! Get the current format of the image */
+      virtual string GetFormat(unsigned int CameraNumber);
 
 
-  /*! Set the base name for reading the file containing the images. */
-  int SetBaseName(string afilename);
+      /*! Set the base name for reading the file containing the images. */
+      int SetBaseName(string afilename);
 
-  /*! Get the base name for reading the images. */
-  string GetBaseName(void);
+      /*! Get the base name for reading the images. */
+      string GetBaseName(void);
 
-  /*! Read EPBM image */
-  int ReadEPBMFileImage(string & afilename, unsigned char ** ImageLeft, unsigned char **ImageRight, unsigned char ** ImageUp,
-			int mode);
+      /*! Read EPBM image */
+      int ReadEPBMFileImage(string & afilename, unsigned char ** ImageLeft, unsigned char **ImageRight, unsigned char ** ImageUp,
+			    int mode);
 
-  /*! Read the body of one sub epbm image */
-  int ReadEPBMBodyImage(ifstream & aifstream, unsigned char ** buffer, int lw, int lh, int depth);
+      /*! Read the body of one sub epbm image */
+      int ReadEPBMBodyImage(ifstream & aifstream, unsigned char ** buffer, int lw, int lh, int depth);
 
-  /*! Read the header of one sub epbm image */
-  int ReadEPBMImageHeader(ifstream & aifstream, int CameraNumber, int &depth);
+      /*! Read the header of one sub epbm image */
+      int ReadEPBMImageHeader(ifstream & aifstream, int CameraNumber, int &depth);
   
-  /*! Returns the number of cameras */
-  int GetNumberOfCameras();
+      /*! Returns the number of cameras */
+      unsigned int GetNumberOfCameras();
 
- protected:
+    protected:
 
-  /* Name of the file to read from */
-  string m_BaseName;
+      /* Name of the file to read from */
+      string m_BaseName;
 
-  /* How to read images */
-  int m_MethodHowReading;
+      /* How to read images */
+      int m_MethodHowReading;
 
-  /* Number of images */
-  int m_NbOfImages;
+      /* Number of images */
+      int m_NbOfImages;
 
-  /* Image pointer (needed since GetSingleImage ) */
-  vector< SimpleImage *> m_ReadImageData;
+      /* Image pointer (needed since GetSingleImage ) */
+      vector< SimpleImage *> m_ReadImageData;
   
-  /* Initialization during Get Number of Cameras . */
-  int m_InitValue;
-};
-  
+      /* Initialization during Get Number of Cameras . */
+      int m_InitValue;
+    };
+};  
 #endif /* _HRP2_INPUT_METHOD_H_ */

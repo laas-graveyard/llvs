@@ -51,6 +51,8 @@
 #include "visionsensor.hh"
 #endif
 
+using namespace llvs;
+
 HRP2SimulatorInputMethod::HRP2SimulatorInputMethod(int argc, char *argv[], CORBA::ORB_var ns) 
   : HRP2ImagesInputMethod()
 {

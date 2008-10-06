@@ -42,74 +42,75 @@
 
 #include <string>
 #include <sys/time.h>
+#include <vector>
+
 using namespace std;
 
-/*! This class defines the abstract class for the input method
-   related to the low level HRP2 vision system.
-   This will be used to input either files, either grabbed images,
-   or event simulated ones.
-   
-   Copyright CNRS,JRL/AIST, 2004,
-   Olivier Stasse
-
-   07/12/2004: Modification for the new camera.
-   16/05/2004: Creation
-*/
-class HRP2ImagesInputMethod
+namespace llvs
 {
- public:
-  
-  /*! Constantes */
-  static const int CAMERA_LEFT = 0;
-  static const int CAMERA_RIGHT = 1;
-  static const int CAMERA_UP = 2;
-  static const int CAMERA_WIDE = 3;
+  /*! This class defines the abstract class for the input method
+    related to the low level HRP2 vision system.
+    This will be used to input either files, either grabbed images,
+    or event simulated ones.
+   
+    Copyright CNRS,JRL/AIST, 2004,
+    Olivier Stasse
 
-  /*! Constructor */
-  HRP2ImagesInputMethod();
-  
-  /*! Destructor */
-  virtual ~HRP2ImagesInputMethod();
-
-  /*! Takes a new image.
-   * Input: 
-   * unsigned char * Image : A pointer where to store the image.
-   * int camera : Reference to the image itself.
-   */
-  virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
-
-  /*! Set the size of the image willing to be grabbed. */
-  virtual int SetImageSize(int lw, int lh, int CameraNumber);
-
-  /*! Get the current image size for the appropriate camera */
-  virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
-
-  /*! Get the current format of the image */
-  virtual string GetFormat();
-
-  /*! Set the level of verbosity */
-  int SetLevelOfVerbosity(int VerbosityParameter);
-
-  /*! Get the level of verbosity */
-  int GetLevelOfVerbosity();
-
-  /*! Get the number of camera */
-  virtual int GetNumberOfCameras();
-
-  /*! Get the next time for grabbing an image. */
-  virtual double NextTimeForGrabbing(int CameraNumber);
-
- protected:
-  /*! Members of the class storing the size of the images. 
-     All the three images have the same size. 
+    07/12/2004: Modification for the new camera.
+    16/05/2004: Creation
   */
-  unsigned int m_ImagesWidth[4], m_ImagesHeight[4];
-
-  /*! Depth of the images. */
-  unsigned int m_depth;
-
-  /*! Level of verbosity */
-  int m_Verbosity;
-};
+  class HRP2ImagesInputMethod
+    {
+    public:
   
+      /*! Constructor */
+      HRP2ImagesInputMethod();
+  
+      /*! Destructor */
+      virtual ~HRP2ImagesInputMethod();
+
+      /*! Takes a new image.
+       * Input: 
+       * unsigned char * Image : A pointer where to store the image.
+       * int camera : Reference to the image itself.
+       */
+      virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
+
+      /*! Set the size of the image willing to be grabbed. */
+      virtual int SetImageSize(int lw, int lh, int CameraNumber);
+
+      /*! Get the current image size for the appropriate camera */
+      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+
+      /*! \brief Get the current format of the image.
+	@param[in] CameraNumber: The camera for which the format is asked. 
+      */
+      virtual string GetFormat(unsigned int CameraNumber);
+
+      /*! Set the level of verbosity */
+      int SetLevelOfVerbosity(int VerbosityParameter);
+
+      /*! Get the level of verbosity */
+      int GetLevelOfVerbosity();
+
+      /*! Get the number of camera */
+      virtual unsigned int GetNumberOfCameras();
+
+      /*! Get the next time for grabbing an image. */
+      virtual double NextTimeForGrabbing(int CameraNumber);
+
+    protected:
+
+      /*! Members of the class storing the size of the images. 
+	All the three images have the same size. 
+      */
+      std::vector<unsigned int> m_ImagesWidth, m_ImagesHeight;
+
+      /*! Depth of the images. */
+      std::vector<unsigned int> m_depth;
+
+      /*! Level of verbosity */
+      int m_Verbosity;
+    };
+};  
 #endif /* _HRP2_INPUT_METHOD_H_ */

@@ -39,142 +39,134 @@
 
 /*! Includes for 1394 communications. */
 #include <libraw1394/raw1394.h>
-#include "dc1394/dc1394.h"
+#include <dc1394/dc1394.h>
 
 #include <vector>
 using namespace std;
 
-
-class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
+namespace llvs
 {
- public:
+  class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
+    {
+    public:
 
-  static const int CAMERA_LEFT = 0;
-  static const int CAMERA_RIGHT = 1;
-  static const int CAMERA_UP = 2;
-  static const int CAMERA_WIDE = 3;
+      static const int CAMERA_LEFT = 0;
+      static const int CAMERA_RIGHT = 1;
+      static const int CAMERA_UP = 2;
+      static const int CAMERA_WIDE = 3;
     
-  /*! Constructor */
-  HRP2IEEE1394ImagesInputMethod(void);
+      /*! Constructor */
+      HRP2IEEE1394DCImagesInputMethod(void);
   
-  /*! Destructor */
-  virtual ~HRP2IEEE1394ImagesInputMethod();
+      /*! Destructor */
+      virtual ~HRP2IEEE1394DCImagesInputMethod();
+      /*! Takes a new image.
+       * Input :
+       * \param unsigned char * Image:  A pointer where to store the image.
+       * \param int camera: The camera index.
+       */
+      virtual int GetSingleImage(unsigned char **Image, int camera,struct timeval &timestamp);
 
-  /*! Takes a new image.
-   * Input: 
-   * \param unsigned char * ImageLeft : A pointer where to store the bottom left image.
-   * \param unsigned char * ImageRight : A pointer where to store the bottom right image.
-   * \param unsigned char * ImageUp : A pointer where to store the upper image.
-   */
-  virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, 
-		       unsigned char **ImageUp, unsigned char **ImageWide);
 
-  /*! Takes a new image.
-   * Input :
-   * \param unsigned char * Image:  A pointer where to store the image.
-   * \param int camera: The camera index.
-   */
-  virtual int GetSingleImage(unsigned char **Image, int camera,struct timeval &timestamp);
+      int GetImageSinglePGM(unsigned char **Image, int camera, struct timeval &timestamp);
+      int GetImageSingleRaw(unsigned char **Image, int camera, struct timeval &timestamp);
+      int GetImageSingleRGB(unsigned char **Image, int camera, struct timeval &timestamp);
 
-  /* Real implementation for PGM */
-  int GetImagePGM(unsigned char **ImageLeft, unsigned char **ImageRight, 
-		  unsigned char **ImageUp, unsigned char **ImageWide);
-
-  int GetImageSinglePGM(unsigned char **Image, int camera, struct timeval &timestamp);
-  int GetImageSingleRaw(unsigned char **Image, int camera, struct timeval &timestamp);
-  int GetImageSingleRGB(unsigned char **Image, int camera, struct timeval &timestamp);
-
-  /* Real implementation for single PGM */
-  int GetImagePGM(unsigned char *Image, int camera);
+      /* Real implementation for single PGM */
+      int GetImagePGM(unsigned char *Image, int camera);
   
-  /* Real implementation for RGB */
-  int GetImageRGB(unsigned char **ImageLeft, unsigned char **ImageRight, 
-		     unsigned char **ImageUp, unsigned char **ImageWide);
+      /*! \brief Get the current format of the image 
+	according to the camera index. 
+	@param[in] CameraNumber: camera to which the format applies.
+      */
+      virtual string GetFormat(unsigned int CameraNumber);
 
-  /* Real implementation for Raw */
-  int GetImageRaw(unsigned char **ImageLeft, unsigned char **ImageRight, 
-		     unsigned char **ImageUp, unsigned char **ImageWide);
+      /*! \brief Set the format of the current image: default PGM 
+	@param[in] aFormat: Name of the format to use.
+	@param[in] CameraNumber: Camera which should switch to format aFormat.
+      */
+      int SetFormat(string aFormat, unsigned int CameraNumber);
+
+      /*! Get the current image size for the appropriate camera */
+      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+
+      /*! Set the size of the image willing to be grabbed. */
+      virtual int SetImageSize(int lw, int lh, int CameraNumber);
+
+
+      /*! Initialize the cameras */
+      void InitializeCameras();
+
+      /*! Initialize the board */
+      void InitializeBoard();
   
-  /*! Get the current format of the image */
-  virtual string GetFormat();
-
-  /*! Set the format of the current image: default PGM */
-  int SetFormat(string aFormat);
-
-  /*! Get the current image size for the appropriate camera */
-  virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
-
-  /*! Set the size of the image willing to be grabbed. */
-  virtual int SetImageSize(int lw, int lh, int CameraNumber);
-
-
-  /*! Initialize the board */
-  void InitializeBoard();
+      /*! Stop the the board */
+      void StopBoard();
   
-  /*! Stop the the board */
-  void StopBoard();
+      /*! Set parameter value */
+      virtual int SetParameter(string aParameter, string aValue);
   
-  /*! Set parameter value */
-  virtual int SetParameter(string aParameter, string aValue);
+      /*! Override Start Process */
+      virtual int StartProcess();
   
-  /*! Override Start Process */
-  virtual int StartProcess();
-  
-  /*! Override Stop Process */
-  virtual int StopProcess();
+      /*! Override Stop Process */
+      virtual int StopProcess();
 
-  void GetCameraFeatureValue(string aCamera, string aFeature, string &aValue);
-  void SetCameraFeatureValue(string aCamera, string aFeature, string aValue);
+      void GetCameraFeatureValue(string aCamera, string aFeature, string &aValue);
+      void SetCameraFeatureValue(string aCamera, string aFeature, string aValue);
 
-  /*! Returns the number of cameras */
-  virtual int GetNumberOfCameras();
+      /*! Returns the number of cameras */
+      virtual unsigned int GetNumberOfCameras();
 
-  void StartContinuousShot();
-  void StopContinuousShot();
+      void StartContinuousShot();
+      void StopContinuousShot();
   
-  /*! Returns the next time when the camera CameraNumber
-    will  grab. */
-  virtual double NextTimeForGrabbing(int CameraNumber);
+      /*! Returns the next time when the camera CameraNumber
+	will  grab. */
+      virtual double NextTimeForGrabbing(int CameraNumber);
   
-  /*! From FrameRate to Time */
-  void FromFrameRateToTime(int CameraNumber);
+      /*! From FrameRate to Time */
+      void FromFrameRateToTime(int CameraNumber);
 
- protected:
-  /*! Number of cameras */
-  unsigned int m_numCameras;
+    protected:
+      /*! Number of cameras */
+      unsigned int m_numCameras;
   
-  /*! Pointer to the copy memory. */
-  vector<unsigned char *> m_TmpImage;
+      /*! Pointer to the copy memory. */
+      vector<unsigned char *> m_TmpImage;
 
-  /*! Format */
-  vector<string> m_Format;
+      /*! Format */
+      vector<string> m_Format;
 
-  /*! Prefixes for cameras */
-  vector<string> m_Prefixes;
+      /*! Prefixes for cameras */
+      vector<string> m_Prefixes;
   
-  /*! Prefixes for features */
-  vector<string> m_Features;
+      /*! Prefixes for features */
+      vector<string> m_Features;
 
-  /*! Keep time for each camera. */
-  vector <double> m_LastGrabbingTime;
+      /*! Keep time for each camera. */
+      vector <double> m_LastGrabbingTime;
   
-  /*! Keep the period for each grabbing. */
-  vector<double> m_GrabbingPeriod;
+      /*! Keep the period for each grabbing. */
+      vector<double> m_GrabbingPeriod;
   
-  /*! \name Fields specific to 1394 access. 
-    @{
-   */
+      /*! \name Fields specific to 1394 access. 
+	@{
+      */
 
-  /*! Handle on the 1394 device */
-  dc1394_t * m_HandleDC1394;
+      /*! \brief Handle on the 1394 device */
+      dc1394_t * m_HandleDC1394;
   
-  /*! Cameras Ids */
-  vector<dc1394camera_t> m_DC1394Cameras;
+      /*! \brief Cameras Ids */
+      vector<dc1394camera_t *> m_DC1394Cameras;
 
-  /*! Local Images size */
-  vector<int> m_BoardImagesWidth;
-  vector<int> m_BoardImagesHeight;
-  /*! @} */
-};
-  
+      /*! \brief Ref towards 1394 data structure */
+      vector<dc1394video_frame_t *> m_VideoFrames;
+
+      /*! Local Images size */
+      vector<int> m_BoardImagesWidth;
+      vector<int> m_BoardImagesHeight;
+      /*! @} */
+    };
+};  
 #endif 

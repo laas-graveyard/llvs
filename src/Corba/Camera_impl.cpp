@@ -46,6 +46,8 @@ extern "C"
 }
 #endif
 
+using namespace llvs;
+
 /* Constructor for this class */
 Camera_impl::Camera_impl(const char *location,LowLevelVisionServer *aLLVS)
 {
