@@ -270,7 +270,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
   /* Fix the size of the image */
-  SetImagesGrabbedSize(640,480);
+  SetImagesGrabbedSize(320,240);
 
   /* Set the calibration directory  */
   SetCalibrationDirectory(lCalibDir);
@@ -543,6 +543,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       delete [] m_BinaryImages[i];
       
+      ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
       m_BinaryImages[i] = new unsigned char[lw*lh*m_depth[i]];
       
       /* NO NEED TO FREE corrected and undistorted
@@ -2669,7 +2670,7 @@ void LowLevelVisionServer::SetAProcessParameterAndValue(string aProcessName, str
 void LowLevelVisionServer::SetCheckEntry(unsigned char ADumpMode)
 {
   m_CheckEntry = ADumpMode;
-
+  ODEBUG3("m_CheckEntry:" << m_CheckEntry);
   if (m_CheckEntry)
     {
       CreateStack();
@@ -2866,7 +2867,7 @@ CORBA::Long LowLevelVisionServer::GetBoundaryRepresentation(CBREPSeq_out aBrep)
 
 void LowLevelVisionServer::CreateStack()
 {
-  ODEBUG3("Here 1" << m_Width[0] << " " << m_Height[0]);
+  ODEBUG3("Here " << m_Width[0] << " " << m_Height[0]);
   m_MaxSI = 33*120;
   //m_MaxSI = 1;
   m_IndexSI = 0;
@@ -2976,10 +2977,15 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
 
 void LowLevelVisionServer::RecordImagesOnDisk(int image)
 {
+  ODEBUG3("Recording images on disk.");
   if (m_CheckEntry)
     {
+      ODEBUG3("Check entry correct.." << m_MaxSI);
       if (m_StoredImages==0)
-	return;
+	{
+	  ODEBUG3("No stored images.");
+	  return;
+	}
 
       ODEBUG3("RecordImagesOnDisk begin");
       FILE *fp,*fp_sensors;

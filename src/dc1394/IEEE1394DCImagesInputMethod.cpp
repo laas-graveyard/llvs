@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <dc1394/conversions.h>
 
 using namespace std;
 
@@ -57,7 +58,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
   for(unsigned int li=0;li<m_numCameras;li++)
     {
       m_LastGrabbingTime[li]=-1.0;
-      m_Format[li] = "PGM";
+      m_Format[li] = "RGB";
     }
 
   m_GrabbingPeriod.resize(m_numCameras);
@@ -180,13 +181,13 @@ HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 
 int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 {
-  ODEBUG3("StartProcess: Phase 1");
+  ODEBUG("StartProcess: Phase 1");
   HRP2VisionBasicProcess::StartProcess();
-  ODEBUG3("StartProcess: Phase 2");
+  ODEBUG("StartProcess: Phase 2");
   InitializeBoard();
-  ODEBUG3("StartProcess: Phase 3");
+  ODEBUG("StartProcess: Phase 3");
   StartContinuousShot();
-  ODEBUG3("StartProcess: Phase 4");
+  ODEBUG("StartProcess: Phase 4");
   return 0;
 }
 
@@ -219,7 +220,6 @@ int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, int c
     return -1;
 
   int r=-1;
-  ODEBUG3(m_Format[camera]);
   if (m_Format[camera]=="PGM")
     r = GetImageSinglePGM(Image,camera,timestamp);
   else if (m_Format[camera]=="RAW")
@@ -264,6 +264,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
+
     }
   else
     {
@@ -375,6 +376,30 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
+      ODEBUG("Before converting " << m_BoardImagesWidth[camera] << " " 
+	      <<      m_BoardImagesHeight[camera] << " " );
+      dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
+			     *Image,
+			     m_BoardImagesWidth[camera],
+			     m_BoardImagesHeight[camera],
+			     DC1394_BYTE_ORDER_UYVY,
+			     DC1394_COLOR_CODING_YUV422,1);
+      ODEBUG("After converting");
+#if 0
+
+      ofstream aof;
+      char Buffer[128];
+      sprintf(Buffer,"dump_Dst_%d.ppm",camera);
+      aof.open(Buffer,ofstream::out);
+      aof << "P6\n"<< m_ImagesWidth[camera] << " " << m_ImagesHeight[camera] << endl;
+      aof << "255\n";
+      
+      unsigned char *pt =  *Image;
+      for(int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
+	aof << (unsigned char)*pt++;
+      aof.close();
+#endif
+
     }
   else
     {
@@ -399,7 +424,6 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
 
-      //m_Board->get_images(ImagesTab);
       ODEBUG("Get Images finito...");
 
       unsigned char *ImgSrc,*ImgDst;
@@ -412,9 +436,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       BHeight = m_BoardImagesHeight[camera];
       intervalw = BWidth / m_ImagesWidth[camera];
       intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
-      ImgSrc = m_TmpImage[camera];
+            
+      ImgSrc = m_VideoFrames[camera]->image;
 
  
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
@@ -453,6 +476,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 #endif
 
     }
+
   
   if (m_VideoFrames[camera])
     {
@@ -463,7 +487,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
   
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
-  //ODEBUG3( time2 - time1);
+  //ODEBUG( time2 - time1);
   m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
   return 0;
 }
@@ -590,16 +614,15 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumb
   m_ImagesWidth[CameraNumber] = lw;
   m_ImagesHeight[CameraNumber] = lh;
   ODEBUG("Debug images");
-  if ((m_BoardImagesWidth[CameraNumber] != lw) ||
-      (m_BoardImagesHeight[CameraNumber] != lh) )
+  ODEBUG("Allocation for m_TmpImage");
+  if ((m_BoardImagesWidth[CameraNumber]!=lw) ||
+      (m_BoardImagesHeight[CameraNumber]!=lh))
     {
-      ODEBUG3("Allocation for m_TmpImage");
       if (m_TmpImage[CameraNumber]==0)
 	m_TmpImage[CameraNumber] = new unsigned char[m_BoardImagesWidth[CameraNumber] * 
 						     m_BoardImagesHeight[CameraNumber] * 4];
-      
     }
-
+  
   return 0;
 }
 
@@ -614,7 +637,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, int CameraNu
 
 string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int CameraNumber)
 {
-  if ((CameraNumber>0) && (CameraNumber<m_Format.size()))
+  if ((CameraNumber>=0) && (CameraNumber<m_Format.size()))
       return m_Format[CameraNumber];
   string ErrorMsg("Error Format : wrong camera id.");
   return ErrorMsg;
@@ -752,26 +775,45 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
     }
   catch(...)
     {
-      ODEBUG3("Unable to initialize the board correctly\n");
+      ODEBUG("Unable to initialize the board correctly\n");
       return;
     }
   InitializeCameras();
   ODEBUG("End of InitializeBoard");
 }
 
+void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
+								 dc1394video_mode_t &res,
+								 dc1394framerate_t &fps )
+{
+  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+
+  if (!strcmp(aCamera.vendor,"Unibrain"))
+    {
+      if (!strcmp(aCamera.model,"Fire-i 1.2"))
+	{
+	  res = DC1394_VIDEO_MODE_320x240_YUV422;
+	  fps = DC1394_FRAMERATE_30;
+	  ODEBUG3("Found the camera settings !");
+	}
+    }
+}
 void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 {
-  ODEBUG3("Begin InitializeCameras()");
+  ODEBUG("Begin InitializeCameras()");
   if (!m_AtLeastOneCameraPresent)
     return;
 
-  dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
-  dc1394framerate_t fps=DC1394_FRAMERATE_30;
-  dc1394error_t err;
-  unsigned int NUM_BUFFERS=8;
-      
   for (unsigned int i = 0; i < m_numCameras; i++) 
     {
+      
+      dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
+      dc1394framerate_t fps=DC1394_FRAMERATE_30;
+      
+      DecideBasicFeatureOnCamera(*m_DC1394Cameras[i],res,fps);
+      dc1394error_t err;
+      unsigned int NUM_BUFFERS=8;
+      
       pthread_mutex_lock(&m_mutex_device);      
       err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
       DC1394_ERR(err,"Could not set ISO speed");
@@ -787,15 +829,15 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
                           that the video mode and framerate \
                           are\nsupported by your camera"); 
       pthread_mutex_unlock(&m_mutex_device);
-      m_BoardImagesWidth[i]= 640;
-      m_BoardImagesHeight[i]= 480;
+      m_BoardImagesWidth[i]= 320;
+      m_BoardImagesHeight[i]= 240;
 
       if (fps==DC1394_FRAMERATE_30)
 	{
 	  m_GrabbingPeriod[i]=1.0/30.0;
 	}
     }
-  ODEBUG3("End InitializeCameras()");
+  ODEBUG("End InitializeCameras()");
 }
     
 

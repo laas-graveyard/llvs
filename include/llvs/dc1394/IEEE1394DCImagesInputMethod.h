@@ -99,6 +99,12 @@ namespace llvs
       /*! Initialize the cameras */
       void InitializeCameras();
 
+      /*! Decide to which the features should be set according
+	to the vendor and the name of the product. */
+      void DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
+				      dc1394video_mode_t &res,
+				      dc1394framerate_t &fps);
+
       /*! Initialize the board */
       void InitializeBoard();
   
