@@ -426,6 +426,9 @@ namespace llvs
 
       /* @} */
 #endif
+      
+      /*! \brief Cleanup the grabbing. */
+      void CleanUpGrabbing();
 
     protected:
 

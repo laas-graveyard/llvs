@@ -430,6 +430,7 @@ LowLevelVisionServer::~LowLevelVisionServer()
 #if (LLVS_HAVE_VVV>0)
   scm_Free(&m_sp);
 #endif
+
 }
 
 
@@ -1108,13 +1109,14 @@ CORBA::Long LowLevelVisionServer::StopMainProcess()
 
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     m_ListOfProcesses[i]->StopProcess();
+  return 1;
+}
 
-  sleep(1);
+void LowLevelVisionServer::CleanUpGrabbing()
+{
 
   if (m_ImagesInputMethod!=0)
     m_ImagesInputMethod->Cleanup();
-
-  return 1;
 }
 
 CORBA::Long LowLevelVisionServer::ProcessStatus(const char *aProcessName)
@@ -1352,13 +1354,13 @@ CORBA::Long LowLevelVisionServer::LoadCalibrationInformation()
 
       if(CalibLoadSize((char *)pathname,&m_CalibrationWidth[i],&m_CalibrationHeight[i]) != 0)
 	{
-	  fprintf(stderr,"vvvstereo_loadcalib: CANNOT OPEN FILE,'%s'.", pathname);
+	  fprintf(stderr,"CalibLoadSize: CANNOT OPEN FILE,'%s'.", pathname);
  	  continue;
 	}
       
       if (sprintf(pathname,"%s/Calib.%d",cdir,i) < 0)
 	{
-	  fprintf(stderr,"vvvstereo_loadcalib: BAD NAME, \"%s\".",pathname);
+	  fprintf(stderr,"Path to calibration data invalid: \"%s\".",pathname);
 	  continue;
 	}
 #if (LLVS_HAVE_VVV>0)

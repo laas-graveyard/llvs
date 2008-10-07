@@ -34,6 +34,8 @@ LowLevelVisionServer *GlobalVisionServer=0;
 PortableServer::POA_var poa;
 PortableServer::ObjectId_var GlobalVisionServerID;
 pthread_t aThread;
+bool EndOfMainLoop=false;
+bool ServerBinded=false;
 
 void * LLVSThread(void *arg)
 {
@@ -45,6 +47,7 @@ void * LLVSThread(void *arg)
       double mean=0;
 
       
+      cout << "LLVS thread: " << pthread_self() << endl;
       // Start to process.
       aVS->StartMainProcess();
 
@@ -58,7 +61,7 @@ void * LLVSThread(void *arg)
 	pthread_exit(0);
 
       // Vision Main loop.
-      while(1)
+      while(!EndOfMainLoop)
 	{
 	  aVS->ApplyingProcess();
 	  //	  usleep(1);
@@ -74,25 +77,24 @@ void SIGINT_handler(int asig)
   cout << "Went through SIGINT_handler : "<< asig << " " << pthread_self() << endl;
   if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
     {
-
+      /* Stop the processes */
+      GlobalVisionServer->StopMainProcess();
+      EndOfMainLoop = true;
       cout << "Stopped the processes "<< endl;
-      pthread_join(aThread,0);
+      sleep(1);
 
+      pthread_kill(aThread,asig);
+
+      /* Stop the processes */
+      cout << "Just before cleaning up the frame grabbing " << endl;
+      GlobalVisionServer->CleanUpGrabbing();
+      cout << "Just after cleaning up the frame grabbing " << endl;
       GlobalVisionServer->RecordImagesOnDisk(0);
-
-      poa->deactivate_object(GlobalVisionServerID);
-
-      /* Delete the object. */
-      delete GlobalVisionServer;
-      cout << "delete VisionServer "<< endl;
-      
-      GlobalVisionServer=0;
+      cout << "Just after recording images on disk " << GlobalVisionServer->_refcount_value() <<  endl;
     }
   else
     {
-      /* Stop the processes */
-      GlobalVisionServer->StopMainProcess();
-
+      cout << "Go out from "<< pthread_self() << endl;
       pthread_exit(0);
     }
 }
@@ -292,6 +294,7 @@ int main(int argc, char * argv[])
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
       GlobalVisionServerID = poa->activate_object(aVS);
+      aVS->_remove_ref();
       ODEBUG("Flag 2");
       if (aVS!=0)
 	{
@@ -313,7 +316,10 @@ int main(int argc, char * argv[])
 	    {
 	      cout << "The server did not succeed to connect to a Name Service," << endl
 		   << "thus it will run in a stand-alone mode" << endl;
+	      
 	    }
+	  else 
+	    ServerBinded =true;
 
 	  /* Initialize the calibration directory */
 	  aVS->SetCalibrationDirectory(calibdir);
@@ -382,7 +388,6 @@ int main(int argc, char * argv[])
 	    aVS->SetImagesGrabbedSize(FGWidth,FGHeight);
 	  
 	  aVS->SetCheckEntry(CheckEntry);
-	  aVS->_remove_ref();
 		  
 	  PortableServer::POAManager_var pman = poa->the_POAManager();
 	  pman->activate();
@@ -393,9 +398,15 @@ int main(int argc, char * argv[])
 
 	    pthread_attr_init(&Thread_Attr);
 	    pthread_create(&aThread, &Thread_Attr,LLVSThread, (void *)aVS);
-	  }
 
-	  orb->run();
+	    cout << "OmniORB thread:" << pthread_self() << endl;
+	  }
+#ifdef __ORBIX__
+	  orb->run()
+#endif
+#ifdef OMNIORB4
+	  pthread_join(aThread,0);
+#endif
 	}
 
 
@@ -417,7 +428,8 @@ int main(int argc, char * argv[])
 	  
   }
 
- 
+  //  poa->deactivate_object(GlobalVisionServerID.in());
+  //delete GlobalVisionServer;
   return 0;
 
 }

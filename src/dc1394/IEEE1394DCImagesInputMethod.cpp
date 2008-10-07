@@ -35,6 +35,13 @@ using namespace llvs;
  **************************************************************/
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
 {
+
+  pthread_mutexattr_t lmutattr;
+  pthread_mutexattr_init(&lmutattr);
+  pthread_mutex_init(&m_mutex_device,&lmutattr);
+
+  m_mutex_device;
+
   m_numCameras = 0;
   m_AtLeastOneCameraPresent = false;
 
@@ -104,7 +111,9 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
     {
       u_int avalue=0;
       
+      pthread_mutex_lock(&m_mutex_device);
       dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue);
+      pthread_mutex_unlock(&m_mutex_device);
       char Buffer[1024];
       bzero(Buffer,1024);
       sprintf(Buffer,"%d",avalue);
@@ -160,7 +169,7 @@ HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 {
 
   /* Close the frame grabber. */
-  StopBoard();
+  //  StopBoard();
 
   for(unsigned int i=0;i<m_numCameras;i++)
     {
@@ -185,7 +194,6 @@ int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 int HRP2IEEE1394DCImagesInputMethod::StopProcess()
 {
   HRP2VisionBasicProcess::StopProcess();
-  StopBoard();
   return 0;
 }
 
@@ -198,16 +206,20 @@ int HRP2IEEE1394DCImagesInputMethod::Initialize()
 
 int HRP2IEEE1394DCImagesInputMethod::Cleanup()
 {
+  StopProcess();
   if (m_DC1394Cameras.size()!=0)
-    StopProcess();
+    StopBoard();
   return 0;
 }
 
 
 int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp)
 {
+  if (m_Computing==0)
+    return -1;
+
   int r=-1;
-  ODEBUG(m_Format[camera]);
+  ODEBUG3(m_Format[camera]);
   if (m_Format[camera]=="PGM")
     r = GetImageSinglePGM(Image,camera,timestamp);
   else if (m_Format[camera]=="RAW")
@@ -239,12 +251,13 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
 
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], 
 				     DC1394_CAPTURE_POLICY_WAIT, 
 				     &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	    dc1394_log_error("Failed to capture from camera %d", camera);
-
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -262,12 +275,13 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
       ODEBUG("Get Images " );
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], 
 				     DC1394_CAPTURE_POLICY_WAIT, 
 				     &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	    dc1394_log_error("Failed to capture from camera %d", camera);
-	  
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -318,7 +332,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
 
   
   if (m_VideoFrames[camera])
-    dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+    {
+      pthread_mutex_lock(&m_mutex_device);
+      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+      pthread_mutex_unlock(&m_mutex_device);
+    }
 
 
   //gettimeofday(&tval,0);
@@ -346,9 +364,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	    dc1394_log_error("Failed to capture from camera %d", camera);
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -365,9 +385,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	     dc1394_log_error("Failed to capture from camera %d", camera);
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -433,7 +455,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
     }
   
   if (m_VideoFrames[camera])
-    dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+    {
+      pthread_mutex_lock(&m_mutex_device);
+      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+      pthread_mutex_unlock(&m_mutex_device);
+    }
   
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
@@ -458,10 +484,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, in
 
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	     dc1394_log_error("Failed to capture from camera %d", camera);
-
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -479,9 +506,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, in
       ODEBUG("Get Images " );
       try
 	{
+	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	     dc1394_log_error("Failed to capture from camera %d", camera);
+	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -541,7 +570,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, in
 	    }
     }
   if (m_VideoFrames[camera])
-    dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+    {
+      pthread_mutex_lock(&m_mutex_device);
+      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
+      pthread_mutex_unlock(&m_mutex_device);
+    }
 
   m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;    
   return 0;
@@ -694,7 +727,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
       m_ImagesWidth.resize(list->num);
       m_ImagesHeight.resize(list->num);
       m_TmpImage.resize(list->num);
-
+      m_GrabbingPeriod.resize(list->num);
       unsigned int j=0;
       for (unsigned i = 0; i < list->num; i++) {
         m_DC1394Cameras[j] = dc1394_camera_new (m_HandleDC1394, list->ids[i].guid);
@@ -739,7 +772,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       
   for (unsigned int i = 0; i < m_numCameras; i++) 
     {
-      
+      pthread_mutex_lock(&m_mutex_device);      
       err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
       DC1394_ERR(err,"Could not set ISO speed");
       
@@ -753,10 +786,14 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       DC1394_ERR(err,"Could not setup camera-\nmake sure \
                           that the video mode and framerate \
                           are\nsupported by your camera"); 
-
+      pthread_mutex_unlock(&m_mutex_device);
       m_BoardImagesWidth[i]= 640;
       m_BoardImagesHeight[i]= 480;
 
+      if (fps==DC1394_FRAMERATE_30)
+	{
+	  m_GrabbingPeriod[i]=1.0/30.0;
+	}
     }
   ODEBUG3("End InitializeCameras()");
 }
@@ -785,8 +822,10 @@ void HRP2IEEE1394DCImagesInputMethod::StopContinuousShot()
 
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
+      pthread_mutex_lock(&m_mutex_device);
       dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
       dc1394_capture_stop(m_DC1394Cameras[i]);
+      pthread_mutex_unlock(&m_mutex_device);
     }
 }
 
@@ -795,9 +834,11 @@ void HRP2IEEE1394DCImagesInputMethod::StopBoard()
 {
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
+      pthread_mutex_lock(&m_mutex_device);
       dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
       dc1394_capture_stop(m_DC1394Cameras[i]);
       dc1394_camera_free(m_DC1394Cameras[i]);
+      pthread_mutex_unlock(&m_mutex_device);
     }
   dc1394_free (m_HandleDC1394);
   
