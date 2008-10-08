@@ -43,11 +43,31 @@
 #include <libraw1394/raw1394.h>
 #include <dc1394/dc1394.h>
 
+/*! Include from llvs */
+#include <dc1394/IEEE1394DCCameraParameters.h>
+
 #include <vector>
 using namespace std;
 
 namespace llvs
 {
+  
+  /*! \brief Profile of camera parameters for a vision system.*/
+  typedef struct 
+  {
+
+    /*! \brief Visual System Profile name */
+    string m_Name;
+
+    /*! \brief Location of the file described the system. */
+    string m_FilenameDescription;
+
+    /*! \brief The vector of camera parameters associated
+      with this description. */
+    vector<IEEE1394DCCameraParameters> m_CameraParameters;
+  } VisionSystemProfile ;
+
+  /*! \brief This class is in charge of handling IEEE1394 cameras. */
   class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
     {
     public:
@@ -103,7 +123,8 @@ namespace llvs
 	to the vendor and the name of the product. */
       void DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
 				      dc1394video_mode_t &res,
-				      dc1394framerate_t &fps);
+				      dc1394framerate_t &fps,
+				      unsigned int InternalCameraNumber);
 
       /*! Initialize the board */
       void InitializeBoard();
@@ -204,6 +225,30 @@ namespace llvs
 
       /*! \brief This field tells us if one camera has been detected or not. */
       bool m_AtLeastOneCameraPresent;
+
+      /*! @} */
+
+      /*! \name Methods related to vision system profiles. 
+	@{
+       */
+
+      /*! \brief List of Vision System Profile. 
+	At least one is asked for. 
+       */
+      vector<VisionSystemProfile> m_VisionSystemProfiles;
+
+      /*! \brief Index of the best vision profile for the current detected cameras set. */
+      unsigned int m_CurrentVisionSystemProfileID;
+
+      /*! \brief Detect the best vision system profile. 
+	The algorithm is simple we count the number of cameras 
+	describe in the vision system profile. The one with
+	the highest number of camera present win.
+       */
+      void DetectTheBestVisionSystemProfile();
+
+      /*! \brief Read configuration files in the VVV format. */
+      void ReadConfigurationFileVVVFormat(string aFileName, string ProfileName);
 
       /*! @} */
     };

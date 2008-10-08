@@ -47,7 +47,12 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
   m_AtLeastOneCameraPresent = false;
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
-
+  
+  string VisionSystemProfileDefault("vsp:default");
+  string VSPDValue("Default.vsp");
+  SetFeature(VisionSystemProfileDefault,
+	     VSPDValue);
+  
   /* File descriptor to the frame grabber. */
   ODEBUG("Through the constructor ");
   InitializeBoard();
@@ -695,13 +700,19 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
 	  lpos=6;
 	}
     }
+  else if (CameraPrefix=="vsp:")
+    {
+      lpos=5;
+      string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      ReadConfigurationFileVVVFormat(aValue,ProfileName);
+    }
   
   if (IsACamera)
     {
       unsigned char IsFeature=0;
       
       string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
-      for(int i=0;i<5;i++)
+      for(int i=0;i<m_Features.size();i++)
 	if (lFeature == m_Features[i])
 	  {
 	    IsFeature=1;
@@ -782,9 +793,11 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
   ODEBUG("End of InitializeBoard");
 }
 
+
 void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
 								 dc1394video_mode_t &res,
-								 dc1394framerate_t &fps )
+								 dc1394framerate_t &fps,
+								 unsigned int InternalCameraNb)
 {
   ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
 
@@ -794,6 +807,19 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 	{
 	  res = DC1394_VIDEO_MODE_320x240_YUV422;
 	  fps = DC1394_FRAMERATE_30;
+	  m_BoardImagesWidth[InternalCameraNb]= 320;
+	  m_BoardImagesHeight[InternalCameraNb]= 240;
+	  ODEBUG3("Found the camera settings !");
+	}
+    }
+  if (!strcmp(aCamera.vendor,""))
+    {
+      if (!strcmp(aCamera.model,"Fire-i 1.2"))
+	{
+	  res = DC1394_VIDEO_MODE_320x240_YUV422;
+	  fps = DC1394_FRAMERATE_30;
+	  m_BoardImagesWidth[InternalCameraNb]= 320;
+	  m_BoardImagesHeight[InternalCameraNb]= 240;
 	  ODEBUG3("Found the camera settings !");
 	}
     }
@@ -810,7 +836,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
       dc1394framerate_t fps=DC1394_FRAMERATE_30;
       
-      DecideBasicFeatureOnCamera(*m_DC1394Cameras[i],res,fps);
+      DecideBasicFeatureOnCamera(*m_DC1394Cameras[i],res,fps,i);
       dc1394error_t err;
       unsigned int NUM_BUFFERS=8;
       
@@ -829,8 +855,6 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
                           that the video mode and framerate \
                           are\nsupported by your camera"); 
       pthread_mutex_unlock(&m_mutex_device);
-      m_BoardImagesWidth[i]= 320;
-      m_BoardImagesHeight[i]= 240;
 
       if (fps==DC1394_FRAMERATE_30)
 	{
@@ -906,4 +930,108 @@ double HRP2IEEE1394DCImagesInputMethod::NextTimeForGrabbing(int CameraNumber)
 bool HRP2IEEE1394DCImagesInputMethod::CameraPresent()
 {
   return m_AtLeastOneCameraPresent;
+}
+
+void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFileName,
+								     string ProfileName)
+{
+  ifstream aif;
+  unsigned int lBoardNumber;
+  unsigned int lNbOfCameras;
+
+  VisionSystemProfile aVSP;
+
+  aif.open((const char *)aFileName.c_str(),ifstream::in);
+  if (aif.is_open())
+    {
+      aVSP.m_Name = ProfileName;
+      aVSP.m_FileNameDescription = aFileName;
+
+      aif >> lBoardNumber;
+      aif >> lNbOfCameras;
+      
+      aVSP.m_CameraParameters.resize(lNbOfCameras);
+
+      for(unsigned int i=0;i<lNbOfCameras;i++)
+	{
+	  string lGUID,lFormat;
+	  unsigned int lBrightness, lExposure, 
+
+	  aVSP.m_CameraParameters[i].SetBoardNumber(lBoardNumber);
+	  aVSP.m_CameraParameters[i].SetCameraNumberInUserSemantic(i);
+	  
+	  aif >> lGUID;
+	  aVSP.m_CameraParameters[i].SetGUID(lGUID);
+
+	  aif >> lFormat;
+	  aVSP.m_CameraParameters[i].SetFormat(lFormat);
+
+	  aif >> lBrightness;
+	  aVSP.m_CameraParameters[i].SetBrightness(lBrightness);
+
+	  aif >> lExposure;
+	  aVSP.m_CameraParameters[i].SetExposure(lExposure);
+
+	  unsigned int lWhiteBalance[2];
+	  aif >> lWhiteBalance[0];
+	  aif >> lWhiteBalance[1];
+	  aVSP.m_CameraParameters[i].SetWhiteBalance[lWhiteBalance];
+
+	  unsigned int lGamma;
+	  aif >> lGamma;
+	  aVSP.m_CameraParameters[i].SetGamma(lGamma);
+	  
+	  unsigned int lShutter;
+	  aif >> lShutter;
+	  aVSP.m_CameraParameters[i].SetShutter(lShutter);
+
+	  unsigned int lGain;
+	  aif >> lGain;
+	  aVSP.m_CameraParameters[i].SetGain(lGain);
+	  
+	  
+	}
+      
+      aif.close();
+
+      m_VisionSystemProfiles.insert(m_VisionSystemProfiles.end(),
+					    aVSP);
+    }
+}
+
+void HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
+{
+  int IndexBestCandidate=-1;
+  int ScoreBestCandidate=-1;
+  vector<unsigned int> lScoreCandidates;
+  lScoreCandidates.resize(m_VisionSystemProfiles.size());
+  
+  for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
+    {
+      lScoreCandidate[i] = 0;
+
+      for(unsigned int j=0;j<m_VisionSystemProfiles[i].m_CameraParameters[i].size())
+	{
+	  string sVSPCameraGUID = m_VisionSystemProfiles[i].m_CameraParameters[i].GetGUID();
+	  istringstream is(sVSPCameraGUID);
+	  uint64_t VSPCameraGUID;
+	  is >> VSPCameraGUID;
+	  ODEBUG3("VSPCameraGUID: " << VSPCameraGUID);
+	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
+	    {
+	      if (VSPCameraGUID==m_DC1394Camera[k]->guid)
+		lScoreCandidate[i]++;
+	    }
+	}
+      if (lScoreCandidate[i]>ScoreBestCandidate)
+	{
+	  IndexBestCandidate = (int)i;
+	  ScoreBestCandidate = (int)lScoreCandidate[i];
+	}
+    }
+  if ((IndexBestCandidate>-1) && (ScoreBestCandidate>0))
+    {
+      m_CurrentVisionSystemProfileID = IndexBestCandidate;
+    }
+  
 }

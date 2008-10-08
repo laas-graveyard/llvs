@@ -7,8 +7,7 @@ SET(LLVS_SRC_FILES_1
 	VisionBasicProcess.cpp 
 	LowLevelVisionServer.cpp 
 	./Simu/SimulatorInputMethod.cpp 
-	./Simu/FileImagesInputMethod.cpp
-	./dc1394/IEEE1394DCImagesInputMethod.cpp )
+	./Simu/FileImagesInputMethod.cpp  )
 
 SET(LLVS_HEADER_FILES_1 
 	ImagesInputMethod.h
@@ -18,8 +17,15 @@ SET(LLVS_HEADER_FILES_1
 	./Simu/FileImagesInputMethod.h 
 	./dc1394/IEEE1394DCImagesInputMethod.h )
 
-IF (DC1394_FOUND)
-ENDIF(DC1394_FOUND)
+IF (libdc1394-2_FOUND)
+     SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
+	./dc1394/IEEE1394DCCameraParameters.cpp
+	./dc1394/IEEE1394DCImagesInputMethod.cpp )
+
+     SET (LLVS_HEARDER_FILES_1 ${LLVS_HEADER_FILES_1}
+	./dc1394/IEEE1394DCCameraParameters.h
+	./dc1394/IEEE1394DCImagesInputMethod.h )
+ENDIF(libdc1394-2_FOUND)
 
 IF (OMNIORB4_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
@@ -29,7 +35,6 @@ IF (OMNIORB4_FOUND)
      SET (LLVS_HEARDER_FILES_1 ${LLVS_HEADER_FILES_1}
        ./Corba/Camera_impl.hh
        ./Corba/StereoVision_impl.hh)
-
 ENDIF(OMNIORB4_FOUND)
 
 IF (VVV_FOUND)
