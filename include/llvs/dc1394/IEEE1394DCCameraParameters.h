@@ -41,8 +41,11 @@ namespace llvs
   */
   class IEEE1394DCCameraParameters
     {
-
+    public:
+      /*! \brief Constructor. */
       IEEE1394DCCameraParameters();
+
+      /*! \brief Destructor. */
       ~IEEE1394DCCameraParameters();
       /*! \name Setter and getter 
        @{ */
@@ -58,6 +61,9 @@ namespace llvs
       
       const std::string & GetFormat() const;
       void SetFormat(const std::string &);
+
+      const std::string & GetFPS() const;
+      void SetFPS(const std::string & );
 
       const unsigned int & GetBrightness() const;
       void SetBrightness(const unsigned int & );
@@ -93,24 +99,27 @@ namespace llvs
       
       /*! \brief Format ( Color + Image size )*/
       std::string m_Format;
+
+      /*! \brief Frame rate per second*/
+      std::string m_FPS;
       
       /*! \brief Brightness. */
-      unsigned long int m_Brightness;
+      unsigned int m_Brightness;
       
       /*! \brief Auto exposure. */
-      unsigned long int m_Exposure;
+      unsigned int m_Exposure;
       
       /*! \brief White balance values. */
-      unsigned long int m_WhiteBalance[2];
+      unsigned int m_WhiteBalance[2];
       
       /*! \brief Gamma */
-      unsigned long int m_Gamma;
+      unsigned int m_Gamma;
       
       /*! \brief Shutter */
-      unsigned long int m_Shutter;
+      unsigned int m_Shutter;
       
       /*! \brief Gain */
-      unsigned long int m_Gain;
+      unsigned int m_Gain;
       
     };
 };

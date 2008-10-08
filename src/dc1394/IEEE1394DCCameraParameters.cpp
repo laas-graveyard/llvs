@@ -9,6 +9,7 @@ IEEE1394DCCameraParameters::IEEE1394DCCameraParameters()
 {
 }
 
+
 IEEE1394DCCameraParameters::~IEEE1394DCCameraParameters()
 {
 }
@@ -71,11 +72,10 @@ void IEEE1394DCCameraParameters::GetWhiteBalance(unsigned int WhiteBalance[2]) c
   WhiteBalance[1] = m_WhiteBalance[1];
 }
 
-void IEEE1394DCCameraParameters::SetExposure(unsigned int WhiteBalance[2])
+void IEEE1394DCCameraParameters::SetWhiteBalance(unsigned int WhiteBalance[2])
 {
   m_WhiteBalance[0] = WhiteBalance[0];
   m_WhiteBalance[1] = WhiteBalance[1];
-
 }
 
 const unsigned int & IEEE1394DCCameraParameters::GetExposure() const
@@ -116,6 +116,16 @@ const unsigned int & IEEE1394DCCameraParameters::GetGain() const
 void IEEE1394DCCameraParameters::SetGain(const unsigned int &aGain)
 {
   m_Gain = aGain;
+}
+
+const string & IEEE1394DCCameraParameters::GetFPS() const
+{
+  return m_FPS;
+}
+
+void IEEE1394DCCameraParameters::SetFPS(const string &aFPS)
+{
+  m_FPS = aFPS;
 }
 
 

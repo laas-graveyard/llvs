@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <sstream>
+
 #include <dc1394/conversions.h>
 
 using namespace std;
@@ -31,6 +33,20 @@ using std::showbase;
 
 
 using namespace llvs;
+
+VisionSystemProfile::VisionSystemProfile()
+{
+}
+
+VisionSystemProfile::~VisionSystemProfile()
+{
+  for(unsigned int i=0;i<m_CameraParameters.size();i++)
+    {
+      if (m_CameraParameters[i]!=0)
+	delete m_CameraParameters[i];
+    }
+}
+
 /**************************************************************
  * class Images Input                                         *
  **************************************************************/
@@ -50,7 +66,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
   
   string VisionSystemProfileDefault("vsp:default");
   string VSPDValue("Default.vsp");
-  SetFeature(VisionSystemProfileDefault,
+  SetParameter(VisionSystemProfileDefault,
 	     VSPDValue);
   
   /* File descriptor to the frame grabber. */
@@ -712,7 +728,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
       unsigned char IsFeature=0;
       
       string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
-      for(int i=0;i<m_Features.size();i++)
+      for(unsigned int i=0;i<m_Features.size();i++)
 	if (lFeature == m_Features[i])
 	  {
 	    IsFeature=1;
@@ -954,41 +970,73 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
 	{
-	  string lGUID,lFormat;
-	  unsigned int lBrightness, lExposure, 
-
-	  aVSP.m_CameraParameters[i].SetBoardNumber(lBoardNumber);
-	  aVSP.m_CameraParameters[i].SetCameraNumberInUserSemantic(i);
+	  string lGUID,lFormat,tmp,lFPS;
+	  unsigned int lBrightness, lExposure;
+	  aVSP.m_CameraParameters[i] = new IEEE1394DCCameraParameters();
+	  aVSP.m_CameraParameters[i]->SetCameraNumberInUserSemantic(i);
+	  aVSP.m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
 	  
 	  aif >> lGUID;
-	  aVSP.m_CameraParameters[i].SetGUID(lGUID);
+	  aVSP.m_CameraParameters[i]->SetGUID(lGUID);
+	  ODEBUG3("GUID:" << lGUID);
 
 	  aif >> lFormat;
-	  aVSP.m_CameraParameters[i].SetFormat(lFormat);
+	  aVSP.m_CameraParameters[i]->SetFormat(lFormat);
+	  ODEBUG3("Format:" << lFormat);
 
-	  aif >> lBrightness;
-	  aVSP.m_CameraParameters[i].SetBrightness(lBrightness);
+	  aif >> lFPS;
+	  aVSP.m_CameraParameters[i]->SetFPS(lFPS);
+	  ODEBUG3("FPS:" << lFPS);
 
-	  aif >> lExposure;
-	  aVSP.m_CameraParameters[i].SetExposure(lExposure);
-
-	  unsigned int lWhiteBalance[2];
-	  aif >> lWhiteBalance[0];
-	  aif >> lWhiteBalance[1];
-	  aVSP.m_CameraParameters[i].SetWhiteBalance[lWhiteBalance];
-
-	  unsigned int lGamma;
-	  aif >> lGamma;
-	  aVSP.m_CameraParameters[i].SetGamma(lGamma);
+	  aif >> tmp;
+	  if (tmp=="BRIGHTNESS")
+	    {
+	      aif >> lBrightness;
+	      aVSP.m_CameraParameters[i]->SetBrightness(lBrightness);
+	      ODEBUG3("Brightness:" << lBrightness);
+	    }
+	  aif >> tmp;
+	  if (tmp=="AUTO_EXPOSURE")
+	    {
+	      aif >> lExposure;
+	      aVSP.m_CameraParameters[i]->SetExposure(lExposure);
+	      ODEBUG3("Exposure:" << lExposure);
+	    }
+	  aif >> tmp;
+	  if (tmp=="WHITE_BALANCE")
+	    {
+	      unsigned int lWhiteBalance[2];
+	      aif >> lWhiteBalance[0];
+	      aif >> lWhiteBalance[1];
+	      aVSP.m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
+	      ODEBUG3("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
+	    }
+	  aif >> tmp;
+	  if (tmp=="GAMMA")
+	    {
+	      unsigned int lGamma;
+	      aif >> lGamma;
+	      aVSP.m_CameraParameters[i]->SetGamma(lGamma);
+	      ODEBUG3("Gamma : " << lGamma);
+	    }
 	  
-	  unsigned int lShutter;
-	  aif >> lShutter;
-	  aVSP.m_CameraParameters[i].SetShutter(lShutter);
+	  aif >> tmp;
+	  if (tmp=="SHUTTER")
+	    {
+	      unsigned int lShutter;
+	      aif >> lShutter;
+	      aVSP.m_CameraParameters[i]->SetShutter(lShutter);
+	      ODEBUG3("Shutter : " << lShutter);
+	    }
 
-	  unsigned int lGain;
-	  aif >> lGain;
-	  aVSP.m_CameraParameters[i].SetGain(lGain);
-	  
+	  	  aif >> tmp;
+	  if (tmp=="GAIN")
+	    {
+	      unsigned int lGain;
+	      aif >> lGain;
+	      aVSP.m_CameraParameters[i]->SetGain(lGain);
+	      ODEBUG3("Gain : " << lGain);
+	    }
 	  
 	}
       
@@ -1008,25 +1056,25 @@ void HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   
   for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
     {
-      lScoreCandidate[i] = 0;
+      lScoreCandidates[i] = 0;
 
-      for(unsigned int j=0;j<m_VisionSystemProfiles[i].m_CameraParameters[i].size())
+      for(unsigned int j=0;j<m_VisionSystemProfiles[i].m_CameraParameters.size();j++)
 	{
-	  string sVSPCameraGUID = m_VisionSystemProfiles[i].m_CameraParameters[i].GetGUID();
+	  string sVSPCameraGUID = m_VisionSystemProfiles[i].m_CameraParameters[i]->GetGUID();
 	  istringstream is(sVSPCameraGUID);
 	  uint64_t VSPCameraGUID;
 	  is >> VSPCameraGUID;
 	  ODEBUG3("VSPCameraGUID: " << VSPCameraGUID);
 	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
 	    {
-	      if (VSPCameraGUID==m_DC1394Camera[k]->guid)
-		lScoreCandidate[i]++;
+	      if (VSPCameraGUID==m_DC1394Cameras[k]->guid)
+		lScoreCandidates[i]++;
 	    }
 	}
-      if (lScoreCandidate[i]>ScoreBestCandidate)
+      if (lScoreCandidates[i]>(unsigned int)ScoreBestCandidate)
 	{
 	  IndexBestCandidate = (int)i;
-	  ScoreBestCandidate = (int)lScoreCandidate[i];
+	  ScoreBestCandidate = (int)lScoreCandidates[i];
 	}
     }
   if ((IndexBestCandidate>-1) && (ScoreBestCandidate>0))

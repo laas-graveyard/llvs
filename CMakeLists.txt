@@ -122,6 +122,7 @@ ENDIF (OMNIORB4_FOUND)
 # Detect libdc1394
 pkg_search_module(libdc1394-2 libdc1394-2>=2.0.2)
 IF (libdc1394-2_FOUND)
+   
     SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${libdc1394-2_CFLAGS}")
     SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${libdc1394-2_LDFLAGS}")
     MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS} ${libdc1394-2_LDFLAGS}")

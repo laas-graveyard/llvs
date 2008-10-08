@@ -53,19 +53,25 @@ namespace llvs
 {
   
   /*! \brief Profile of camera parameters for a vision system.*/
-  typedef struct 
+  class VisionSystemProfile
   {
-
+  public:
     /*! \brief Visual System Profile name */
     string m_Name;
 
     /*! \brief Location of the file described the system. */
-    string m_FilenameDescription;
+    string m_FileNameDescription;
 
     /*! \brief The vector of camera parameters associated
       with this description. */
-    vector<IEEE1394DCCameraParameters> m_CameraParameters;
-  } VisionSystemProfile ;
+    vector<IEEE1394DCCameraParameters *> m_CameraParameters;
+
+    /*! Constructor */
+    VisionSystemProfile();
+
+    /*! Destructor */
+    ~VisionSystemProfile();
+  };
 
   /*! \brief This class is in charge of handling IEEE1394 cameras. */
   class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
