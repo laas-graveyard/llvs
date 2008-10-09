@@ -79,7 +79,6 @@ int HRP2VisionBasicProcess::StopProcess()
 
 int HRP2VisionBasicProcess::StartProcess()
 {
-  cout <<m_ProcessName << endl;
   m_Computing = 1;
   return 1;
 

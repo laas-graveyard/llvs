@@ -20,7 +20,7 @@
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
 
-#if 1
+#if 0
 #define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
 #else
 #define ODEBUG(x) 

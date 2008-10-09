@@ -15,7 +15,7 @@ using std::showbase;
 #define ODEBUG3(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" << x << endl
 #define ODEBUG3_CONT(x) cerr << x 
 
-#if 1
+#if 0
 #define ODEBUG(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" <<  x << endl
 #define ODEBUG_CONT(x) cerr << "HPR2IEEE1394ImagesInputMethod:" <<  x << endl
 #else
@@ -200,7 +200,10 @@ void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
       if (m_TmpImage[i] != 0)
-	delete m_TmpImage[i];
+	{
+	  delete m_TmpImage[i];
+	  m_TmpImage[0] = 0;
+	}
     }
 
   m_BoardImagesWidth.clear();
@@ -400,8 +403,10 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
   LOCAL_TYPE ImagesTab[1];
 
   pthread_mutex_lock(&m_mutex_device);  
+  ODEBUG("After mutex acquisition " );
   if (m_TmpImage[camera]==0)
     {
+      ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
       ImagesTab[0] = (LOCAL_TYPE)*Image;
       
       try
@@ -415,7 +420,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
-      ODEBUG3("Before converting " << m_BoardImagesWidth[camera] << " " 
+      ODEBUG("Before converting " << m_BoardImagesWidth[camera] << " " 
 	      <<      m_BoardImagesHeight[camera] << "  m_ModelRaw2RGB: " 
 	      << m_ModeRaw2RGB );
       switch(m_ModeRaw2RGB)
@@ -439,7 +444,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	}
 
       ODEBUG("After converting");
-#if 1
+#if 0
       ofstream aof;
       char Buffer[128];
       sprintf(Buffer,"dump_Dst_%d.ppm",camera);
@@ -456,7 +461,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
     }
   else
     {
-
+      ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage" );
       ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[camera];
 
       ImagesDst = *Image;
@@ -684,13 +689,6 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumb
   m_ImagesHeight[CameraNumber] = lh;
   ODEBUG("Debug images");
   ODEBUG("Allocation for m_TmpImage");
-  if ((m_BoardImagesWidth[CameraNumber]!=lw) ||
-      (m_BoardImagesHeight[CameraNumber]!=lh))
-    {
-      if (m_TmpImage[CameraNumber]==0)
-	m_TmpImage[CameraNumber] = new unsigned char[m_BoardImagesWidth[CameraNumber] * 
-						     m_BoardImagesHeight[CameraNumber] * 4];
-    }
   
   return 0;
 }
@@ -854,6 +852,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 
   m_BoardImagesWidth.resize(m_DC1394Cameras.size());
   m_BoardImagesHeight.resize(m_DC1394Cameras.size());
+
   bool reallocate=false;
   if ((m_ImagesWidth.size()==0) &&
       (m_ImagesHeight.size()==0))
@@ -869,14 +868,17 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 	}
       reallocate=true;
     }
-  m_TmpImage.resize(m_DC1394Cameras.size());
-  for(unsigned k=0;k<m_ImagesWidth.size();k++)
-    SetImageSize(m_ImagesWidth[k],
-		  m_ImagesHeight[k],
-		  k);
+
   m_GrabbingPeriod.resize(m_DC1394Cameras.size());
       
   InitializeCameras();
+
+  m_TmpImage.resize(m_DC1394Cameras.size());
+  for(unsigned k=0;k<m_ImagesWidth.size();k++)
+    {
+      m_TmpImage[k] = new unsigned char[m_BoardImagesWidth[k] * 
+					m_BoardImagesHeight[k] * 4];
+    }
 
   m_LastGrabbingTime.resize(m_DC1394Cameras.size());
   m_Format.resize(m_DC1394Cameras.size());
@@ -902,7 +904,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 								 dc1394framerate_t &fps,
 								 unsigned int CameraNb)
 {
-  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  ODEBUG("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
   if (m_CurrentVisionSystemProfileID!=-1)
     {
       IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
@@ -954,10 +956,10 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 	      m_BoardImagesHeight[CameraNb]= 240;
 	    }
 	  m_ModeRaw2RGB = BAYER_TO_RGB;
-	  ODEBUG3("Went through here");
+	  ODEBUG("Went through here");
 	}
     }
-  ODEBUG3("ModelRaw2RGB:" << m_ModeRaw2RGB);
+  ODEBUG("ModelRaw2RGB:" << m_ModeRaw2RGB);
 		  
 }
 void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
