@@ -241,17 +241,20 @@ namespace llvs
       /*! \brief List of Vision System Profile. 
 	At least one is asked for. 
        */
-      vector<VisionSystemProfile> m_VisionSystemProfiles;
+      vector<VisionSystemProfile *> m_VisionSystemProfiles;
 
       /*! \brief Index of the best vision profile for the current detected cameras set. */
-      unsigned int m_CurrentVisionSystemProfileID;
+      int m_CurrentVisionSystemProfileID;
 
       /*! \brief Detect the best vision system profile. 
 	The algorithm is simple we count the number of cameras 
 	describe in the vision system profile. The one with
 	the highest number of camera present win.
+	Return false if two vision profiles have the same score.
+	Otherwise the default behavior is to keep all the cameras
+	detected and try a default configuration.
        */
-      void DetectTheBestVisionSystemProfile();
+      bool DetectTheBestVisionSystemProfile();
 
       /*! \brief Read configuration files in the VVV format. */
       void ReadConfigurationFileVVVFormat(string aFileName, string ProfileName);

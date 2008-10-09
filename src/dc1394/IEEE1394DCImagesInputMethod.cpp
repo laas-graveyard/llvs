@@ -53,41 +53,46 @@ VisionSystemProfile::~VisionSystemProfile()
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
 {
 
+  m_CurrentVisionSystemProfileID = -1;
   pthread_mutexattr_t lmutattr;
   pthread_mutexattr_init(&lmutattr);
   pthread_mutex_init(&m_mutex_device,&lmutattr);
 
   m_mutex_device;
 
-  m_numCameras = 0;
   m_AtLeastOneCameraPresent = false;
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
-  
-  string VisionSystemProfileDefault("vsp:default");
-  string VSPDValue("Default.vsp");
-  SetParameter(VisionSystemProfileDefault,
-	     VSPDValue);
+
+  string ListOfVSPs[2] = {"vsp:default","vsp:unibrain"};
+  string ListOfVSPsFN[2] = {"Default.vsp","Unibrain.vsp"};
+  for(unsigned int i=0;i<2;i++)
+    {
+      string VisionSystemProfileDefault(ListOfVSPs[i]);
+      string VSPDValue(ListOfVSPsFN[i]);
+      SetParameter(VisionSystemProfileDefault,
+		   VSPDValue);
+    }
   
   /* File descriptor to the frame grabber. */
   ODEBUG("Through the constructor ");
   InitializeBoard();
   ODEBUG("Through the constructor");
 
-  m_LastGrabbingTime.resize(m_numCameras);
-  m_Format.resize(m_numCameras);
-  for(unsigned int li=0;li<m_numCameras;li++)
+  m_LastGrabbingTime.resize(m_DC1394Cameras.size());
+  m_Format.resize(m_DC1394Cameras.size());
+  for(unsigned int li=0;li<m_DC1394Cameras.size();li++)
     {
       m_LastGrabbingTime[li]=-1.0;
       m_Format[li] = "RGB";
     }
 
-  m_GrabbingPeriod.resize(m_numCameras);
+  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
   
 
   m_Computing = 1;
 
-  for(unsigned int i=0;i<m_numCameras;i++)
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     FromFrameRateToTime(i);
     
   StartContinuousShot();
@@ -193,10 +198,16 @@ HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
   /* Close the frame grabber. */
   //  StopBoard();
 
-  for(unsigned int i=0;i<m_numCameras;i++)
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
       if (m_TmpImage[i] != 0)
 	delete m_TmpImage[i];
+    }
+
+  for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
+    {
+      if (m_VisionSystemProfiles[i]!=0)
+	delete m_VisionSystemProfiles[i];
     }
 }
 
@@ -407,7 +418,6 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 			     DC1394_COLOR_CODING_YUV422,1);
       ODEBUG("After converting");
 #if 0
-
       ofstream aof;
       char Buffer[128];
       sprintf(Buffer,"dump_Dst_%d.ppm",camera);
@@ -718,7 +728,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
     }
   else if (CameraPrefix=="vsp:")
     {
-      lpos=5;
+      lpos=4;
       string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
       ReadConfigurationFileVVVFormat(aValue,ProfileName);
     }
@@ -771,13 +781,6 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
       err = dc1394_camera_enumerate(m_HandleDC1394, &list);
 
       m_DC1394Cameras.resize(list->num);
-      m_VideoFrames.resize(list->num);
-      m_BoardImagesWidth.resize(list->num);
-      m_BoardImagesHeight.resize(list->num);
-      m_ImagesWidth.resize(list->num);
-      m_ImagesHeight.resize(list->num);
-      m_TmpImage.resize(list->num);
-      m_GrabbingPeriod.resize(list->num);
       unsigned int j=0;
       for (unsigned i = 0; i < list->num; i++) {
         m_DC1394Cameras[j] = dc1394_camera_new (m_HandleDC1394, list->ids[i].guid);
@@ -787,24 +790,34 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
         }
 	else
 	  {
-	    cout << "Initialized " << i << " camera with guid "<<list->ids[i].guid << endl;
+	    cout << "Created " << i << " camera with guid "<<list->ids[i].guid << endl;
 	  }
         j++;
       }
-      m_numCameras = j;
       dc1394_camera_free_list (list);
 
-      if (m_numCameras==0)
-	m_AtLeastOneCameraPresent = false;
-      else
-	m_AtLeastOneCameraPresent = true;
-    
     }
   catch(...)
     {
       ODEBUG("Unable to initialize the board correctly\n");
       return;
     }
+  DetectTheBestVisionSystemProfile();
+
+  if (m_DC1394Cameras.size()==0)
+    m_AtLeastOneCameraPresent = false;
+  else
+    m_AtLeastOneCameraPresent = true;
+    
+  
+  m_VideoFrames.resize(m_DC1394Cameras.size());
+  m_BoardImagesWidth.resize(m_DC1394Cameras.size());
+  m_BoardImagesHeight.resize(m_DC1394Cameras.size());
+  m_ImagesWidth.resize(m_DC1394Cameras.size());
+  m_ImagesHeight.resize(m_DC1394Cameras.size());
+  m_TmpImage.resize(m_DC1394Cameras.size());
+  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
+      
   InitializeCameras();
   ODEBUG("End of InitializeBoard");
 }
@@ -813,30 +826,51 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
 								 dc1394video_mode_t &res,
 								 dc1394framerate_t &fps,
-								 unsigned int InternalCameraNb)
+								 unsigned int CameraNb)
 {
   ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  if (m_CurrentVisionSystemProfileID!=-1)
+    {
+      IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+	->m_CameraParameters[CameraNb];
+      
+      if (aCam->GetFPS()== "30fps")
+	fps = DC1394_FRAMERATE_30;
+      else if (aCam->GetFPS()== "15fps")
+	fps = DC1394_FRAMERATE_15;
 
-  if (!strcmp(aCamera.vendor,"Unibrain"))
+      if (aCam->GetFormat()=="640x480-Y(mono)")
+	{
+	  res =     DC1394_VIDEO_MODE_640x480_MONO8;
+	  m_BoardImagesWidth[CameraNb]= 640;
+	  m_BoardImagesHeight[CameraNb]= 480;
+	}
+      else if (aCam->GetFormat()=="320x240-YUV422")
+	{
+	  res = DC1394_VIDEO_MODE_320x240_YUV422;
+	  m_BoardImagesWidth[CameraNb]= 320;
+	  m_BoardImagesHeight[CameraNb]= 240;
+	}
+      
+    }
+  else if (!strcmp(aCamera.vendor,"Unibrain"))
     {
       if (!strcmp(aCamera.model,"Fire-i 1.2"))
 	{
 	  res = DC1394_VIDEO_MODE_320x240_YUV422;
 	  fps = DC1394_FRAMERATE_30;
-	  m_BoardImagesWidth[InternalCameraNb]= 320;
-	  m_BoardImagesHeight[InternalCameraNb]= 240;
-	  ODEBUG3("Found the camera settings !");
+	  m_BoardImagesWidth[CameraNb]= 320;
+	  m_BoardImagesHeight[CameraNb]= 240;
 	}
     }
-  if (!strcmp(aCamera.vendor,""))
+  else if (!strcmp(aCamera.vendor,""))
     {
       if (!strcmp(aCamera.model,"Fire-i 1.2"))
 	{
 	  res = DC1394_VIDEO_MODE_320x240_YUV422;
 	  fps = DC1394_FRAMERATE_30;
-	  m_BoardImagesWidth[InternalCameraNb]= 320;
-	  m_BoardImagesHeight[InternalCameraNb]= 240;
-	  ODEBUG3("Found the camera settings !");
+	  m_BoardImagesWidth[CameraNb]= 320;
+	  m_BoardImagesHeight[CameraNb]= 240;
 	}
     }
 }
@@ -846,9 +880,9 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
   if (!m_AtLeastOneCameraPresent)
     return;
 
-  for (unsigned int i = 0; i < m_numCameras; i++) 
+  for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++) 
     {
-      
+      ODEBUG3("Camera GUID:" << (*m_DC1394Cameras[i]).guid);
       dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
       dc1394framerate_t fps=DC1394_FRAMERATE_30;
       
@@ -875,6 +909,10 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       if (fps==DC1394_FRAMERATE_30)
 	{
 	  m_GrabbingPeriod[i]=1.0/30.0;
+	}
+      else if (fps==DC1394_FRAMERATE_15)
+	{
+	  m_GrabbingPeriod[i]=1.0/15.0;
 	}
     }
   ODEBUG("End InitializeCameras()");
@@ -929,7 +967,7 @@ void HRP2IEEE1394DCImagesInputMethod::StopBoard()
 
 unsigned int HRP2IEEE1394DCImagesInputMethod::GetNumberOfCameras()
 {
-  return m_numCameras;
+  return m_DC1394Cameras.size();
 }
 
 void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime(int CameraNumber)
@@ -955,52 +993,53 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
   unsigned int lBoardNumber;
   unsigned int lNbOfCameras;
 
-  VisionSystemProfile aVSP;
+  VisionSystemProfile *aVSP;
 
   aif.open((const char *)aFileName.c_str(),ifstream::in);
   if (aif.is_open())
     {
-      aVSP.m_Name = ProfileName;
-      aVSP.m_FileNameDescription = aFileName;
-
+      aVSP = new VisionSystemProfile();
+      aVSP->m_Name = ProfileName;
+      aVSP->m_FileNameDescription = aFileName;
+      ODEBUG("Profile Name : " << aVSP->m_Name);
       aif >> lBoardNumber;
       aif >> lNbOfCameras;
       
-      aVSP.m_CameraParameters.resize(lNbOfCameras);
+      aVSP->m_CameraParameters.resize(lNbOfCameras);
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
 	{
 	  string lGUID,lFormat,tmp,lFPS;
 	  unsigned int lBrightness, lExposure;
-	  aVSP.m_CameraParameters[i] = new IEEE1394DCCameraParameters();
-	  aVSP.m_CameraParameters[i]->SetCameraNumberInUserSemantic(i);
-	  aVSP.m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
+	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
+	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(i);
+	  aVSP->m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
 	  
 	  aif >> lGUID;
-	  aVSP.m_CameraParameters[i]->SetGUID(lGUID);
-	  ODEBUG3("GUID:" << lGUID);
+	  aVSP->m_CameraParameters[i]->SetGUID(lGUID);
+	  ODEBUG("GUID:" << lGUID);
 
 	  aif >> lFormat;
-	  aVSP.m_CameraParameters[i]->SetFormat(lFormat);
-	  ODEBUG3("Format:" << lFormat);
+	  aVSP->m_CameraParameters[i]->SetFormat(lFormat);
+	  ODEBUG("Format:" << lFormat);
 
 	  aif >> lFPS;
-	  aVSP.m_CameraParameters[i]->SetFPS(lFPS);
-	  ODEBUG3("FPS:" << lFPS);
+	  aVSP->m_CameraParameters[i]->SetFPS(lFPS);
+	  ODEBUG("FPS:" << lFPS);
 
 	  aif >> tmp;
 	  if (tmp=="BRIGHTNESS")
 	    {
 	      aif >> lBrightness;
-	      aVSP.m_CameraParameters[i]->SetBrightness(lBrightness);
-	      ODEBUG3("Brightness:" << lBrightness);
+	      aVSP->m_CameraParameters[i]->SetBrightness(lBrightness);
+	      ODEBUG("Brightness:" << lBrightness);
 	    }
 	  aif >> tmp;
 	  if (tmp=="AUTO_EXPOSURE")
 	    {
 	      aif >> lExposure;
-	      aVSP.m_CameraParameters[i]->SetExposure(lExposure);
-	      ODEBUG3("Exposure:" << lExposure);
+	      aVSP->m_CameraParameters[i]->SetExposure(lExposure);
+	      ODEBUG("Exposure:" << lExposure);
 	    }
 	  aif >> tmp;
 	  if (tmp=="WHITE_BALANCE")
@@ -1008,16 +1047,16 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	      unsigned int lWhiteBalance[2];
 	      aif >> lWhiteBalance[0];
 	      aif >> lWhiteBalance[1];
-	      aVSP.m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
-	      ODEBUG3("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
+	      aVSP->m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
+	      ODEBUG("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
 	    }
 	  aif >> tmp;
 	  if (tmp=="GAMMA")
 	    {
 	      unsigned int lGamma;
 	      aif >> lGamma;
-	      aVSP.m_CameraParameters[i]->SetGamma(lGamma);
-	      ODEBUG3("Gamma : " << lGamma);
+	      aVSP->m_CameraParameters[i]->SetGamma(lGamma);
+	      ODEBUG("Gamma : " << lGamma);
 	    }
 	  
 	  aif >> tmp;
@@ -1025,8 +1064,8 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	    {
 	      unsigned int lShutter;
 	      aif >> lShutter;
-	      aVSP.m_CameraParameters[i]->SetShutter(lShutter);
-	      ODEBUG3("Shutter : " << lShutter);
+	      aVSP->m_CameraParameters[i]->SetShutter(lShutter);
+	      ODEBUG("Shutter : " << lShutter);
 	    }
 
 	  	  aif >> tmp;
@@ -1034,8 +1073,8 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	    {
 	      unsigned int lGain;
 	      aif >> lGain;
-	      aVSP.m_CameraParameters[i]->SetGain(lGain);
-	      ODEBUG3("Gain : " << lGain);
+	      aVSP->m_CameraParameters[i]->SetGain(lGain);
+	      ODEBUG("Gain : " << lGain);
 	    }
 	  
 	}
@@ -1047,39 +1086,148 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
     }
 }
 
-void HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
+bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 {
   int IndexBestCandidate=-1;
-  int ScoreBestCandidate=-1;
+  unsigned int ScoreBestCandidate=0;
   vector<unsigned int> lScoreCandidates;
   lScoreCandidates.resize(m_VisionSystemProfiles.size());
-  
+
+  // Loop in the list of vision system profiles
   for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
     {
+      ODEBUG("Detection: " << m_VisionSystemProfiles[i]->m_Name);
       lScoreCandidates[i] = 0;
 
-      for(unsigned int j=0;j<m_VisionSystemProfiles[i].m_CameraParameters.size();j++)
+      // For each camera inside the profile 
+      for(unsigned int j=0;j<m_VisionSystemProfiles[i]->m_CameraParameters.size();j++)
 	{
-	  string sVSPCameraGUID = m_VisionSystemProfiles[i].m_CameraParameters[i]->GetGUID();
-	  istringstream is(sVSPCameraGUID);
+	  string sVSPCameraGUID = m_VisionSystemProfiles[i]
+	    ->m_CameraParameters[j]->GetGUID();
 	  uint64_t VSPCameraGUID;
-	  is >> VSPCameraGUID;
-	  ODEBUG3("VSPCameraGUID: " << VSPCameraGUID);
+	  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
+
+	  // Try to find the camera listed in the profile inside the list
+	  // of connected camera.
 	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
 	    {
 	      if (VSPCameraGUID==m_DC1394Cameras[k]->guid)
 		lScoreCandidates[i]++;
 	    }
 	}
-      if (lScoreCandidates[i]>(unsigned int)ScoreBestCandidate)
+      if (lScoreCandidates[i]>ScoreBestCandidate)
 	{
 	  IndexBestCandidate = (int)i;
 	  ScoreBestCandidate = (int)lScoreCandidates[i];
 	}
     }
+
+  ODEBUG(ScoreBestCandidate << " " << IndexBestCandidate);
   if ((IndexBestCandidate>-1) && (ScoreBestCandidate>0))
     {
       m_CurrentVisionSystemProfileID = IndexBestCandidate;
     }
-  
+
+  if (m_CurrentVisionSystemProfileID==-1)
+    {
+      ODEBUG3("No profile found.");
+      return false;
+    }
+
+  // Check if two profiles do not have the same score.
+  for(unsigned int k=0;k<lScoreCandidates[k];k++)
+    {
+      if ((lScoreCandidates[k]==(unsigned int)ScoreBestCandidate) &&
+	  (m_CurrentVisionSystemProfileID!=(int)k))
+	{
+	  // in such case, it is not possible to decide which
+	  // profile is best.
+	  ODEBUG3("Unable to find proper profile.");
+	  return false;
+	}
+    }
+
+  // If there is less cameras in the profile than
+  // connected, the ones not inside the profile should be
+  // dismissed.
+  if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_CameraParameters.size()
+      != m_DC1394Cameras.size())
+    {
+      if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_CameraParameters.size()
+	  < m_DC1394Cameras.size())
+	  {
+	    // Try to find the camera connected inside the list
+	    // of profiled camera.
+	    vector<dc1394camera_t *>::iterator it_DC1394Camera;
+	    for(it_DC1394Camera = m_DC1394Cameras.begin();
+		it_DC1394Camera!=m_DC1394Cameras.end();
+		it_DC1394Camera++)
+	    {
+	      
+	      bool FoundTheCamera=false;
+	      
+	      for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+		    ->m_CameraParameters.size();k++)
+		{
+		  string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+		    ->m_CameraParameters[k]->GetGUID();
+		  uint64_t VSPCameraGUID=0;
+		  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
+		  if (VSPCameraGUID==(*it_DC1394Camera)->guid)
+		    {
+		      FoundTheCamera=true;
+		      break;
+		    }
+		}
+	      
+	      // If the camera is not find in the profile
+	      if(!FoundTheCamera)
+		{
+		  // then remove it.
+		  m_DC1394Cameras.erase(it_DC1394Camera);
+		}
+	    }
+	    
+	  }
+      else
+	{
+	  ODEBUG3("The vision system profile elected did not find all the listed cameras ");
+	  ODEBUG3("among the connected ones. The system might work in a deprecated mode.");
+	}
+	  
+    }
+
+  // Make sure that the order in the internal representation is the same than in the 
+  // profile one.
+  vector<dc1394camera_t *> NewDC1394Cameras;
+  for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+	->m_CameraParameters.size();k++)
+    {
+      string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+	->m_CameraParameters[k]->GetGUID();
+      uint64_t VSPCameraGUID=0;
+      sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
+      ODEBUG3("Order " << k << " : " <<sVSPCameraGUID << " " << VSPCameraGUID);
+      // Try to find the profiled camera  inside the list
+      // of connected camera.
+      vector<dc1394camera_t *>::iterator it_DC1394Camera;
+      for(it_DC1394Camera = m_DC1394Cameras.begin();
+	  it_DC1394Camera!=m_DC1394Cameras.end();
+	  it_DC1394Camera++)
+	{
+	  
+	  
+	  if (VSPCameraGUID==(*it_DC1394Camera)->guid)
+	    {
+	      NewDC1394Cameras.insert(NewDC1394Cameras.end(), (*it_DC1394Camera));
+	      break;
+	    }
+	}
+    }
+
+  m_DC1394Cameras = NewDC1394Cameras;
+	
+   
+  ODEBUG3("Current Vision System Profile:" << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
+  return true;
 }
