@@ -56,8 +56,6 @@ StereoVision_impl::StereoVision_impl(CORBA_ORB_ptr orb,
 #endif
 {
   //#ifdef StereoVISION_DEBUG
-    cout << "StereoVision_impl::StereoVision_impl()" << endl;
-
     //#endif
 
     m_LLVS = LLVS;

@@ -79,21 +79,6 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesI
   InitializeBoard();
   ODEBUG("Through the constructor");
 
-  m_LastGrabbingTime.resize(m_DC1394Cameras.size());
-  m_Format.resize(m_DC1394Cameras.size());
-  for(unsigned int li=0;li<m_DC1394Cameras.size();li++)
-    {
-      m_LastGrabbingTime[li]=-1.0;
-      m_Format[li] = "RGB";
-    }
-
-  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
-  
-
-  m_Computing = 1;
-
-  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
-    FromFrameRateToTime(i);
     
   StartContinuousShot();
   ODEBUG("After setting the parameters.");
@@ -194,9 +179,21 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
 
 HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 {
+  if (!m_Computing)
+    StopBoard();
 
-  /* Close the frame grabber. */
-  //  StopBoard();
+  for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
+    {
+      if (m_VisionSystemProfiles[i]!=0)
+	delete m_VisionSystemProfiles[i];
+    }
+
+}
+
+void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
+{
+  m_DC1394Cameras.clear();
+  m_VideoFrames.clear();
 
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
@@ -204,22 +201,28 @@ HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 	delete m_TmpImage[i];
     }
 
-  for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
-    {
-      if (m_VisionSystemProfiles[i]!=0)
-	delete m_VisionSystemProfiles[i];
-    }
+  m_BoardImagesWidth.clear();
+  m_BoardImagesHeight.clear();
+  m_ImagesWidth.clear();
+  m_ImagesHeight.clear();
+  m_TmpImage.clear();
+  m_GrabbingPeriod.clear();
+
+  m_HandleDC1394 = 0;
 }
 
 int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 {
-  ODEBUG("StartProcess: Phase 1");
-  HRP2VisionBasicProcess::StartProcess();
-  ODEBUG("StartProcess: Phase 2");
-  InitializeBoard();
-  ODEBUG("StartProcess: Phase 3");
-  StartContinuousShot();
-  ODEBUG("StartProcess: Phase 4");
+  if (!m_Computing)
+    {
+      ODEBUG("StartProcess: Phase 1");
+      HRP2VisionBasicProcess::StartProcess();
+      ODEBUG("StartProcess: Phase 2");
+      InitializeBoard();
+      ODEBUG("StartProcess: Phase 3");
+      StartContinuousShot();
+      ODEBUG("StartProcess: Phase 4");
+    }
   return 0;
 }
 
@@ -227,6 +230,8 @@ int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 int HRP2IEEE1394DCImagesInputMethod::StopProcess()
 {
   HRP2VisionBasicProcess::StopProcess();
+  StopContinuousShot();
+  StopBoard();
   return 0;
 }
 
@@ -239,7 +244,7 @@ int HRP2IEEE1394DCImagesInputMethod::Initialize()
 
 int HRP2IEEE1394DCImagesInputMethod::Cleanup()
 {
-  StopProcess();
+  HRP2VisionBasicProcess::StopProcess();
   if (m_DC1394Cameras.size()!=0)
     StopBoard();
   return 0;
@@ -390,18 +395,17 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
   ODEBUG("GetImageSingleRGB cam: " << camera);
   LOCAL_TYPE ImagesTab[1];
-  
+
+  pthread_mutex_lock(&m_mutex_device);  
   if (m_TmpImage[camera]==0)
     {
       ImagesTab[0] = (LOCAL_TYPE)*Image;
       
       try
 	{
-	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	    dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -417,7 +421,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 			     DC1394_BYTE_ORDER_UYVY,
 			     DC1394_COLOR_CODING_YUV422,1);
       ODEBUG("After converting");
-#if 0
+#if 1
       ofstream aof;
       char Buffer[128];
       sprintf(Buffer,"dump_Dst_%d.ppm",camera);
@@ -426,7 +430,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       aof << "255\n";
       
       unsigned char *pt =  *Image;
-      for(int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
+      for(unsigned int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
 	aof << (unsigned char)*pt++;
       aof.close();
 #endif
@@ -441,11 +445,9 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       try
 	{
-	  pthread_mutex_lock(&m_mutex_device);
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
 	      !=DC1394_SUCCESS)
 	     dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
 	  gettimeofday(&timestamp,0);
 	}
       catch(std::exception &except)
@@ -511,15 +513,14 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
   
   if (m_VideoFrames[camera])
     {
-      pthread_mutex_lock(&m_mutex_device);
       dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
-      pthread_mutex_unlock(&m_mutex_device);
     }
-  
+  pthread_mutex_unlock(&m_mutex_device);  
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
   //ODEBUG( time2 - time1);
   m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
+  ODEBUG("GetImageSingleRGB cam: " << camera << " Finished" );
   return 0;
 }
 
@@ -790,7 +791,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
         }
 	else
 	  {
-	    cout << "Created " << i << " camera with guid "<<list->ids[i].guid << endl;
+	    ODEBUG("Created " << i << " camera with guid "<<list->ids[i].guid);
 	  }
         j++;
       }
@@ -811,6 +812,9 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
     
   
   m_VideoFrames.resize(m_DC1394Cameras.size());
+  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
+    m_VideoFrames[k] = 0;
+
   m_BoardImagesWidth.resize(m_DC1394Cameras.size());
   m_BoardImagesHeight.resize(m_DC1394Cameras.size());
   m_ImagesWidth.resize(m_DC1394Cameras.size());
@@ -818,7 +822,24 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
   m_TmpImage.resize(m_DC1394Cameras.size());
   m_GrabbingPeriod.resize(m_DC1394Cameras.size());
       
+
   InitializeCameras();
+
+  m_LastGrabbingTime.resize(m_DC1394Cameras.size());
+  m_Format.resize(m_DC1394Cameras.size());
+  for(unsigned int li=0;li<m_DC1394Cameras.size();li++)
+    {
+      m_LastGrabbingTime[li]=-1.0;
+      m_Format[li] = "RGB";
+    }
+
+  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
+ 
+
+  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
+    FromFrameRateToTime(i);
+
+  m_Computing = 1;
   ODEBUG("End of InitializeBoard");
 }
 
@@ -828,7 +849,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 								 dc1394framerate_t &fps,
 								 unsigned int CameraNb)
 {
-  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  ODEBUG("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
   if (m_CurrentVisionSystemProfileID!=-1)
     {
       IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
@@ -882,7 +903,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 
   for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++) 
     {
-      ODEBUG3("Camera GUID:" << (*m_DC1394Cameras[i]).guid);
+      ODEBUG("Camera GUID:" << (*m_DC1394Cameras[i]).guid);
       dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
       dc1394framerate_t fps=DC1394_FRAMERATE_30;
       
@@ -890,16 +911,20 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       dc1394error_t err;
       unsigned int NUM_BUFFERS=8;
       
+      ODEBUG("Speed");
       pthread_mutex_lock(&m_mutex_device);      
       err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
       DC1394_ERR(err,"Could not set ISO speed");
       
+      ODEBUG("Resolution");
       err=dc1394_video_set_mode(m_DC1394Cameras[i], res);
       DC1394_ERR(err,"Could not set video mode");
       
+      ODEBUG("FPS");
       err=dc1394_video_set_framerate(m_DC1394Cameras[i], fps);
       DC1394_ERR(err,"Could not set framerate");
       
+      ODEBUG("NbBuffers");
       err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
       DC1394_ERR(err,"Could not setup camera-\nmake sure \
                           that the video mode and framerate \
@@ -952,17 +977,21 @@ void HRP2IEEE1394DCImagesInputMethod::StopContinuousShot()
 
 void HRP2IEEE1394DCImagesInputMethod::StopBoard()
 {
+  ODEBUG("Beginning of StopBoard");
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
       pthread_mutex_lock(&m_mutex_device);
-      dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
       dc1394_capture_stop(m_DC1394Cameras[i]);
+      dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
       dc1394_camera_free(m_DC1394Cameras[i]);
       pthread_mutex_unlock(&m_mutex_device);
+
     }
-  dc1394_free (m_HandleDC1394);
+  if (m_HandleDC1394!=0)
+    dc1394_free (m_HandleDC1394);
+  CleanMemory();
   
-  ODEBUG("StopBoard");
+  ODEBUG("End of StopBoard");
 }
 
 unsigned int HRP2IEEE1394DCImagesInputMethod::GetNumberOfCameras()
@@ -1207,7 +1236,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	->m_CameraParameters[k]->GetGUID();
       uint64_t VSPCameraGUID=0;
       sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
-      ODEBUG3("Order " << k << " : " <<sVSPCameraGUID << " " << VSPCameraGUID);
+      ODEBUG("Order " << k << " : " <<sVSPCameraGUID << " " << VSPCameraGUID);
       // Try to find the profiled camera  inside the list
       // of connected camera.
       vector<dc1394camera_t *>::iterator it_DC1394Camera;
@@ -1228,6 +1257,6 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   m_DC1394Cameras = NewDC1394Cameras;
 	
    
-  ODEBUG3("Current Vision System Profile:" << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
+  ODEBUG("Current Vision System Profile:" << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
   return true;
 }

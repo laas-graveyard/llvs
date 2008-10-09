@@ -189,6 +189,9 @@ namespace llvs
 
     protected:
 
+      /*! Clean memory when stopping the board. */
+      void CleanMemory();
+
       /*! Number of cameras */
       unsigned int m_numCameras;
   

@@ -20,7 +20,7 @@
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
 
-#if 1
+#if 0
 #define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
 #else
 #define ODEBUG(x) 
@@ -47,7 +47,7 @@ void * LLVSThread(void *arg)
       double mean=0;
 
       
-      cout << "LLVS thread: " << pthread_self() << endl;
+      ODEBUG("LLVS thread: " << pthread_self());
       // Start to process.
       aVS->StartMainProcess();
 
@@ -74,27 +74,27 @@ void * LLVSThread(void *arg)
 
 void SIGINT_handler(int asig)
 {
-  cout << "Went through SIGINT_handler : "<< asig << " " << pthread_self() << endl;
+  ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self());
   if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
     {
       /* Stop the processes */
       GlobalVisionServer->StopMainProcess();
       EndOfMainLoop = true;
-      cout << "Stopped the processes "<< endl;
+      ODEBUG("Stopped the processes ");
       sleep(1);
 
       pthread_kill(aThread,asig);
 
       /* Stop the processes */
-      cout << "Just before cleaning up the frame grabbing " << endl;
+      ODEBUG("Just before cleaning up the frame grabbing ");
       GlobalVisionServer->CleanUpGrabbing();
-      cout << "Just after cleaning up the frame grabbing " << endl;
+      ODEBUG("Just after cleaning up the frame grabbing ");
       GlobalVisionServer->RecordImagesOnDisk(0);
-      cout << "Just after recording images on disk " << GlobalVisionServer->_refcount_value() <<  endl;
+      ODEBUG("Just after recording images on disk " << GlobalVisionServer->_refcount_value());
     }
   else
     {
-      cout << "Go out from "<< pthread_self() << endl;
+      ODEBUG("Go out from "<< pthread_self());
       pthread_exit(0);
     }
 }
@@ -146,8 +146,6 @@ int main(int argc, char * argv[])
   /* String related to the Name Service */
   string NameServiceString("NameService=");
   
-  for(int i=0;i<argc;i++)
-    cout << argv[i] << endl;
   // Parse the entry parameters.
   while(1)
     {
@@ -269,6 +267,7 @@ int main(int argc, char * argv[])
 
   try 
     {
+#if 0
       int largc = 3;
       char largv[3][1024] = { "LLVS","-ORBInitRef","NameService=corbaloc:iiop:localhost:5005/NameService"};
       char *lpargv[3];
@@ -280,8 +279,13 @@ int main(int argc, char * argv[])
 	{
 	  strcpy(largv[2],NameServiceString.c_str());
 	}
+#else
+      int largc = 1;
+      char largv[1][14] = { "LLVS"};
+      char *lpargv[1];
+      lpargv[0] = largv[0];
+#endif
 
-      ODEBUG("Flag 0 " << largc << " " << lpargv[0] << " " << lpargv[1] << " " << lpargv[2]);
       CORBA::ORB_var orb = CORBA::ORB_init(largc, lpargv);
       CORBA::Object_var obj = orb->resolve_initial_references("RootPOA");
 
@@ -323,7 +327,7 @@ int main(int argc, char * argv[])
 
 	  /* Initialize the calibration directory */
 	  aVS->SetCalibrationDirectory(calibdir);
-	  aVS->DisplayProcessesNames();
+	  //aVS->DisplayProcessesNames();
 
 	  /* Initialize the disparity parameters */
 	  if (DisparityParameters.size()!=DisparityValueParameters.size())
@@ -343,7 +347,7 @@ int main(int argc, char * argv[])
 		}
 	    }
 
-	  ODEBUG3( OPFParameters.size() << " " << OPFValueParameters.size() );
+	  ODEBUG( OPFParameters.size() << " " << OPFValueParameters.size() );
 	  /* Initialize the Optical flow parameters */
 	  if (OPFParameters.size()!=OPFValueParameters.size())
 	    {
@@ -362,7 +366,7 @@ int main(int argc, char * argv[])
 		}
 	    }
 
-	  ODEBUG3( FFIIParameters.size() << " " << FFIIValueParameters.size() );
+	  ODEBUG( FFIIParameters.size() << " " << FFIIValueParameters.size() );
 	  /* Initialize the Find Features In Image parameters */
 	  if (FFIIParameters.size()!=FFIIValueParameters.size())
 	    {
@@ -399,7 +403,7 @@ int main(int argc, char * argv[])
 	    pthread_attr_init(&Thread_Attr);
 	    pthread_create(&aThread, &Thread_Attr,LLVSThread, (void *)aVS);
 
-	    cout << "OmniORB thread:" << pthread_self() << endl;
+	    ODEBUG("OmniORB thread:" << pthread_self());
 	  }
 #ifdef __ORBIX__
 	  orb->run()

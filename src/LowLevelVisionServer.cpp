@@ -175,7 +175,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_TypeOfSynchro = SynchroMethodForInputImages;
 
   ODEBUG("Step 2");
-  cout << "Type of Input Method: " << m_TypeOfInputMethod << " " << LowLevelVisionSystem::FILES << endl;
+  ODEBUG("Type of Input Method: " << m_TypeOfInputMethod << " " << LowLevelVisionSystem::FILES);
   switch(m_TypeOfInputMethod)
     {
       
@@ -394,9 +394,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
-  cout << "End of  the constructor " << endl;  
-
-
 }
 
 LowLevelVisionServer::~LowLevelVisionServer()
@@ -494,7 +491,6 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       m_Width[i] = lw;
       m_Height[i] = lh;
-
   
       m_ImagesInputMethod->SetImageSize(m_Width[i], m_Height[i],i);      
 
@@ -526,7 +522,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
 #endif
 	  
       m_ImageFormat = m_ImagesInputMethod->GetFormat(i);
-      ODEBUG3("m_ImageFormat :" << m_ImageFormat);
+      ODEBUG("m_ImageFormat :" << m_ImageFormat);
       if (m_ImageFormat=="PGM")
 	m_depth[i]=1;
       else if (m_ImageFormat=="RAW")
@@ -543,7 +539,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       delete [] m_BinaryImages[i];
       
-      ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
+      ODEBUG("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
       m_BinaryImages[i] = new unsigned char[lw*lh*m_depth[i]];
       
       /* NO NEED TO FREE corrected and undistorted
@@ -661,7 +657,7 @@ LowLevelVisionServer::TriggerSynchro()
   static struct timeval time_last;
   struct timeval time_current;
 
-  ODEBUG3("TriggerSynchro() beginning");
+  ODEBUG("TriggerSynchro() beginning");
   gettimeofday(&time_current,0);
   if (start!=1)
     {
@@ -679,7 +675,7 @@ LowLevelVisionServer::TriggerSynchro()
     cout << "Trigger" << endl;
 	
   m_SynchroTrigger = true;
-  ODEBUG3("TriggerSynchro() endiing");
+  ODEBUG("TriggerSynchro() endiing");
   return 0;
 }
 
@@ -824,7 +820,8 @@ LowLevelVisionServer::ApplyingProcess()
 		{
 		  gettimeofday(&current_wait,0);
 		  
-		  lelapsed_time =(current_wait.tv_sec - prev_before2.tv_sec)+ 0.000001 * (current_wait.tv_usec - prev_before2.tv_usec);
+		  lelapsed_time =(current_wait.tv_sec - prev_before2.tv_sec)
+		    + 0.000001 * (current_wait.tv_usec - prev_before2.tv_usec);
 		  if (lelapsed_time > (0.015 - LastProcessTime ))
 		    TooFast = false;
 		}
@@ -1137,16 +1134,16 @@ CORBA::Long LowLevelVisionServer::ProcessStatus(const char *aProcessName)
 CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
   throw(CORBA::SystemException)
 {
-  ODEBUG3("Process asked to be start :" << aProcessName);
+  ODEBUG("Process asked to be start :" << aProcessName);
   CORBA::Long r=1;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     {
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG3("Start process " << aProcessName << " " << i);
+	  ODEBUG("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
-	  ODEBUG3( aProcessName << " " << 
+	  ODEBUG( aProcessName << " " << 
 		   m_ListOfProcesses[i]->GetStatus() << " " <<
 		   m_ListOfProcesses[i] );
 	}
@@ -1344,24 +1341,28 @@ CORBA::Long LowLevelVisionServer::LoadCalibrationInformation()
 	{
 	  bzero(cdir,1024);
 	  sprintf(cdir,"%s",m_CalibrationDirectory.c_str());
-	  cerr << cdir << endl;
+	  if (m_Verbosity>1)
+	    cerr << cdir << endl;
 	}
 
       if (sprintf(pathname,"%s/Size.%d",cdir,i) < 0)
 	{
-	  fprintf(stderr,"HEREH : vvvstereo_loadcalib: BAD NAME, \"%s\".",pathname);
+	  if (m_Verbosity>1)
+	    fprintf(stderr,"HEREH : vvvstereo_loadcalib: BAD NAME, \"%s\".",pathname);
 	  continue;
 	}
 
       if(CalibLoadSize((char *)pathname,&m_CalibrationWidth[i],&m_CalibrationHeight[i]) != 0)
 	{
-	  fprintf(stderr,"CalibLoadSize: CANNOT OPEN FILE,'%s'.", pathname);
+	  if (m_Verbosity>1)
+	    fprintf(stderr,"CalibLoadSize: CANNOT OPEN FILE,'%s'.", pathname);
  	  continue;
 	}
       
       if (sprintf(pathname,"%s/Calib.%d",cdir,i) < 0)
 	{
-	  fprintf(stderr,"Path to calibration data invalid: \"%s\".",pathname);
+	  if (m_Verbosity>1)
+	    fprintf(stderr,"Path to calibration data invalid: \"%s\".",pathname);
 	  continue;
 	}
 #if (LLVS_HAVE_VVV>0)
@@ -1379,7 +1380,8 @@ CORBA::Long LowLevelVisionServer::LoadCalibrationInformation()
       
       if(sprintf(pathname, "%s/Distortion.%d",cdir,i) < 0)
 	{
-	  fprintf(stderr,"vvvstereo_loadcalib: BAD NAME, \"%s\".",pathname);
+	  if (m_Verbosity>1)
+	    fprintf(stderr,"vvvstereo_loadcalib: BAD NAME, \"%s\".",pathname);
 	  continue;
 	}
       calib_load_distortion_parameter(pathname,&m_DistortionParameter[i],0);
@@ -1508,7 +1510,7 @@ void LowLevelVisionServer::ReadRbtCalib()
       if (m_Verbosity>=3)
 	cerr << "Unable to open " << aFileName << endl;
     }
-  ODEBUG3("headTorg: " << m_headTorg[0] << " " 
+  ODEBUG("headTorg: " << m_headTorg[0] << " " 
 	  << m_headTorg[1] << " "
 	  << m_headTorg[2] << " "
 	  << m_headTorg[3] << " " << endl
@@ -1898,8 +1900,8 @@ CORBA::Long LowLevelVisionServer::GetVerboseMode()
 CORBA::Long LowLevelVisionServer::SetCalibrationDirectory(string aCalibrationDirectory)
 {
   m_CalibrationDirectory = aCalibrationDirectory;
-  cerr << "LowLevelVisionServer::SetCalibrationDirectory(string aCalibrationDirectory)" 
-       << m_CalibrationDirectory.c_str() << endl;
+  ODEBUG("LowLevelVisionServer::SetCalibrationDirectory(string aCalibrationDirectory)" 
+	 << m_CalibrationDirectory.c_str());
   return 0;
 }
 
@@ -1997,8 +1999,14 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  if ((CameraID<0) || ((unsigned int)CameraID>=m_ImagesInputMethod->GetNumberOfCameras()) )
+  ODEBUG("getImage :" << CameraID << " " << string(Format) << " " <<
+						    m_BinaryImages.size());
+  if ((CameraID<0) || ((unsigned int)CameraID>=m_BinaryImages.size()) )
     {
+      ODEBUG3("No image to transmit");
+      an2Image->format=GRAY;
+      an2Image->width=0;
+      an2Image->height=0;
       an2Image->octetData.length(0);
       an2Image->longData.length(0);
       anImage = an2Image._retn();
@@ -2006,19 +2014,31 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
     }
 
   CheckImageFormat(Format);
-  an2Image->octetData.length(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);
+
+  CORBA::Long Size = m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
+  if (m_depth[CameraID]==3)
+    an2Image->format=RGB;
+  else if (m_depth[CameraID]==1)
+    an2Image->format=GRAY;
+
+  an2Image->width = m_Width[CameraID];
+  an2Image->height = m_Height[CameraID];
+  
+  ODEBUG("Size: " << Size);
+  an2Image->octetData.length(Size);
   an2Image->longData.length(2);
-#if (LLVS_HAVE_VVV>0)
+
+
+  unsigned char *pt = m_BinaryImages[CameraID];
   for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
-    //    an2Image->octetData[j] = m_BinaryImages_undistorted[CameraID][j];
-    an2Image->octetData[j] = ((unsigned char *)m_epbm[CameraID].Image)[j];
-#endif
+    an2Image->octetData[j] = *pt++;
 
   an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
   an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
   anImage = an2Image._retn();
+
   ODEBUG("m_depth["<<CameraID << "]="<<(int)m_depth[CameraID]<< endl);
-  return m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
+  return Size;
 }
 
 /* Get a rectified image */
@@ -2599,16 +2619,19 @@ void LowLevelVisionServer::destroy()
 CORBA::Long LowLevelVisionServer::getCameraSeq(HRP2CameraSeq_out cameras)
   throw(CORBA::SystemException)
 {
-#if 1
-  cerr << "HEre 1" << endl;
+
+
   // Create the sequence of camera.
   HRP2CameraSeq_var tmp_cameras = new HRP2CameraSeq;
 
 
   // Set its size to three.
-  tmp_cameras->length(4);
+  int lNbCams=0;
+  if (m_ImagesInputMethod!=0)
+    lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
+  tmp_cameras->length(lNbCams);
 
-  for(int i=0;i < 4;i++)
+  for(int i=0;i < lNbCams;i++)
     {
       if (m_Cameras[i]!=0)
 	/* The CORBA object corresponding
@@ -2618,12 +2641,9 @@ CORBA::Long LowLevelVisionServer::getCameraSeq(HRP2CameraSeq_out cameras)
 	  tmp_cameras[i]= m_Cameras[i]->_this();
 	}
     }
-  cerr << "HEre 2" << endl;
+
   // Returns the sequence in the out variable.
   cameras = tmp_cameras._retn();
-#else
-  cameras = m_Cameras_var._retn();
-#endif
   return 4;
 }
 
@@ -2670,7 +2690,7 @@ void LowLevelVisionServer::SetAProcessParameterAndValue(string aProcessName, str
 void LowLevelVisionServer::SetCheckEntry(unsigned char ADumpMode)
 {
   m_CheckEntry = ADumpMode;
-  ODEBUG3("m_CheckEntry:" << m_CheckEntry);
+  ODEBUG("m_CheckEntry:" << m_CheckEntry);
   if (m_CheckEntry)
     {
       CreateStack();
@@ -2817,8 +2837,8 @@ void LowLevelVisionServer::SetDumpImageMode(LowLevelVisionSystem::DumpImageMode 
 void LowLevelVisionServer::SetRobotVisionCalibrationDirectory(string lRVCalibDir)
 {
   m_RobotVisionCalibrationDirectory = lRVCalibDir;
-  cerr << "LowLevelVisionServer::SetRobotVisionCalibrationDirectory" 
-       << m_RobotVisionCalibrationDirectory.c_str() << endl;
+  ODEBUG("LowLevelVisionServer::SetRobotVisionCalibrationDirectory" 
+	 << m_RobotVisionCalibrationDirectory.c_str() );
 
   ReadRbtCalib();
 }
@@ -2867,14 +2887,14 @@ CORBA::Long LowLevelVisionServer::GetBoundaryRepresentation(CBREPSeq_out aBrep)
 
 void LowLevelVisionServer::CreateStack()
 {
-  ODEBUG3("Here " << m_Width[0] << " " << m_Height[0]);
+  ODEBUG("Here " << m_Width[0] << " " << m_Height[0]);
   m_MaxSI = 33*120;
   //m_MaxSI = 1;
   m_IndexSI = 0;
   m_NumberOfImagesToStack=1;
   m_IndexSensorsStack = 0;
 
-  ODEBUG3(m_Width[0]*m_Height[0]*m_MaxSI);
+  ODEBUG(m_Width[0]*m_Height[0]*m_MaxSI);
   m_StoredImages= new unsigned char[m_Width[0] * m_Height[0] * m_MaxSI * m_depth[0]];
   if (m_StoredImages==0)
     ODEBUG3("COULD NOT ALLOCATE ENOUGH MEMORY for stack");
@@ -2977,7 +2997,7 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
 
 void LowLevelVisionServer::RecordImagesOnDisk(int image)
 {
-  ODEBUG3("Recording images on disk.");
+  ODEBUG("Recording images on disk.");
   if (m_CheckEntry)
     {
       ODEBUG3("Check entry correct.." << m_MaxSI);
