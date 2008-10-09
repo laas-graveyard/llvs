@@ -20,7 +20,7 @@
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
 
-#if 0
+#if 1
 #define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
 #else
 #define ODEBUG(x) 
@@ -90,7 +90,7 @@ void SIGINT_handler(int asig)
       GlobalVisionServer->CleanUpGrabbing();
       ODEBUG("Just after cleaning up the frame grabbing ");
       GlobalVisionServer->RecordImagesOnDisk(0);
-      ODEBUG("Just after recording images on disk " << GlobalVisionServer->_refcount_value());
+      ODEBUG("Just after recording images on disk " );
     }
   else
     {

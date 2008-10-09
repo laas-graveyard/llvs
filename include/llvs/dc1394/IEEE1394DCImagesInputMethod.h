@@ -82,7 +82,9 @@ namespace llvs
       static const int CAMERA_RIGHT = 1;
       static const int CAMERA_UP = 2;
       static const int CAMERA_WIDE = 3;
-    
+      
+      static const int YUV422_TO_RGB = 0;
+      static const int BAYER_TO_RGB = 1;
       /*! Constructor */
       HRP2IEEE1394DCImagesInputMethod(void);
   
@@ -215,6 +217,9 @@ namespace llvs
   
       /*! \brief Mutex to protect the device. */
       pthread_mutex_t m_mutex_device;
+
+      /*! \brief Mode to convert from raw image to RGB */
+      unsigned int m_ModeRaw2RGB;
 
       /*! \name Fields specific to 1394 access. 
 	@{

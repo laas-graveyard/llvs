@@ -15,7 +15,7 @@ using std::showbase;
 #define ODEBUG3(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" << x << endl
 #define ODEBUG3_CONT(x) cerr << x 
 
-#if 0
+#if 1
 #define ODEBUG(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" <<  x << endl
 #define ODEBUG_CONT(x) cerr << "HPR2IEEE1394ImagesInputMethod:" <<  x << endl
 #else
@@ -52,6 +52,8 @@ VisionSystemProfile::~VisionSystemProfile()
  **************************************************************/
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
 {
+
+  m_ModeRaw2RGB =  HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB;
 
   m_CurrentVisionSystemProfileID = -1;
   pthread_mutexattr_t lmutattr;
@@ -203,8 +205,6 @@ void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
 
   m_BoardImagesWidth.clear();
   m_BoardImagesHeight.clear();
-  m_ImagesWidth.clear();
-  m_ImagesHeight.clear();
   m_TmpImage.clear();
   m_GrabbingPeriod.clear();
 
@@ -246,7 +246,10 @@ int HRP2IEEE1394DCImagesInputMethod::Cleanup()
 {
   HRP2VisionBasicProcess::StopProcess();
   if (m_DC1394Cameras.size()!=0)
-    StopBoard();
+    {
+      StopContinuousShot();
+      StopBoard();
+    }
   return 0;
 }
 
@@ -412,14 +415,29 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
-      ODEBUG("Before converting " << m_BoardImagesWidth[camera] << " " 
-	      <<      m_BoardImagesHeight[camera] << " " );
-      dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
-			     *Image,
-			     m_BoardImagesWidth[camera],
-			     m_BoardImagesHeight[camera],
-			     DC1394_BYTE_ORDER_UYVY,
-			     DC1394_COLOR_CODING_YUV422,1);
+      ODEBUG3("Before converting " << m_BoardImagesWidth[camera] << " " 
+	      <<      m_BoardImagesHeight[camera] << "  m_ModelRaw2RGB: " 
+	      << m_ModeRaw2RGB );
+      switch(m_ModeRaw2RGB)
+	{
+	case YUV422_TO_RGB:
+	  dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
+				 *Image,
+				 m_BoardImagesWidth[camera],
+				 m_BoardImagesHeight[camera],
+				 DC1394_BYTE_ORDER_UYVY,
+				 DC1394_COLOR_CODING_YUV422,1);
+	  break;
+	case BAYER_TO_RGB:
+	  dc1394_bayer_decoding_8bit(m_VideoFrames[camera]->image,
+				     *Image,
+				     m_BoardImagesWidth[camera],
+				     m_BoardImagesHeight[camera],
+				     DC1394_COLOR_FILTER_GRBG,
+				     DC1394_BAYER_METHOD_SIMPLE);
+	  break;
+	}
+
       ODEBUG("After converting");
 #if 1
       ofstream aof;
@@ -455,6 +473,27 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
 
+      switch(m_ModeRaw2RGB)
+	{
+	case YUV422_TO_RGB:
+	  dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
+				 ImagesTab[0],
+				 m_BoardImagesWidth[camera],
+				 m_BoardImagesHeight[camera],
+				 DC1394_BYTE_ORDER_UYVY,
+				 DC1394_COLOR_CODING_YUV422,1);
+	  break;
+	case BAYER_TO_RGB:
+	  dc1394_bayer_decoding_8bit(m_VideoFrames[camera]->image,
+				     ImagesTab[0],
+				     m_BoardImagesWidth[camera],
+				     m_BoardImagesHeight[camera],
+				     DC1394_COLOR_FILTER_GRBG,
+				     DC1394_BAYER_METHOD_SIMPLE);
+	  break;
+	}
+
+
       time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
 
       ODEBUG("Get Images finito...");
@@ -469,9 +508,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       BHeight = m_BoardImagesHeight[camera];
       intervalw = BWidth / m_ImagesWidth[camera];
       intervalh =  BHeight/ m_ImagesHeight[camera];
-            
-      ImgSrc = m_VideoFrames[camera]->image;
-
+      ImgSrc =  ImagesTab[0];
  
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
 	{
@@ -817,12 +854,28 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
 
   m_BoardImagesWidth.resize(m_DC1394Cameras.size());
   m_BoardImagesHeight.resize(m_DC1394Cameras.size());
-  m_ImagesWidth.resize(m_DC1394Cameras.size());
-  m_ImagesHeight.resize(m_DC1394Cameras.size());
+  bool reallocate=false;
+  if ((m_ImagesWidth.size()==0) &&
+      (m_ImagesHeight.size()==0))
+    {
+      m_ImagesWidth.resize(m_DC1394Cameras.size());
+      m_ImagesHeight.resize(m_DC1394Cameras.size());
+    }
+  else 
+    {
+      if (m_ImagesWidth.size()!=m_DC1394Cameras.size())
+	{
+	  ODEBUG3("Please recall manually the size of the grabber !");
+	}
+      reallocate=true;
+    }
   m_TmpImage.resize(m_DC1394Cameras.size());
+  for(unsigned k=0;k<m_ImagesWidth.size();k++)
+    SetImageSize(m_ImagesWidth[k],
+		  m_ImagesHeight[k],
+		  k);
   m_GrabbingPeriod.resize(m_DC1394Cameras.size());
       
-
   InitializeCameras();
 
   m_LastGrabbingTime.resize(m_DC1394Cameras.size());
@@ -849,7 +902,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 								 dc1394framerate_t &fps,
 								 unsigned int CameraNb)
 {
-  ODEBUG("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
   if (m_CurrentVisionSystemProfileID!=-1)
     {
       IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
@@ -874,26 +927,38 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 	}
       
     }
-  else if (!strcmp(aCamera.vendor,"Unibrain"))
+  if (!strcmp(aCamera.vendor,"Unibrain"))
     {
       if (!strcmp(aCamera.model,"Fire-i 1.2"))
 	{
-	  res = DC1394_VIDEO_MODE_320x240_YUV422;
-	  fps = DC1394_FRAMERATE_30;
-	  m_BoardImagesWidth[CameraNb]= 320;
-	  m_BoardImagesHeight[CameraNb]= 240;
+	  if (m_CurrentVisionSystemProfileID==-1)
+	    {
+	      res = DC1394_VIDEO_MODE_320x240_YUV422;
+	      fps = DC1394_FRAMERATE_30;
+	      m_BoardImagesWidth[CameraNb]= 320;
+	      m_BoardImagesHeight[CameraNb]= 240;
+	    }
+	  m_ModeRaw2RGB = YUV422_TO_RGB;
 	}
     }
-  else if (!strcmp(aCamera.vendor,""))
+
+  if (!strcmp(aCamera.vendor,"Point Grey Research"))
     {
-      if (!strcmp(aCamera.model,"Fire-i 1.2"))
+      if (!strcmp(aCamera.model,"Flea FLEA-COL"))
 	{
-	  res = DC1394_VIDEO_MODE_320x240_YUV422;
-	  fps = DC1394_FRAMERATE_30;
-	  m_BoardImagesWidth[CameraNb]= 320;
-	  m_BoardImagesHeight[CameraNb]= 240;
+	  if (m_CurrentVisionSystemProfileID==-1)
+	    {
+	      res = DC1394_VIDEO_MODE_320x240_YUV422;
+	      fps = DC1394_FRAMERATE_30;
+	      m_BoardImagesWidth[CameraNb]= 320;
+	      m_BoardImagesHeight[CameraNb]= 240;
+	    }
+	  m_ModeRaw2RGB = BAYER_TO_RGB;
+	  ODEBUG3("Went through here");
 	}
     }
+  ODEBUG3("ModelRaw2RGB:" << m_ModeRaw2RGB);
+		  
 }
 void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 {
