@@ -1254,10 +1254,8 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	  {
 	    // Try to find the camera connected inside the list
 	    // of profiled camera.
-	    vector<dc1394camera_t *>::iterator it_DC1394Camera;
-	    for(it_DC1394Camera = m_DC1394Cameras.begin();
-		it_DC1394Camera!=m_DC1394Cameras.end();
-		it_DC1394Camera++)
+	    vector<dc1394camera_t *>::iterator it_DC1394Camera = m_DC1394Cameras.begin();
+	    while(it_DC1394Camera!=m_DC1394Cameras.end())
 	    {
 	      
 	      bool FoundTheCamera=false;
@@ -1280,7 +1278,13 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	      if(!FoundTheCamera)
 		{
 		  // then remove it.
-		  m_DC1394Cameras.erase(it_DC1394Camera);
+		  vector<dc1394camera_t *>::iterator toDelete = it_DC1394Camera;
+		  std::cout << "Iterator to remove: " << std::endl << *it_DC1394Camera << std::endl;
+		  m_DC1394Cameras.erase(toDelete);
+		}
+	      else
+		{
+		  it_DC1394Camera++;
 		}
 	    }
 	    
