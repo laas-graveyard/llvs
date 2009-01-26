@@ -2,40 +2,40 @@
 #define __COMMON_IDL__
 
 /**
- * OpenHRP Common IDL
+ * OpenHRP共通IDL
  * 2001.01.09	Ichitaro Kohara, MSTC
  */
 
 /**
- * Joint Torque Sequence
+ * 関節トルクのシーケンス
  */
 typedef sequence<double> TorqueSeq;
 
 /**
- * Joint Datatype Specification
- * ANGLE:		Angles
- * VELOCITY:		Velocity
- * ACCELERATION:	Acceleration
+ * 関節の角度と角速度
+ * ANGLE:			角度
+ * VEROCITY:		速度
+ * ACCELERATION:	加速度
  */
 enum DataId {ANGLE, VELOCITY, ACCELERATION};
 
 /**
- * LinkData
- * 0:Angle, 1:Velocity, 2:Acceleration
+ * リンクデータ
+ * 0:角度, 1:角速度, 2:角加速度
  */
 typedef double LinkData[3];
 
 /**
- * Sequence of LinkData
+ * リンクデータのシーケンス
  */
 typedef sequence<LinkData> LinkDataSeq;
 
 /**
- * Link Parameter
- * *Changes according to type of Parameter For:
- *   double       only Value[0] is used
- *   CMatrix[3x1] only Value[0,1,2] are used
- *   CMatrix[3x3] all Value[0 to 8] are used
+ * リンクパラメータ
+ * ※パラメータの型が
+ *   1.double       のとき Value[0]のみ使用する
+ *   2.CMatrix[3x1] のとき Value[0...2]を使用する
+ *   3.CMatrix[3x3] のとき Value[0...8]を使用する
  */
 typedef sequence<double, 9> Value;
 
@@ -45,19 +45,19 @@ typedef sequence<double, 9> Value;
 typedef sequence<double, 6> FSValue;
 
 /**
- * LinkName Sequence
+ * リンク名のシーケンス
  */
 typedef sequence<string> LinkNameSeq;
 
 /**
- * Position and Attitude
- * @param	posX	x coordinates
- * @param	posY	y coordinates
- * @param	posZ	z coordinates
- * @param	axisX	x axis
- * @param	axisY	y axis
- * @param	axisZ	z axis
- * @param	angle	angle
+ * 位置姿勢
+ * @param	posX	x座標
+ * @param	posY	y座標
+ * @param	posZ	z座標
+ * @param	axisX	x軸
+ * @param	axisY	y軸
+ * @param	axisZ	z軸
+ * @param	angle	角度
  */
 struct Transform
 {
@@ -71,18 +71,18 @@ struct Transform
 };
 
 /**
- * Addition starts here
+ * 追加ここから----->
  * 2002.01.25   by K.Saito, KernelInc
  */
 /**
- * Position and Attitude
- * @param	px	x coordinates
- * @param	py	y coordinates
- * @param	pz	z coordinates
- * @param	qx	x axis
- * @param	qy	y axis
- * @param	qz	z axis
- * @param	qw	w axis
+ * 位置姿勢
+ * @param	px	x座標
+ * @param	py	y座標
+ * @param	pz	z座標
+ * @param	qx	x軸
+ * @param	qy	y軸
+ * @param	qz	z軸
+ * @param	qw	w軸
  */
 struct TransformQuaternion
 {
@@ -96,15 +96,15 @@ struct TransformQuaternion
 };
 
 /**
- * <---- Additions end here
+ * <----追加ここまで
  */
 
 /**
- * Link Infomation
- * @member	name		Name of Link
- * @member	pos		Position
- * @member	rot		Attitude
- * @member	JointValue	Joint Angle
+ * リンク情報
+ * @member	name		リンク名
+ * @member	pos			位置
+ * @member	rot			姿勢
+ * @member	JointValue	関節角度
  */
 struct LinkInfo
 {
@@ -121,14 +121,14 @@ struct LinkInfo
 };
 
 /**
- * Additions start here----->
+ * 追加ここから----->
  * 2002.02.25   by K.Saito, KernelInc
  */
 /**
- * Link Value
- * @member	name		Link Name
- * @member	param		Parameter Name
- * @member	value		Value
+ * リンク情報
+ * @member	name		リンク名
+ * @member	param			パラメタ名
+ * @member	value			値
  */
 
 struct LinkValue
@@ -139,34 +139,34 @@ struct LinkValue
 };
 
 /**
- * Link Value Sequence
+ * リンク情報のシーケンス
  */
 
 typedef sequence<LinkValue> LinkValueSeq;
 
 /**
- * <----Additions end here
+ * <----追加ここまで
  */
 
 
 /**
- * Link Information Sequence
+ * リンク情報のシーケンス
  */
 typedef sequence<LinkInfo> LinkInfoSeq;
 
 /**
- * Coordinates (x, y, z)(m)
+ * 座標(x, y, z)(m)
  */
 /**
- * Normal Vector (x, y, z)(m)
+ * 法線ベクトル(x, y, z)(m)
  */
 typedef float Vector3[3];
 
 /**
- * Detailed Collision Information(collision point, normal vector)
+ * コリジョン情報の詳細(接触点の座標、法線ベクトル)
  *
- * @member	coord	Collision Point in World Coordinates
- * @member	normal	Normal Vector of collision in World Coordinates
+ * @member	coord	接触点の座標(ワールド座標系)
+ * @member	normal	法線ベクトル(ワールド座標系)
  */
 struct CollisionData
 {
@@ -176,15 +176,15 @@ struct CollisionData
 };
 
 /**
- * CollisionData Sequence
+ * CollisionDataの任意長配列
  */
 typedef sequence<CollisionData> CollisionDataSeq;
 
 /**
- * State of Simulated World
- * @member	time		Simulated Time
- * @member	linkinfo	Link Information
- * @member	collision	Collision Information
+ * 仮想世界の状態
+ * @member	time		シミュレーション時刻
+ * @member	linkinfo	リンク情報
+ * @member	collision	干渉チェック情報
  */
 struct WorldState
 {
@@ -196,10 +196,7 @@ struct WorldState
 typedef sequence<double> dsequence;
 
 
-enum PixelFormat {ARGB, // 4byte/pixel
-		  GRAY, // 1byte/pixel
-		  DEPTH,// 4byte/pixel
-		  RGB}; // 3byte/pixel
+enum PixelFormat {ARGB, GRAY, DEPTH};
 
 struct ImageData
 {
@@ -214,7 +211,6 @@ struct RobotState
 {
   dsequence angle;
   dsequence velocity;
-  dsequence torque;
   sequence<dsequence> force;
   sequence<dsequence> rate;
   sequence<dsequence> accel;
@@ -223,7 +219,6 @@ struct RobotState
   dsequence waistPos;
   dsequence waistRpy;
   sequence<ImageData> image;
-  sequence<long> dio;
 };
 
 /**
@@ -233,13 +228,12 @@ typedef Value ValueMatrix;
 
 
 /**
- * Definition of Sensor Types
- * FORCE_SENSOR:	6 axis force sensor
- * GYRO:		gyro
- * ACCELERARION_SENSOR:	Accelerometer
- * PRESSURE_SENSOR:	Pressure sensor
- * PHOTO_INTERRUPTER:	Photo interrupter
- * TORQUE_SENSOR:   	Joint Torque Sensor
+ * センサ型定義
+ * FORCE_SENSOR:    6軸力センサ
+ * GYRO:            ジャイロ
+ * ACCELERARION_SENSOR:加速度センサ
+ * PRESSURE_SENSOR:    感圧センサ
+ * PHOTO_INTERRUPTER:  光センサ
  */
 enum SensorType {
     FORCE_SENSOR, 
@@ -247,12 +241,11 @@ enum SensorType {
     ACCELERATION_SENSOR, 
     PRESSURE_SENSOR, 
     PHOTO_INTERRUPTER,
-    VISION_SENSOR,
-    TORQUE_SENSOR
+    VISION_SENSOR
 };
 
 /**
- * SensorInfo Interface
+ * SensorInfoインタフェース定義
  * @author  Keisuke Saito, Kernel Inc
  * @date    2002.02.06
  * @version 1.0
@@ -268,12 +261,12 @@ interface SensorInfo
 };
 
 /**
- * SensorInfo Sequence
+ * SensorInfoのシーケンス
  */
 typedef sequence<SensorInfo> SensorInfoSeq;
 
 /**
- * ParserModelObject Interface
+ * ParserModelObjectインタフェース定義
  * @author  Ichitaro Kohara, MSTC
  * @date    2001.01.06
  * @version 1.0
@@ -339,7 +332,7 @@ interface ParserModelObject
 typedef sequence<string> stringSeq;
 
 /**
- * ParserModelObject Sequence
+ * ParserModelObjectのシーケンス
  */
 typedef sequence<ParserModelObject> ParserModelObjectSeq;
 
@@ -351,7 +344,7 @@ interface ParserCharObject
 };
 
 /**
- * ModelInfo Interface
+ * ModelInfoインタフェース定義
  * @author  Keisuke Saito, KernelInc
  * @date    2001.01.06
  * @version 1.0
@@ -366,28 +359,28 @@ interface ModelInfo
     typedef sequence<string> NameSeq;
     
     /** 
-     *  Returns URL location of object source
-     *  @return string URL
+     *  このオブジェクトのソースのURLを返す
+     *  @return URL文字列
      **/ 
     string getUrl();
     
     /**
-     * returns structure of model
-     * @return  ParserCharObject information
+     * 構造情報を返す
+     * @return  ParserCharObjectの情報
      */
     ParserCharObject getCharObject();
     
-    /** List of Objects
-     *  Returns list of JointName
-     *  @return JointName List
+    /** オブジェクト一覧
+     *  Joint名の一覧を返す
+     *  @return ジョイント名
      **/ 
     NameSeq getJointList();
     
-    /** Read Triangles
-     *   @param     jointName   joint name
-     *   @param     count       Number of triangles to read
-     *   @return    group of triangles
-     *              every 9 float values represent one triangle
+    /** 三角形の読み出し
+     *   @param     jointName   joint名
+     *   @param     count       読み出す3角形数
+     *   @return    3角形集合
+     *              戻り値は9個のfloatで1つの3角形をあらわす
      **/
     floatSeq readTriangles(
         in string jointName,
@@ -395,7 +388,7 @@ interface ModelInfo
     );
     
     /**
-     * Interface destructor
+     * 破棄
      */
     void destroy();
 
@@ -421,7 +414,6 @@ interface PluginManager : CommandReceiver
 {
   void load(in string name);
   Plugin create(in string pclass, in string name, in string args);
-  stringSeq getPluginNames();
 };
 #endif
 

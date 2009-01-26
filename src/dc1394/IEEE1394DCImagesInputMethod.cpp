@@ -1279,7 +1279,6 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 		{
 		  // then remove it.
 		  vector<dc1394camera_t *>::iterator toDelete = it_DC1394Camera;
-		  std::cout << "Iterator to remove: " << std::endl << *it_DC1394Camera << std::endl;
 		  m_DC1394Cameras.erase(toDelete);
 		}
 	      else

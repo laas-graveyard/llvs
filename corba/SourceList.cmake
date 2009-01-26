@@ -83,6 +83,17 @@ IF(OMNIORB4_FOUND)
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${GetGyroAndAccelerometer_CPP})
   SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${GetGyroAndAccelerometer_Header})
 
+  SET(ServerCommand_CPP  "${LLVS_SOURCE_DIR}/src/ServerCommandSK.cc")
+  SET(ServerCommand_Header "${LLVS_SOURCE_DIR}/src/ServerCommand.hh")
+
+  IDLFILERULE(${LLVS_SOURCE_DIR}/corba/ServerCommand.idl
+              ${ServerCommand_CPP}
+              ${ServerCommand_Header}
+              ${LLVS_SOURCE_DIR}/src ${IDL_INCLUDE_DIR})
+
+  SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${ServerCommand_CPP})
+  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${ServerCommand_Header})
+
   SET(LowLevelVisionSystem_CPP  "${LLVS_SOURCE_DIR}/src/LowLevelVisionSystemSK.cc")
   SET(LowLevelVisionSystem_Header "${LLVS_SOURCE_DIR}/src/LowLevelVisionSystem.hh")
 

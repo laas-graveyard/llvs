@@ -6,6 +6,7 @@ SET(LLVS_SRC_FILES_1
 	ImagesInputMethod.cpp 
 	VisionBasicProcess.cpp 
 	LowLevelVisionServer.cpp 
+	ConnectionToSot.cpp
 	./Simu/SimulatorInputMethod.cpp 
 	./Simu/FileImagesInputMethod.cpp  )
 

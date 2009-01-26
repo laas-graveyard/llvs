@@ -69,6 +69,7 @@ void IEEE1394DCCameraParameters::SetBrightness(const unsigned int &aBrightness)
 void IEEE1394DCCameraParameters::GetWhiteBalance(unsigned int WhiteBalance[2]) const
 {
   WhiteBalance[0] = m_WhiteBalance[0];
+
   WhiteBalance[1] = m_WhiteBalance[1];
 }
 
