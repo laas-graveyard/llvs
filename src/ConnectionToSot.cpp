@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "LowLevelVisionServer.h"
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "ConnectionToSot:" << x << endl
@@ -18,9 +19,6 @@ void * ConnectionToSotThread(void *arg)
 
   if (aCST!=0)
     {
-      aCST->SetCorbaReference();
-      aCST->Init();
-      
       while(!aCST->GetEndOfThreadLoop())
 	{
 	  double waistposition[3];
@@ -28,9 +26,17 @@ void * ConnectionToSotThread(void *arg)
 	    
 	  aCST->ReadWaistSignals(waistposition,
 				 waistattitude);
-	  usleep(330000);
+	  usleep(33000);
+	  ODEBUG("Starting again. ( " 
+		 << waistposition[0] << " , "
+		 << waistposition[1] << " , "
+		 << waistposition[2] << " ) ( "
+		 << waistattitude[0] << " , "
+		 << waistattitude[1] << " , "
+		 << waistattitude[2] << " ) ( "); 
 	}
     }
+  ODEBUG("Went out of the thread.");
   return 0;
 }
 
@@ -40,10 +46,32 @@ ConnectionToSot::ConnectionToSot(LowLevelVisionServer *aLLVS)
 {
   m_LLVS = aLLVS;
   m_EndOfThreadLoop = false;
+
+  m_CircularBuffer = new double[33*7*3600];
+  if (m_CircularBuffer!=0)
+    ODEBUG3("Mem alloc done.");
+
+  m_CircularBufferIndex = 0;
+  m_CircularBufferIndexMax = 33*3600;
+}
+
+void ConnectionToSot::DumpCircularBuffer(string aFilename)
+{
+  ODEBUG("Dumping data: "<<m_CircularBufferIndexMax);
+  ofstream aof;
+  aof.open((char *)aFilename.c_str(),ofstream::out);
+  for(unsigned int i=0;i<m_CircularBufferIndexMax;i++)
+    {
+      aof << m_CircularBuffer[i]<< " ";
+      if (i%7==0)
+	aof <<endl;
+    }
+  aof.close();
 }
 
 ConnectionToSot::~ConnectionToSot()
 {
+  delete m_CircularBuffer;
 
 }
 
@@ -55,7 +83,7 @@ bool ConnectionToSot::GetEndOfThreadLoop() const
 void ConnectionToSot::StartThreadOnConnectionSot()
 {
   pthread_t aThread;
-  m_EndOfThreadLoop = true;
+  m_EndOfThreadLoop = false;
   /* Thread creation */
   {
     pthread_attr_t Thread_Attr;
@@ -70,7 +98,7 @@ void ConnectionToSot::StartThreadOnConnectionSot()
 
 void ConnectionToSot::StopThreadOnConnectionSot()
 {
-  m_EndOfThreadLoop = false;
+  m_EndOfThreadLoop = true;
 }
 
 
@@ -79,13 +107,15 @@ bool ConnectionToSot::SetCorbaReference()
   std::string lServiceName = "coshell", lServiceKind="";
   CORBA::Object_ptr obj = m_LLVS->getObjectReference(lServiceName,lServiceKind);
   ODEBUG( "Able to get the reference for :" << lServiceName << " " 
-	  << lServiceKind << "CORBAReference : "<< lCORBAReference);
+	  << lServiceKind );
 
   if (CORBA::is_nil(obj))
    {
       cerr << "Unable to find object: " << lServiceName << " " << lServiceKind <<endl;
       return false;
     }
+
+  ODEBUG( "Before narrowing");
   
   try
     {
@@ -97,6 +127,7 @@ bool ConnectionToSot::SetCorbaReference()
       return false;
     }
 
+  ODEBUG( "After narrowing");
   
   return true;
 }
@@ -104,20 +135,29 @@ bool ConnectionToSot::SetCorbaReference()
 void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 				  double waistattitude[3])
 {
+  ODEBUG("Enter ReadWaistSignals ");
+
   try
     {
+      struct timeval ats;
+	    
+
       SOT_Server_Command::DoubleSeq_var DSwaistpos, DSwaistatt;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPositionSignalRank,
 						  DSwaistpos);
       
       m_SOT_Server_Command->readInputVectorSignal(m_WaistAttitudeSignalRank,
 						  DSwaistatt);
+
+      m_CircularBuffer[m_CircularBufferIndex++] = ats.tv_sec + 0.000001 * ats.tv_usec;
+      gettimeofday(&ats,0);
+
       if (DSwaistpos->length()==3)
 	{
 	  for(unsigned li=0;li<3;li++)
 	    {
-	      waistposition[li] = DSwaistpos[li];
-	      cout << waistposition[li] << " ";
+	      waistposition[li] = 
+		m_CircularBuffer[m_CircularBufferIndex++] = DSwaistpos[li];
 	    }
 	}
 
@@ -125,16 +165,22 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 	{
 	  for(unsigned li=0;li<3;li++)
 	    {
-	      waistattitude[li] = DSwaistatt[li];
-	      cout << waistattitude[li] << " ";
+	      waistattitude[li] = 
+		m_CircularBuffer[m_CircularBufferIndex++] = DSwaistatt[li];
 	    }
 	}
+
+     
+      if (m_CircularBufferIndex>=m_CircularBufferIndexMax)
+	m_CircularBufferIndex = 0;
+
     }
   catch(...)
     {
       cout << "Unable to connect to Sot. "<< endl;
       
     }
+  ODEBUG("Go out of  ReadWaistSignals ");
 }
 
 bool ConnectionToSot::Init()
@@ -147,7 +193,7 @@ bool ConnectionToSot::Init()
 
   SOT_Server_Command::CharSeq_var aCS= new SOT_Server_Command::CharSeq;
 
-  string CstSignaux[2]={"waistposition","waistattitude"};
+  string CstSignaux[2]={"waistpositionabsolute","waistattitudeabsolute"};
 
   for(unsigned int li=0;li<2;li++)
     {
@@ -155,15 +201,21 @@ bool ConnectionToSot::Init()
       aCS->length(CstSignaux[li].size());
       for(unsigned int j=0;j<CstSignaux[li].size();j++)
 	aCS[j] = CstSignaux[li][j];
-
-      m_WaistPositionSignalRank = m_SOT_Server_Command->createInputVectorSignal(aCS);
+      
+      if (li==0)
+	m_WaistPositionSignalRank = m_SOT_Server_Command->createInputVectorSignal(aCS);
+      else 
+	m_WaistAttitudeSignalRank = m_SOT_Server_Command->createInputVectorSignal(aCS);
     }
 
   
-  string SotCommand[2]= {"plug pg.waistposition coshell.waistposition",
-    "plug pg.waistattitude coshell.waistattitude"};
+  string SotCommand[4]= {
+    "plug pg.waistpositionabsolute coshell.waistpositionabsolute",
+    "plug pg.waistattitudeabsolute coshell.waistattitudeabsolute",
+    "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
+    "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 
-  for(unsigned int li=0;li<2;li++)
+  for(unsigned int li=0;li<4;li++)
     {
 
       aCS->length(SotCommand[li].size());

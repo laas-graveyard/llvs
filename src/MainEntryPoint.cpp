@@ -97,6 +97,7 @@ void SIGINT_handler(int asig)
       ODEBUG("Go out from "<< pthread_self());
       pthread_exit(0);
     }
+  delete GlobalVisionServer;
 }
 
 int main(int argc, char * argv[])

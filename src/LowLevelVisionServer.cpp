@@ -392,10 +392,15 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   for(int i=0;i<16;i++)
     m_headTorg[i] = 0.0;
 
-  m_CTS = new ConnectionToSot(this);
-  m_CTS->SetCorbaReference();
-  m_CTS->Init();
-  m_CTS->StartThreadOnConnectionSot();
+  if (1)
+    {
+      m_CTS = new ConnectionToSot(this);
+      m_CTS->SetCorbaReference();
+      m_CTS->Init();
+      m_CTS->StartThreadOnConnectionSot();
+    }
+  else
+    m_CTS = 0;
 
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
@@ -405,7 +410,12 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 LowLevelVisionServer::~LowLevelVisionServer()
 {
-  m_CTS->StopThreadOnConnectionSot();
+  if (m_CTS!=0)
+    {
+      string aFileName("TSPositionAttitude.dat");
+      m_CTS->DumpCircularBuffer(aFileName);
+      m_CTS->StopThreadOnConnectionSot();
+    }
 
 #if (LLVS_HAVE_VVV>0)
   if (m_DP!=0)

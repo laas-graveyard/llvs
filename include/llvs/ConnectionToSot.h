@@ -72,9 +72,11 @@ namespace llvs
       /* ! Stop the thread */
       void StopThreadOnConnectionSot();
 
-
       /*! Internal method to set corba reference */
       bool SetCorbaReference();
+
+      /*! Dump a circular buffer. */
+      void DumpCircularBuffer(string aFileName);
 
     private:
       
@@ -92,6 +94,15 @@ namespace llvs
 
       /*! \brief Boolean value to go out of the thread */
       bool m_EndOfThreadLoop;
+
+      /*! \brief Internal circular buffer */
+      double * m_CircularBuffer;
+
+      /*! \brief Index of the circular buffer. */
+      unsigned int m_CircularBufferIndex;
+
+      /*! \brief Upper limit of the circular buffer. */
+      unsigned int m_CircularBufferIndexMax;
 
     protected:
 
