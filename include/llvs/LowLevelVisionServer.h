@@ -52,6 +52,7 @@
 #include <Corba/StereoVision_impl.h>
 
 #include <VisionBasicProcess.h>
+#include <ConnectionToSot.h>
 
 
 /*! Inclusion specific to VVV */
@@ -523,7 +524,8 @@ namespace llvs
       /*! Stores the Synchronization method */
       LowLevelVisionSystem::SynchroMode m_TypeOfSynchro;
 
-
+      /*! Connection to SoT. */
+      ConnectionToSot * m_CTS;
       /*! Verbosity Level */
       int m_Verbosity;
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "LowLevelVisionServer.h"
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "ConnectionToSot:" << x << endl
 
@@ -27,7 +28,7 @@ void * ConnectionToSotThread(void *arg)
 	    
 	  aCST->ReadWaistSignals(waistposition,
 				 waistattitude);
-	  usleep(33000);
+	  usleep(330000);
 	}
     }
   return 0;

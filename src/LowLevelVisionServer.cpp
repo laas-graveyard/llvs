@@ -392,12 +392,20 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   for(int i=0;i<16;i++)
     m_headTorg[i] = 0.0;
 
+  m_CTS = new ConnectionToSot(this);
+  m_CTS->SetCorbaReference();
+  m_CTS->Init();
+  m_CTS->StartThreadOnConnectionSot();
+
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
+
+
 }
 
 LowLevelVisionServer::~LowLevelVisionServer()
 {
+  m_CTS->StopThreadOnConnectionSot();
 
 #if (LLVS_HAVE_VVV>0)
   if (m_DP!=0)
@@ -2017,7 +2025,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
 
   CORBA::Long Size = m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
   if (m_depth[CameraID]==3)
-    an2Image->format=RGB;
+    an2Image->format=ARGB;
   else if (m_depth[CameraID]==1)
     an2Image->format=GRAY;
 

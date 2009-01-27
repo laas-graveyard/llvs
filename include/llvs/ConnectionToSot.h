@@ -102,6 +102,4 @@ namespace llvs
     };
 };
 
-#include "LowLevelVisionServer.h"
-
 #endif /* _CONNECTION_TO_SOT_H_ */
