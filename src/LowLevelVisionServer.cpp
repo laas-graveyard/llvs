@@ -410,12 +410,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 LowLevelVisionServer::~LowLevelVisionServer()
 {
-  if (m_CTS!=0)
-    {
-      string aFileName("TSPositionAttitude.dat");
-      m_CTS->DumpCircularBuffer(aFileName);
-      m_CTS->StopThreadOnConnectionSot();
-    }
 
 #if (LLVS_HAVE_VVV>0)
   if (m_DP!=0)
@@ -2120,7 +2114,7 @@ CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long CameraID, ImageData_o
 void LowLevelVisionServer::CheckRangeMapFormat(char *&Format)
 {
   const char * CurrentFormat = "XYZGrayScaleChar";
-  
+   
 
   if (!strcmp(Format,"XYZGrayScaleImageRange"))
     {
@@ -2907,9 +2901,9 @@ void LowLevelVisionServer::CreateStack()
 {
   ODEBUG("Here " << m_Width[0] << " " << m_Height[0]);
   m_MaxSI = 33*120;
-  //m_MaxSI = 1;
+  //m_MaxSI = 33*30;
   m_IndexSI = 0;
-  m_NumberOfImagesToStack=1;
+  m_NumberOfImagesToStack=2;
   m_IndexSensorsStack = 0;
 
   ODEBUG(m_Width[0]*m_Height[0]*m_MaxSI);
@@ -3015,6 +3009,14 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
 
 void LowLevelVisionServer::RecordImagesOnDisk(int image)
 {
+
+  if (m_CTS!=0)
+    {
+      string aFileName("TSPositionAttitude.dat");
+      m_CTS->DumpCircularBuffer(aFileName);
+      m_CTS->StopThreadOnConnectionSot();
+    }
+
   ODEBUG("Recording images on disk.");
   if (m_CheckEntry)
     {

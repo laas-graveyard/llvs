@@ -26,8 +26,8 @@ void * ConnectionToSotThread(void *arg)
 	    
 	  aCST->ReadWaistSignals(waistposition,
 				 waistattitude);
-	  usleep(33000);
-	  ODEBUG("Starting again. ( " 
+	  usleep(23000);
+	  ODEBUG3("Starting again. ( " 
 		 << waistposition[0] << " , "
 		 << waistposition[1] << " , "
 		 << waistposition[2] << " ) ( "
@@ -60,10 +60,11 @@ void ConnectionToSot::DumpCircularBuffer(string aFilename)
   ODEBUG("Dumping data: "<<m_CircularBufferIndexMax);
   ofstream aof;
   aof.open((char *)aFilename.c_str(),ofstream::out);
+  aof.precision(40);
   for(unsigned int i=0;i<m_CircularBufferIndexMax;i++)
     {
       aof << m_CircularBuffer[i]<< " ";
-      if (i%7==0)
+      if ((i%7==0) &&(i!=0))
 	aof <<endl;
     }
   aof.close();
@@ -149,8 +150,9 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
       m_SOT_Server_Command->readInputVectorSignal(m_WaistAttitudeSignalRank,
 						  DSwaistatt);
 
-      m_CircularBuffer[m_CircularBufferIndex++] = ats.tv_sec + 0.000001 * ats.tv_usec;
       gettimeofday(&ats,0);
+      m_CircularBuffer[m_CircularBufferIndex++] = (double)ats.tv_sec + 0.000001 * (double)ats.tv_usec;
+
 
       if (DSwaistpos->length()==3)
 	{
@@ -209,11 +211,19 @@ bool ConnectionToSot::Init()
     }
 
   
+#if 0
   string SotCommand[4]= {
     "plug pg.waistpositionabsolute coshell.waistpositionabsolute",
     "plug pg.waistattitudeabsolute coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
+#else
+  string SotCommand[4]= {
+    "plug ffposition_from_pg.out coshell.waistpositionabsolute",
+    "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
+    "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
+    "OpenHRP.periodicCall addSignal ffattitude_from_pg.out"};
+#endif
 
   for(unsigned int li=0;li<4;li++)
     {

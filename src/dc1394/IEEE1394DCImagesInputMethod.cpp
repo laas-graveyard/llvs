@@ -171,12 +171,33 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
       return;
     }
 
+  ODEBUG("Feature id " << lFeature.id << " Camera : " << iCamera);
+  u_int avalue2=0;
+  dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue2);
+  ODEBUG("Value taken from dc1394 before : " << avalue2);
+  dc1394feature_mode_t amode;
+  dc1394_feature_get_mode(m_DC1394Cameras[iCamera],lFeature.id,&amode);
+  ODEBUG("Mode: " <<amode);
+  amode =DC1394_FEATURE_MODE_MANUAL;
+  dc1394_feature_set_mode(m_DC1394Cameras[iCamera],lFeature.id,amode);
+
+  dc1394_feature_get_mode(m_DC1394Cameras[iCamera],lFeature.id,&amode);
+  ODEBUG("Mode: " <<amode);
   
-  StopContinuousShot();
+  //  StopContinuousShot();
   u_int avalue;
   avalue = atoi(aValue.c_str());
-  dc1394_feature_set_value(m_DC1394Cameras[iCamera],lFeature.id,avalue);
-  StartContinuousShot();  
+  ODEBUG(aFeature <<" : " << avalue);
+  dc1394error_t errorcode;
+  if ((errorcode=dc1394_feature_set_value(m_DC1394Cameras[iCamera],lFeature.id,avalue))<0)
+    {
+    }
+  ODEBUG("Error code : " << errorcode);
+ 
+  dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue2);
+  ODEBUG("Value taken from dc1394 after : " << avalue2);
+   
+  //  StartContinuousShot();  
 }
 
 HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
@@ -762,15 +783,22 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
 	  lpos=6;
 	}
     }
+  else if (CameraPrefix=="vvv:")
+    {
+      lpos=4;
+      string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      ReadConfigurationFileVVVFormat(aValue,ProfileName);
+    }
   else if (CameraPrefix=="vsp:")
     {
       lpos=4;
       string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
       ReadConfigurationFileVVVFormat(aValue,ProfileName);
     }
-  
+
   if (IsACamera)
     {
+      ODEBUG("Is a camera");
       unsigned char IsFeature=0;
       
       string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
@@ -990,6 +1018,22 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       ODEBUG("FPS");
       err=dc1394_video_set_framerate(m_DC1394Cameras[i], fps);
       DC1394_ERR(err,"Could not set framerate");
+
+      SetCameraFeatureValue(string("LEFT"),string("SHUTTER"),string("300"));
+      SetCameraFeatureValue(string("RIGHT"),string("SHUTTER"),string("300"));
+
+      SetCameraFeatureValue(string("LEFT"),string("GAIN"),string("1000"));
+      SetCameraFeatureValue(string("RIGHT"),string("GAIN"),string("1000"));
+
+      SetCameraFeatureValue(string("LEFT"),string("BRIGHTNESS"),string("0"));
+      SetCameraFeatureValue(string("RIGHT"),string("BRIGHTNESS"),string("0"));
+
+      SetCameraFeatureValue(string("LEFT"),string("AUTO_EXPOSURE"),string("352"));
+      SetCameraFeatureValue(string("RIGHT"),string("AUTO_EXPOSURE"),string("352"));
+      
+      SetCameraFeatureValue(string("LEFT"),string("GAMMA"),string("1024"));
+      SetCameraFeatureValue(string("RIGHT"),string("GAMMA"),string("1024"));
+      
       
       ODEBUG("NbBuffers");
       err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
@@ -999,13 +1043,14 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       pthread_mutex_unlock(&m_mutex_device);
 
       if (fps==DC1394_FRAMERATE_30)
-	{
+  	{
 	  m_GrabbingPeriod[i]=1.0/30.0;
 	}
       else if (fps==DC1394_FRAMERATE_15)
 	{
 	  m_GrabbingPeriod[i]=1.0/15.0;
 	}
+
     }
   ODEBUG("End InitializeCameras()");
 }
@@ -1170,6 +1215,136 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	      unsigned int lGain;
 	      aif >> lGain;
 	      aVSP->m_CameraParameters[i]->SetGain(lGain);
+	      ODEBUG("Gain : " << lGain);
+	    }
+	  
+	}
+      
+      aif.close();
+
+      m_VisionSystemProfiles.insert(m_VisionSystemProfiles.end(),
+					    aVSP);
+    }
+}
+
+void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFileName,
+								     string ProfileName)
+{
+  ifstream aif;
+  unsigned int lBoardNumber;
+  unsigned int lNbOfCameras;
+
+  VisionSystemProfile *aVSP;
+
+  aif.open((const char *)aFileName.c_str(),ifstream::in);
+  if (aif.is_open())
+    {
+      aVSP = new VisionSystemProfile();
+      aVSP->m_Name = ProfileName;
+      aVSP->m_FileNameDescription = aFileName;
+      ODEBUG("Profile Name : " << aVSP->m_Name);
+      aif >> lBoardNumber;
+      aif >> lNbOfCameras;
+      
+      aVSP->m_CameraParameters.resize(lNbOfCameras);
+
+      for(unsigned int i=0;i<lNbOfCameras;i++)
+	{
+	  string lGUID,lFormat,tmp,lFPS;
+	  unsigned int lBrightness, lExposure;
+	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
+	  
+	  string Semantic;
+	  aif >> Semantic;
+	  
+	  int iCamera=0;
+
+	  if (Semantic=="LEFT")
+	    iCamera = 0;
+	  else if (Semantic=="RIGHT")
+	    iCamera = 1;
+	  else if (Semantic=="CYCL")
+	    iCamera = 2;
+	  else if (Semantic=="WIDE")
+	    iCamera = 3;
+
+	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(iCamera);
+	  aVSP->m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
+	  
+	  aif >> lGUID;
+	  aVSP->m_CameraParameters[i]->SetGUID(lGUID);
+	  ODEBUG("GUID:" << lGUID);
+
+	  aif >> lFormat;
+	  aVSP->m_CameraParameters[i]->SetFormat(lFormat);
+	  ODEBUG("Format:" << lFormat);
+
+	  aif >> lFPS;
+	  aVSP->m_CameraParameters[i]->SetFPS(lFPS);
+	  ODEBUG("FPS:" << lFPS);
+
+	  aif >> tmp;
+	  if (tmp=="BRIGHTNESS")
+	    {
+	      aif >> lBrightness;
+	   
+	      aVSP->m_CameraParameters[i]->SetBrightness(lBrightness);
+	      std::stringstream out;
+	      out << lBrightness;
+	      ODEBUG("Brightness:" << lBrightness);
+	    }
+	  aif >> tmp;
+	  if (tmp=="AUTO_EXPOSURE")
+	    {
+	      aif >> lExposure;
+	      aVSP->m_CameraParameters[i]->SetExposure(lExposure);
+	      std::stringstream out;
+	      out << lExposure;
+
+	      ODEBUG("Exposure:" << lExposure);
+	    }
+	  aif >> tmp;
+	  if (tmp=="WHITE_BALANCE")
+	    {
+	      unsigned int lWhiteBalance[2];
+	      aif >> lWhiteBalance[0];
+	      aif >> lWhiteBalance[1];
+	      aVSP->m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
+	      ODEBUG("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
+	    }
+	  aif >> tmp;
+	  if (tmp=="GAMMA")
+	    {
+	      unsigned int lGamma;
+	      aif >> lGamma;
+	      aVSP->m_CameraParameters[i]->SetGamma(lGamma);
+	      std::stringstream out;
+	      out << lGamma;
+
+	      ODEBUG("Gamma : " << lGamma);
+	    }
+	  
+	  aif >> tmp;
+	  if (tmp=="SHUTTER")
+	    {
+	      unsigned int lShutter;
+	      aif >> lShutter;
+	      aVSP->m_CameraParameters[i]->SetShutter(lShutter);
+	      std::stringstream out;
+	      out << lShutter;
+
+	      ODEBUG("Shutter : " << lShutter);
+	    }
+
+	  	  aif >> tmp;
+	  if (tmp=="GAIN")
+	    {
+	      unsigned int lGain;
+	      aif >> lGain;
+	      aVSP->m_CameraParameters[i]->SetGain(lGain);
+	      std::stringstream out;
+	      out << lGain;
+	      
 	      ODEBUG("Gain : " << lGain);
 	    }
 	  

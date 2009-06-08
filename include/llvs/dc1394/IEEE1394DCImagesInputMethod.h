@@ -267,6 +267,9 @@ namespace llvs
       /*! \brief Read configuration files in the VVV format. */
       void ReadConfigurationFileVVVFormat(string aFileName, string ProfileName);
 
+      /*! \brief Read configuration files in the VSP format. */
+      void ReadConfigurationFileVSPFormat(string aFileName, string ProfileName);
+
       /*! @} */
     };
 };  

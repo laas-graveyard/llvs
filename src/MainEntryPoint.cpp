@@ -74,7 +74,7 @@ void * LLVSThread(void *arg)
 
 void SIGINT_handler(int asig)
 {
-  ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self());
+  ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
   if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
     {
       /* Stop the processes */
