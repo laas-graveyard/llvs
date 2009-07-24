@@ -1,12 +1,7 @@
 IF(OMNIORB4_FOUND)
 
-  IF (OPENHRP_FOUND)
-    SET(IDL_INCLUDE_DIR "-I${OPENHRP_HOME}/Common/corba")
-    SET(COMMON_IDL_NAME ${OPENHRP_HOME}/Common/corba/common.idl)
-  ELSE(OPENHRP_FOUND)
-    SET(IDL_INCLUDE_DIR "-I${LLVS_SOURCE_DIR}/corba")
-    SET(COMMON_IDL_NAME ${LLVS_SOURCE_DIR}/corba/common.idl)
-  ENDIF(OPENHRP_FOUND)
+  SET(IDL_INCLUDE_DIR "-I${LLVS_SOURCE_DIR}/corba")
+  SET(COMMON_IDL_NAME ${LLVS_SOURCE_DIR}/corba/common.idl)
   
   MESSAGE(STATUS ${IDL_INCLUDE_DIR})
 
@@ -47,11 +42,7 @@ IF(OMNIORB4_FOUND)
   SET(visionsensor_CPP  "${LLVS_SOURCE_DIR}/src/visionsensorSK.cc")
   SET(visionsensor_Header "${LLVS_SOURCE_DIR}/src/visionsensor.hh")
 
-  IF (OPENHRP_FOUND)
-    SET(VISIONSENSOR_IDL_NAME ${OPENHRP_HOME}/VisionSensor/corba/visionsensor.idl)
-  ELSE(OPENHRP_FOUND)
-    SET(VISIONSENSOR_IDL_NAME ${LLVS_SOURCE_DIR}/corba/visionsensor.idl)
-  ENDIF(OPENHRP_FOUND)
+  SET(VISIONSENSOR_IDL_NAME ${LLVS_SOURCE_DIR}/corba/visionsensor.idl)
 
   IDLFILERULE(${VISIONSENSOR_IDL_NAME}
               ${visionsensor_CPP}
