@@ -37,13 +37,14 @@ IF (NOT OMNIORB4_DIR)
   SET(omniORB4_link_FLAGS "-lomniORB4 -lomnithread -lomniDynamic4")
   SET(omniORB4_cflags "-DOMNIORB4 -I${OMNIORB4_DIR}/include -DOMNIORB4 -D__x86__ -DVERSION=2  -DNDEBUG")
   SET(omniORB4_IDLC "${OMNIORB4_DIR}/bin/omniidl")
+
 ELSE(NOT OMNIORB4_DIR)
+
   MESSAGE (STATUS "Did found omniorb4_dir ${OMNIORB4_DIR}")
-  IF (omniORB4_include_DIR)
-    SET(omniORB4_cflags "-DOMNIORB4  -DNDEBUG -I${omniORB4_include_DIR}")
-  ELSE(omniORB4_include_DIR)
-    SET(omniORB4_cflags "-DOMNIORB4  -DNDEBUG")
-  ENDIF(omniORB4_include_DIR)
+  SET(omniORB4_include_DIR "${OMNIORB4_DIR}/include")
+  SET(omniORB4_link_DIR "-L${OMNIORB4_DIR}/include")
+  SET(omniORB4_link_FLAGS "-lomniORB4 -lomnithread -lomniDynamic4")
+  SET(omniORB4_cflags "-DOMNIORB4 -I${OMNIORB4_DIR}/include -DOMNIORB4 -D__x86__ -DVERSION=2  -DNDEBUG")
 
 ENDIF(NOT OMNIORB4_DIR)
 	  
