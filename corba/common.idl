@@ -1,0 +1,419 @@
+#ifndef __COMMON_IDL__
+#define __COMMON_IDL__
+
+/**
+ * OpenHRP共通IDL
+ * 2001.01.09	Ichitaro Kohara, MSTC
+ */
+
+/**
+ * 関節トルクのシーケンス
+ */
+typedef sequence<double> TorqueSeq;
+
+/**
+ * 関節の角度と角速度
+ * ANGLE:			角度
+ * VEROCITY:		速度
+ * ACCELERATION:	加速度
+ */
+enum DataId {ANGLE, VELOCITY, ACCELERATION};
+
+/**
+ * リンクデータ
+ * 0:角度, 1:角速度, 2:角加速度
+ */
+typedef double LinkData[3];
+
+/**
+ * リンクデータのシーケンス
+ */
+typedef sequence<LinkData> LinkDataSeq;
+
+/**
+ * リンクパラメータ
+ * ※パラメータの型が
+ *   1.double       のとき Value[0]のみ使用する
+ *   2.CMatrix[3x1] のとき Value[0...2]を使用する
+ *   3.CMatrix[3x3] のとき Value[0...8]を使用する
+ */
+typedef sequence<double, 9> Value;
+
+/**
+ * Force Sensor Value
+ */
+typedef sequence<double, 6> FSValue;
+
+/**
+ * リンク名のシーケンス
+ */
+typedef sequence<string> LinkNameSeq;
+
+/**
+ * 位置姿勢
+ * @param	posX	x座標
+ * @param	posY	y座標
+ * @param	posZ	z座標
+ * @param	axisX	x軸
+ * @param	axisY	y軸
+ * @param	axisZ	z軸
+ * @param	angle	角度
+ */
+struct Transform
+{
+	float posX;
+	float posY;
+	float posZ;
+	float axisX;
+	float axisY;
+	float axisZ;
+	float angle;
+};
+
+/**
+ * 追加ここから----->
+ * 2002.01.25   by K.Saito, KernelInc
+ */
+/**
+ * 位置姿勢
+ * @param	px	x座標
+ * @param	py	y座標
+ * @param	pz	z座標
+ * @param	qx	x軸
+ * @param	qy	y軸
+ * @param	qz	z軸
+ * @param	qw	w軸
+ */
+struct TransformQuaternion
+{
+    float px;
+    float py;
+    float pz;
+    float qx;
+    float qy;
+    float qz;
+    float qw;
+};
+
+/**
+ * <----追加ここまで
+ */
+
+/**
+ * リンク情報
+ * @member	name		リンク名
+ * @member	pos			位置
+ * @member	rot			姿勢
+ * @member	JointValue	関節角度
+ */
+struct LinkInfo
+{
+	string	name;
+	Value	pos;
+	Value	rot;
+	double	JointValue;
+	double	JointVel;
+	double	JointAcc;
+	Value	jpos;
+	Value	jatt;
+	Value	vel;  // for free joints
+	Value	acc;  // for free joints
+};
+
+/**
+ * 追加ここから----->
+ * 2002.02.25   by K.Saito, KernelInc
+ */
+/**
+ * リンク情報
+ * @member	name		リンク名
+ * @member	param			パラメタ名
+ * @member	value			値
+ */
+
+struct LinkValue
+{
+	string	name;
+	string	param;
+	Value	data;
+};
+
+/**
+ * リンク情報のシーケンス
+ */
+
+typedef sequence<LinkValue> LinkValueSeq;
+
+/**
+ * <----追加ここまで
+ */
+
+
+/**
+ * リンク情報のシーケンス
+ */
+typedef sequence<LinkInfo> LinkInfoSeq;
+
+/**
+ * 座標(x, y, z)(m)
+ */
+/**
+ * 法線ベクトル(x, y, z)(m)
+ */
+typedef float Vector3[3];
+
+/**
+ * コリジョン情報の詳細(接触点の座標、法線ベクトル)
+ *
+ * @member	coord	接触点の座標(ワールド座標系)
+ * @member	normal	法線ベクトル(ワールド座標系)
+ */
+struct CollisionData
+{
+	Vector3	coord;
+	Vector3	normal;
+	double	idepth;
+};
+
+/**
+ * CollisionDataの任意長配列
+ */
+typedef sequence<CollisionData> CollisionDataSeq;
+
+/**
+ * 仮想世界の状態
+ * @member	time		シミュレーション時刻
+ * @member	linkinfo	リンク情報
+ * @member	collision	干渉チェック情報
+ */
+struct WorldState
+{
+	double				time;
+	LinkInfoSeq			linkinfo;
+	CollisionDataSeq	collision;
+};
+
+typedef sequence<double> dsequence;
+
+
+enum PixelFormat {ARGB, GRAY, DEPTH};
+
+struct ImageData
+{
+  PixelFormat format;
+  long width, height;
+  sequence<octet> octetData;
+  sequence<long> longData;
+  sequence<float> floatData;
+};
+
+struct RobotState
+{
+  dsequence angle;
+  dsequence velocity;
+  sequence<dsequence> force;
+  sequence<dsequence> rate;
+  sequence<dsequence> accel;
+  sequence<dsequence> attitude;
+  dsequence zmp;
+  dsequence waistPos;
+  dsequence waistRpy;
+  sequence<ImageData> image;
+};
+
+/**
+ * Link Parameter
+ */
+typedef Value ValueMatrix;
+
+
+/**
+ * センサ型定義
+ * FORCE_SENSOR:    6軸力センサ
+ * GYRO:            ジャイロ
+ * ACCELERARION_SENSOR:加速度センサ
+ * PRESSURE_SENSOR:    感圧センサ
+ * PHOTO_INTERRUPTER:  光センサ
+ */
+enum SensorType {
+    FORCE_SENSOR, 
+    GYRO, 
+    ACCELERATION_SENSOR, 
+    PRESSURE_SENSOR, 
+    PHOTO_INTERRUPTER,
+    VISION_SENSOR
+};
+
+/**
+ * SensorInfoインタフェース定義
+ * @author  Keisuke Saito, Kernel Inc
+ * @date    2002.02.06
+ * @version 1.0
+ */
+interface SensorInfo
+{
+    readonly attribute long         id;
+    readonly attribute string       name;
+    readonly attribute SensorType   type;
+    readonly attribute ValueMatrix  relPos;
+    readonly attribute ValueMatrix  relAttitude;
+    readonly attribute ValueMatrix  maxValue;
+};
+
+/**
+ * SensorInfoのシーケンス
+ */
+typedef sequence<SensorInfo> SensorInfoSeq;
+
+/**
+ * ParserModelObjectインタフェース定義
+ * @author  Ichitaro Kohara, MSTC
+ * @date    2001.01.06
+ * @version 1.0
+ * @version 1.1
+ */
+interface ParserModelObject
+{
+    readonly attribute boolean      positionGiven;
+    readonly attribute boolean      rotateJoint;
+    readonly attribute double       mass;
+    readonly attribute double       jointValue;
+    readonly attribute double       jointVel;
+    readonly attribute double       jointAcc;
+
+    readonly attribute ValueMatrix  absPos;
+    readonly attribute ValueMatrix  relPos;
+    readonly attribute ValueMatrix  relComPos;
+    readonly attribute ValueMatrix  absComPos;
+    readonly attribute ValueMatrix  relComAcc;
+
+    readonly attribute ValueMatrix  omega;
+    readonly attribute ValueMatrix  omega_d;
+    readonly attribute ValueMatrix  relAcc;
+    readonly attribute ValueMatrix  absVel;
+    readonly attribute ValueMatrix  absComVel;
+
+    readonly attribute ValueMatrix  relForce;
+    readonly attribute ValueMatrix  relTorque;
+
+    readonly attribute ValueMatrix  absAttitude;
+    readonly attribute ValueMatrix  relAttitude;
+    readonly attribute ValueMatrix  inertia;
+    readonly attribute Value        dh;
+
+    readonly attribute Value    ulimit;
+    readonly attribute Value    llimit;
+    readonly attribute Value    uvlimit;
+    readonly attribute Value    lvlimit;
+
+    //--- for rotor inertia of servomotor  '01 Jun.29 s.kajita
+    readonly attribute double rotorInertia;
+    readonly attribute double rotorResistor;
+    readonly attribute double gearRatio;
+    readonly attribute double torqueConst;
+    readonly attribute double encoderPulse;
+
+    readonly attribute Value    bboxCenter;
+    readonly attribute Value    bboxSize;
+
+    readonly attribute string       name;
+    readonly attribute string       jointType;
+    readonly attribute short        jointId;
+    readonly attribute string       jointAxis;
+
+    readonly attribute long         mother;     // index
+    readonly attribute long         sister;     // index
+    readonly attribute long         daughter;   // index
+
+    //--- for sensor '02 Feb.6 k.saito,KernelInc
+  readonly attribute SensorInfoSeq  sensors;
+};
+
+typedef sequence<string> stringSeq;
+
+/**
+ * ParserModelObjectのシーケンス
+ */
+typedef sequence<ParserModelObject> ParserModelObjectSeq;
+
+interface ParserCharObject
+{
+    readonly attribute string name;
+    readonly attribute stringSeq info;
+    readonly attribute ParserModelObjectSeq modelObjectSeq;
+};
+
+/**
+ * ModelInfoインタフェース定義
+ * @author  Keisuke Saito, KernelInc
+ * @date    2001.01.06
+ * @version 1.0
+ */
+interface ModelInfo
+{
+
+    /**
+     * sequence of float
+     */
+    typedef sequence<float> floatSeq;
+    typedef sequence<string> NameSeq;
+    
+    /** 
+     *  このオブジェクトのソースのURLを返す
+     *  @return URL文字列
+     **/ 
+    string getUrl();
+    
+    /**
+     * 構造情報を返す
+     * @return  ParserCharObjectの情報
+     */
+    ParserCharObject getCharObject();
+    
+    /** オブジェクト一覧
+     *  Joint名の一覧を返す
+     *  @return ジョイント名
+     **/ 
+    NameSeq getJointList();
+    
+    /** 三角形の読み出し
+     *   @param     jointName   joint名
+     *   @param     count       読み出す3角形数
+     *   @return    3角形集合
+     *              戻り値は9個のfloatで1つの3角形をあらわす
+     **/
+    floatSeq readTriangles(
+        in string jointName,
+        in long count
+    );
+    
+    /**
+     * 破棄
+     */
+    void destroy();
+
+};
+
+interface OpenHRPObject
+{
+  oneway void shutdown();
+};
+
+interface CommandReceiver
+{
+  void sendMsg(in string msg);
+};
+
+interface Plugin : CommandReceiver
+{
+  void start();
+  void stop();
+};
+
+interface PluginManager : CommandReceiver
+{
+  void load(in string name);
+  Plugin create(in string pclass, in string name, in string args);
+};
+#endif
+

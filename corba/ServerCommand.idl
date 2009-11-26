@@ -1,0 +1,16 @@
+
+interface SOT_Server_Command
+{
+  typedef sequence<double> DoubleSeq;
+  typedef sequence<char> CharSeq;
+  typedef sequence<char> StringStreamer;
+
+  void run( in CharSeq cmd );
+  void runAndRead( in CharSeq cmd, out StringStreamer os );
+  void readVector( in CharSeq signalName, out DoubleSeq value );
+
+  long createOutputVectorSignal( in CharSeq signalNameCorba );
+  long createInputVectorSignal( in CharSeq signalNameCorba );
+  void readInputVectorSignal( in long signalRank, out DoubleSeq value );
+  void writeOutputVectorSignal( in long signalRank, in DoubleSeq value );
+};

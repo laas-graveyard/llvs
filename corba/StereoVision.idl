@@ -1,0 +1,36 @@
+#include "common.idl"
+#include "visionsensor.idl"
+
+/**
+ * Range Map taken from LowLevelVisionSystem.idl by Olivier
+ */
+typedef FloatBuffer RangeMap;
+
+
+interface StereoVision {
+    
+    boolean rbt2scmCalibStart();
+
+    boolean rbt2scmCalibEnd();
+
+    boolean detectCrossMark(
+	in  TransformQuaternion robotHeadPos,
+	in  TransformQuaternion robotHandPos
+    );
+    
+    boolean getObjectPosition(
+	in  string name,
+	in  TransformQuaternion robotHeadPos,   
+        out TransformQuaternion ObjectPosition
+    );
+    
+  boolean StartProcess(in string ProcessName);
+
+  boolean StopProcess(in string ProcessName);
+
+  long getImage(in long CameraID, out ImageData anImage, inout string Format);
+
+  long getRangeMap(out RangeMap aRangeMap, inout string Format);
+
+};
+

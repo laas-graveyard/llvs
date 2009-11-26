@@ -1,0 +1,214 @@
+/**
+ * VisionSensor Interfece Definition
+ * @author	Ichitaro Kohara, MSTC
+ * @verion	1.0(2001.02.22)
+ */
+
+#ifndef __VISIONSENSOR_IDL__
+#define __VISIONSENSOR_IDL__
+
+#ifndef __COMMON_IDL__
+#include "common.idl"
+#endif
+
+/**
+ * Sequence of float
+ */
+typedef sequence<float>	FloatBuffer;
+
+/**
+ * Sequence of integer
+ */
+typedef sequence<long>	IntBuffer;
+
+/**
+ * Depth buffer
+ */
+typedef FloatBuffer		DepthBuffer;
+
+/**
+ * Color buffer
+ */
+typedef IntBuffer		ColorBuffer;
+
+/**
+ * Joint angles
+ */
+typedef FloatBuffer		LinkAngles;
+
+/**
+ * Camera
+ * @author	Ichitaro Kohara, MSTC
+ * @version	1.0(2001.02.16)
+ */
+interface Camera
+{
+	/**
+	 * Camera type
+	 * NONE			:	read no information
+	 * COLOR		:	read color buffer
+	 * DEPTH		:	read depth buffer
+	 * COLOR_DEPTH		:	read color buffer and depth buffer
+	 */
+	enum CameraType {NONE, COLOR, MONO, DEPTH, COLOR_DEPTH, MONO_DEPTH};
+
+	/**
+	 * Camera parameter
+	 * @member	cameraType			camera type
+	 * @member	frontClipDistance	view model's front clip distance(m)
+	 * @member	backClipDistance	view model's back clip distance(m)
+	 * @member	fieldOfView			fiels of view(rad)
+	 * @member	sensorId			sensor id
+	 * @member	sensorName			sensor name
+	 * @member	defName				DEF name
+	 * @member	width				width
+	 * @member	height				height
+	 */
+	struct CameraParameter
+	{
+		CameraType	type;
+		float		frontClipDistance;
+		float		backClipDistance;
+		float		fieldOfView;
+		long		sensorId;
+		string		sensorName;
+		string		defName;
+		long		width;
+		long		height;
+	};
+
+	/**
+	 * Destroy
+	 */
+	void
+	destroy();
+
+	/**
+	 * Get camera parameter
+	 * @return	camera parameter
+	 */
+	CameraParameter
+	getCameraParameter();
+
+	/**
+	 * Get color buffer
+	 * @return	color buffer
+	 */
+	ColorBuffer
+	getColorBuffer();
+
+	/**
+	 * Get depth buffer
+	 * @return	depth buffer
+	 */
+	DepthBuffer
+	getDepthBuffer();
+
+  	ImageData
+	getImageData();
+};
+
+/**
+ * Sequence of Camera
+ */
+typedef sequence<Camera>	CameraSeq;
+
+/**
+ * Vision Sensor
+ * @author	Ichitaro Kohara, MSTC
+ * @version	1.0(2001.02.22)
+ */
+interface VisionSensor
+{
+	/**
+	 * VisionSensor exception
+	 * @member	description		description of the exception
+	 */
+	exception VisionSensorException
+	{
+		string	description;
+	};
+
+	/**
+	 * Destory
+	 */
+	void
+	destroy();
+
+	/**
+	 * Loat object
+	 * @param	src			object's URL
+	 * @param	objectName	object's Name
+	 */
+	void
+	loadObject(
+		in	string	src,
+		in	string	objectName
+	)
+	raises (VisionSensorException);
+
+	/**
+	 * Show object
+	 * @param	objectName	object's Name
+	 */
+	void
+	showObject(
+		in	string	objectName
+	)
+	raises (VisionSensorException);
+
+	/**
+	 * Get cameras loaded in simulator
+	 * @param	cameraSeq	cameras
+	 * @return	number of cameras
+	 */
+	long
+	getCameraSeq(
+		out	CameraSeq	cameras
+	);
+
+  	long
+	getCameraSeqOf(in string objectName, out CameraSeq cameras);
+
+	/**
+	 * Add Camera
+	 * @param	objectName	object's Name
+	 * @param	jointName	joint's name which camera is attached
+	 * @param	transform	camera transform in local coordinate system
+	 * @param	cameraType	camera type
+	 * @return	reference to the Camera object
+	 */
+	Camera
+	addCamera(
+		in	string					objectName,
+		in	string					jointName,
+		in	Transform				transformation,
+		in	Camera::CameraParameter	cameraParam
+	)
+	raises (VisionSensorException);
+
+	/**
+	 * Update scene
+	 * @param	worldState	WorldState
+	 */
+	void
+	updateScene(
+		in	WorldState	state
+	);
+};
+/**
+ * VisionSensorファクトリインタフェイス
+ */
+interface VisionSensorFactory : OpenHRPObject
+{
+
+    /**
+     * VisionSensor生成
+     *
+     * @return  VisionSensorオブジェクト
+     */
+    VisionSensor createVisionSensor();
+
+};
+
+#endif
