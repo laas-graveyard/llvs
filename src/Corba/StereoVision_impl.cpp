@@ -47,20 +47,20 @@ using namespace llvs;
 #ifdef USE_IMR
 StereoVision_impl::StereoVision_impl(CORBA::ORB_ptr orb,PortableServer::POA_ptr poa,
 				     LowLevelVisionServer *LLVS)
-    : orb_(CORBA::ORB::_duplicate(orb)),
-     poa_(PortableServer::POA::_duplicate(poa))
+  : orb_(CORBA::ORB::_duplicate(orb)),
+    poa_(PortableServer::POA::_duplicate(poa))
 #else
-StereoVision_impl::StereoVision_impl(CORBA_ORB_ptr orb,
-				     LowLevelVisionServer *LLVS) 
+    StereoVision_impl::StereoVision_impl(CORBA_ORB_ptr orb,
+					 LowLevelVisionServer *LLVS) 
     : orb_(CORBA_ORB::_duplicate(orb))
 #endif
 {
   //#ifdef StereoVISION_DEBUG
-    //#endif
+  //#endif
 
-    m_LLVS = LLVS;
-    m_CommandsDir="/home/hrpuser/hrp2/OpenHRP2/StereoVision_rio/server";
-    //m_CommandsDir="/home/hrpuser/hrp2/HRP2eyes/";
+  m_LLVS = LLVS;
+  m_CommandsDir="/home/hrpuser/hrp2/OpenHRP2/StereoVision_rio/server";
+  //m_CommandsDir="/home/hrpuser/hrp2/HRP2eyes/";
 }
 
 /**
@@ -69,7 +69,7 @@ StereoVision_impl::StereoVision_impl(CORBA_ORB_ptr orb,
 StereoVision_impl::~StereoVision_impl()
 {
 #ifdef StereoVISION_DEBUG
-    cout << "StereoVision_impl::~StereoVision_impl()" << endl;
+  cout << "StereoVision_impl::~StereoVision_impl()" << endl;
 #endif
 }
 
@@ -77,7 +77,7 @@ StereoVision_impl::~StereoVision_impl()
 PortableServer::POA_ptr
 StereoVision_impl::_default_POA()
 {
-    return PortableServer::POA::_duplicate(poa_);
+  return PortableServer::POA::_duplicate(poa_);
 }
 #endif
 
@@ -86,123 +86,123 @@ CORBA::Boolean
 StereoVision_impl::rbt2scmCalibStart(
 ) throw(CORBA::SystemException)
 {
-    char    *command = "rbt2scmCalibStart.sh";
-    FILE    *fp;//, *popen();
-    char buffer[500];// add 02/02/14 fukase
+  string command = "rbt2scmCalibStart.sh";
+  FILE    *fp;//, *popen();
+  char buffer[500];// add 02/02/14 fukase
 
-    sprintf(buffer,"cd %s;./%s",(char *)m_CommandsDir.c_str(),command);
+  sprintf(buffer,"cd %s;./%s",(char *)m_CommandsDir.c_str(),(char *)command.c_str());
 
-    /* open the command ("/bin/ls") and get a file pointer */
-    StopLLVSGrabbing();
-    sleep(1);
-    if ( (fp = popen( buffer, "r" )) == NULL ){
-        cout << "process open error :" << command << endl;
-        return false;
-    }
-    sleep(2);
-    RestoreLLVSGrabbing();
+  /* open the command ("/bin/ls") and get a file pointer */
+  StopLLVSGrabbing();
+  sleep(1);
+  if ( (fp = popen( buffer, "r" )) == NULL ){
+    cout << "process open error :" << command << endl;
+    return false;
+  }
+  sleep(2);
+  RestoreLLVSGrabbing();
 
-    CORBA::Boolean  ret = false;
-    int val = 0;
-    fscanf(fp,"%d",&val);
+  CORBA::Boolean  ret = false;
+  int val = 0;
+  fscanf(fp,"%d",&val);
 
-    if(val != 0) {
-        ret = true;
-    }
+  if(val != 0) {
+    ret = true;
+  }
     
-    /* close the file pointer */
-    pclose( fp );
+  /* close the file pointer */
+  pclose( fp );
     
-    return ret;
+  return ret;
 }
 
 CORBA::Boolean 
 StereoVision_impl::rbt2scmCalibEnd(
 ) throw(CORBA::SystemException)
 {
-    char    *command = "rbt2scmCalibEnd.sh";
-    FILE    *fp;//, *popen();
-    char buffer[500];// add 02/02/14 fukase
+  string command = "rbt2scmCalibEnd.sh";
+  FILE    *fp;//, *popen();
+  char buffer[500];// add 02/02/14 fukase
 
-    sprintf(buffer,"cd %s;./%s",(char *)m_CommandsDir.c_str(),command);
+  sprintf(buffer,"cd %s;./%s",(char *)m_CommandsDir.c_str(),(char *)command.c_str());
 
-    /* open the command ("/bin/ls") and get a file pointer */
-    StopLLVSGrabbing();
-    sleep(1);
-    if ( (fp = popen( buffer, "r" )) == NULL ){
-        cout << "process open error :" << command << endl;
-        return false;
-    }
-    sleep(2);
-    RestoreLLVSGrabbing();
+  /* open the command ("/bin/ls") and get a file pointer */
+  StopLLVSGrabbing();
+  sleep(1);
+  if ( (fp = popen( buffer, "r" )) == NULL ){
+    cout << "process open error :" << command << endl;
+    return false;
+  }
+  sleep(2);
+  RestoreLLVSGrabbing();
 
-    CORBA::Boolean  ret = false;
-    int val = 0;
-    fscanf(fp,"%d",&val);
+  CORBA::Boolean  ret = false;
+  int val = 0;
+  fscanf(fp,"%d",&val);
 
-    if(val != 0) {
-        ret = true;
-    }
+  if(val != 0) {
+    ret = true;
+  }
     
-    /* close the file pointer */
-    pclose( fp );
+  /* close the file pointer */
+  pclose( fp );
     
-    return ret;
+  return ret;
 }
 
 
 CORBA::Boolean 
 StereoVision_impl::detectCrossMark(
-    const TransformQuaternion& robotHeadPos,
-    const TransformQuaternion& robotHandPos
-)throw(CORBA::SystemException)
+				   const TransformQuaternion& robotHeadPos,
+				   const TransformQuaternion& robotHandPos
+				   )throw(CORBA::SystemException)
 {
-    char    *command = "detectCrossMark.sh";
-    FILE    *fp;//, *popen();
-    char buffer[500];
+  string command = "detectCrossMark.sh";
+  FILE    *fp;//, *popen();
+  char buffer[500];
+  
+  sprintf(buffer,"%s/%s %f %f %f %f %f %f %f %f %f %f %f %f %f %f",
+	  (char *)m_CommandsDir.c_str(),
+	  (char *)command.c_str(),
+	  robotHeadPos.px,
+	  robotHeadPos.py,
+	  robotHeadPos.pz,
+	  robotHeadPos.qx,
+	  robotHeadPos.qy,
+	  robotHeadPos.qz,
+	  robotHeadPos.qw,
+	  robotHandPos.px,
+	  robotHandPos.py,
+	  robotHandPos.pz,
+	  robotHandPos.qx,
+	  robotHandPos.qy,
+	  robotHandPos.qz,
+	  robotHandPos.qw
+	  );
+    
+  /* open the command ("/bin/ls") and get a file pointer */
 
-    sprintf(buffer,"%s/%s %f %f %f %f %f %f %f %f %f %f %f %f %f %f",
-	    (char *)m_CommandsDir.c_str(),
-	    command,
-        robotHeadPos.px,
-        robotHeadPos.py,
-        robotHeadPos.pz,
-        robotHeadPos.qx,
-        robotHeadPos.qy,
-        robotHeadPos.qz,
-        robotHeadPos.qw,
-        robotHandPos.px,
-        robotHandPos.py,
-        robotHandPos.pz,
-        robotHandPos.qx,
-        robotHandPos.qy,
-        robotHandPos.qz,
-        robotHandPos.qw
-    );
-    
-    /* open the command ("/bin/ls") and get a file pointer */
+  StopLLVSGrabbing();
+  sleep(1);    
 
-    StopLLVSGrabbing();
-    sleep(1);    
-
-    if ( (fp = popen(buffer, "r" )) == NULL ){
-        cout << "process open error :" << command << endl;
-        return false;
-    }
-    sleep(2);
-    RestoreLLVSGrabbing();
-    CORBA::Boolean  ret = false;
-    int val = 0;
-    fscanf(fp,"%d",&val);
+  if ( (fp = popen(buffer, "r" )) == NULL ){
+    cout << "process open error :" << command << endl;
+    return false;
+  }
+  sleep(2);
+  RestoreLLVSGrabbing();
+  CORBA::Boolean  ret = false;
+  int val = 0;
+  fscanf(fp,"%d",&val);
     
-    if(val != 0) {
-        ret = true;
-    }
+  if(val != 0) {
+    ret = true;
+  }
     
-    /* close the file pointer */
-    pclose( fp );
+  /* close the file pointer */
+  pclose( fp );
     
-    return ret;
+  return ret;
 }
 
 
@@ -291,13 +291,13 @@ StereoVision_impl::StartProcess(const char* ProcessName)throw(CORBA::SystemExcep
   string sPN(ProcessName);
 
   /*  
-  if (sPN.find("/")!=std::string::npos)
-    sprintf(buffer,"%s", 
-	    ProcessName);
-	    else */
-    sprintf(buffer,"cd %s; ./%s.sh", 
-	    (char *)m_CommandsDir.c_str(),
-	    ProcessName);
+      if (sPN.find("/")!=std::string::npos)
+      sprintf(buffer,"%s", 
+      ProcessName);
+      else */
+  sprintf(buffer,"cd %s; ./%s.sh", 
+	  (char *)m_CommandsDir.c_str(),
+	  ProcessName);
   
   cout << "Buffer: " << buffer << endl;
   /* open the command ("/bin/ls") and get a file pointer */
