@@ -127,6 +127,9 @@ namespace llvs
       /*! Initialize the cameras */
       void InitializeCameras();
 
+      /*! Initialize a camera */
+      void InitializeCamera(IEEE1394DCCameraParameters &CamParams);
+
       /*! Decide to which the features should be set according
 	to the vendor and the name of the product. */
       void DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,

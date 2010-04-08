@@ -392,15 +392,26 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   for(int i=0;i<16;i++)
     m_headTorg[i] = 0.0;
 
-  if (1)
+  m_CTS=0;
+  try 
     {
       m_CTS = new ConnectionToSot(this);
-      m_CTS->SetCorbaReference();
-      m_CTS->Init();
-      m_CTS->StartThreadOnConnectionSot();
+      if (!m_CTS->SetCorbaReference())
+	{
+	  cout << "Connection to SoT disabled." << endl;
+	  delete m_CTS;
+	  m_CTS=0;
+	}
+      else
+	{
+	  m_CTS->Init();
+	  m_CTS->StartThreadOnConnectionSot();
+	}
     }
-  else
-    m_CTS = 0;
+  catch(...)
+    {
+      m_CTS=0;
+    }
 
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
@@ -789,7 +800,7 @@ LowLevelVisionServer::ApplyingProcess()
 	  // Modification 28/12/2005
 	  // for exhausting the buffer of images.
 	  NbOfWait++;
-	  if ((NbOfWait==25) &&
+	  if ((NbOfWait==2) &&
 	      (m_TypeOfInputMethod==LowLevelVisionSystem::FRAMEGRABBER))
 	    {
 	      ResFromGIFF=GetImageFromFrameGrabber();
@@ -853,7 +864,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
 	  
 
-  ODEBUG("Start to grab images");
+  ODEBUG("Start the processes.");
   gettimeofday(&before2,0);
   /* Get the image from the input method */
   if (ResFromGIFF==-1)
@@ -958,7 +969,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
 #endif
 
-  if (IndexBuffer==3000)
+  if (IndexBuffer==300)
   //if (0)
     {
       cout << "Complete process time :" << CompleteProcessTime/(double)IndexBuffer << endl;
@@ -2900,10 +2911,11 @@ CORBA::Long LowLevelVisionServer::GetBoundaryRepresentation(CBREPSeq_out aBrep)
 void LowLevelVisionServer::CreateStack()
 {
   ODEBUG("Here " << m_Width[0] << " " << m_Height[0]);
-  m_MaxSI = 33*120;
-  //m_MaxSI = 33*30;
+  //m_MaxSI = 33*120;
+  m_MaxSI = 33*60;
   m_IndexSI = 0;
-  m_NumberOfImagesToStack=2;
+  m_NumberOfImagesToStack=m_ImagesInputMethod->GetNumberOfCameras();
+  ODEBUG3("m_NumberOfImagesToStack"<< m_NumberOfImagesToStack);
   m_IndexSensorsStack = 0;
 
   ODEBUG(m_Width[0]*m_Height[0]*m_MaxSI);
@@ -3031,21 +3043,30 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       FILE *fp,*fp_sensors;
       char Buffer[1024];
 
-      bzero(Buffer,1024);
-      sprintf(Buffer,"TimeStamp.dat");
-      fp = fopen(Buffer,"w");
-
-      /* Store timestamp */
-      if (fp!=0)
+      unsigned int ldepth = m_NumberOfImagesToStack;
+      ODEBUG3("Number of cameras:" << ldepth);
+      for(unsigned int i=0; i<ldepth; i++)
 	{
-	  for(unsigned int i=0; i<m_MaxSI; i++)
+	  bzero(Buffer,1024);
+	  sprintf(Buffer,"TimeStamp%02d.dat",i);
+	  fp = fopen(Buffer,"w");
+	  
+	  /* Store timestamp */
+	  if (fp!=0)
 	    {
+	      double prevTimeStamp;
+	      for(unsigned int j=0; j<m_MaxSI/ldepth; j++)
+		{
+		  double TimeStamp=m_StoredTimeStamp[j*ldepth+i].tv_sec + 
+		    0.000001 * m_StoredTimeStamp[j*ldepth+i].tv_usec;
+		  if (j==0)
+		    prevTimeStamp=TimeStamp;
+		  fprintf(fp,"%f %f\n",TimeStamp,TimeStamp-prevTimeStamp);
+		  prevTimeStamp=TimeStamp;
+		}
+	      fclose(fp);
 	      
-	      double TimeStamp=m_StoredTimeStamp[i].tv_sec + 0.000001 * m_StoredTimeStamp[i].tv_usec;
-	      fprintf(fp,"%f\n",TimeStamp);
 	    }
-	  fclose(fp);
-	
 	}
 
       bzero(Buffer,1024);
@@ -3124,7 +3145,8 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	    }
 
 	  fp = fopen(Buffer,"w");
-	  cout << "Save the image : " << Buffer << endl;
+	  if (i%100==0)
+	    cout << "Save the image : " << Buffer << endl;
 	  
 	  if (fp!=0)
 	    {
@@ -3149,7 +3171,6 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	}
       ODEBUG3("RecordImagesOnDisk end");
     }
-
 }
 
 CORBA::Long LowLevelVisionServer::GetSceneObject(SceneObject_out aSceneObject)

@@ -43,6 +43,7 @@
 #include <fstream>
 
 #include <sstream>
+#include <iomanip>
 
 #include <dc1394/conversions.h>
 
@@ -142,6 +143,9 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
   else if (aCamera=="WIDE")
     iCamera = 3;
 
+  // Default value.
+  lFeature.id = DC1394_FEATURE_BRIGHTNESS;
+
   if (aFeature=="BRIGHTNESS")
     lFeature.id = DC1394_FEATURE_BRIGHTNESS;
   else if (aFeature=="AUTO_EXPOSURE")
@@ -179,7 +183,7 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
 {
   dc1394feature_info_t lFeature;
   bool Is1394Feature=true;
-  unsigned int iCamera;
+  unsigned int iCamera=0;
 
   if (aCamera=="LEFT")
     iCamera = 0;
@@ -190,6 +194,10 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
   else if (aCamera=="WIDE")
     iCamera = 3;
 
+  // Default value.
+  lFeature.id = DC1394_FEATURE_BRIGHTNESS;
+
+  ODEBUG("Feature: " << aFeature);
   if (aFeature=="BRIGHTNESS")
     lFeature.id = DC1394_FEATURE_BRIGHTNESS;
   else if (aFeature=="AUTO_EXPOSURE")
@@ -236,7 +244,8 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
  
   dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue2);
   ODEBUG("Value taken from dc1394 after : " << avalue2);
-   
+  ODEBUG("-------------------------------------------------");
+
   //  StartContinuousShot();  
 }
 
@@ -1030,15 +1039,87 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
   ODEBUG("ModelRaw2RGB:" << m_ModeRaw2RGB);
 		  
 }
+
+void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameters &CamParams)
+{
+  unsigned int CamId = CamParams.GetCameraNumberInUserSemantic();
+  string iCamera, aFeature, aValue;
+  if (CamId==0 )
+    iCamera = "LEFT";
+  else if (CamId==1)
+    iCamera = "RIGHT";
+  else if (CamId==2)
+    iCamera = "CYCL";
+  else if (CamId==3)
+    iCamera = "WIDE";
+
+  ostringstream oss;
+
+
+  aFeature="BRIGHTNESS"; 
+  ODEBUG("Checking - Brightness: " << CamParams.GetBrightness());
+  oss << CamParams.GetBrightness();
+  aValue = oss.str();
+  ODEBUG("Checking 2 - Brightness: " << aValue);
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+
+  aFeature="AUTO_EXPOSURE"; 
+  oss.str("");
+  oss << CamParams.GetExposure();
+  aValue = oss.str();
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+
+  aFeature="WHITE_BALANCE"; 
+  oss.str("");
+  unsigned int WB[2];
+  CamParams.GetWhiteBalance(WB);
+  oss << WB[0];
+  aValue = oss.str();
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+
+  aFeature="GAMMA"; 
+  oss.str("");
+  oss << CamParams.GetExposure();
+  aValue = oss.str();
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+
+  aFeature="SHUTTER"; 
+  oss.str("");
+  oss << CamParams.GetShutter();
+  ODEBUG("Shutter=" <<aValue);
+  aValue = oss.str();
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+
+  aFeature="GAIN"; 
+  oss.str("");
+  oss << CamParams.GetGain();
+  ODEBUG("Checking - Gain: " << CamParams.GetGain());
+  aValue = oss.str();  
+  ODEBUG("Gain=" <<aValue);
+  SetCameraFeatureValue(iCamera,aFeature,aValue);
+  
+  
+}
+
 void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 {
+  VisionSystemProfile *aVSP = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID];
+
   ODEBUG("Begin InitializeCameras()");
   if (!m_AtLeastOneCameraPresent)
     return;
 
   for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++) 
     {
-      ODEBUG("Camera GUID:" << (*m_DC1394Cameras[i]).guid);
+      ostringstream oss;
+      
+      oss << "0x";
+      oss.flags(ios::hex | ios::fixed);
+      oss.precision(16);
+      oss.width(16);
+      oss <<setfill('0');
+      oss << (*m_DC1394Cameras[i]).guid;
+      
       dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
       dc1394framerate_t fps=DC1394_FRAMERATE_30;
       
@@ -1059,22 +1140,25 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       err=dc1394_video_set_framerate(m_DC1394Cameras[i], fps);
       DC1394_ERR(err,"Could not set framerate");
 
+      for(unsigned int VSPCamId=0;VSPCamId<aVSP->m_CameraParameters.size();VSPCamId++)
+	{
+	  ODEBUG(aVSP->m_CameraParameters[VSPCamId]->GetGUID()<< " " << oss.str());
+	  if (aVSP->m_CameraParameters[VSPCamId]->GetGUID()==oss.str())
+	    {
+	      
+	      InitializeCamera(*aVSP->m_CameraParameters[VSPCamId]);
+	    }
+	}
+
+      /*
       SetCameraFeatureValue(string("LEFT"),string("SHUTTER"),string("300"));
       SetCameraFeatureValue(string("RIGHT"),string("SHUTTER"),string("300"));
 
-      SetCameraFeatureValue(string("LEFT"),string("GAIN"),string("1000"));
-      SetCameraFeatureValue(string("RIGHT"),string("GAIN"),string("1000"));
+      SetCameraFeatureValue(string("LEFT"),string("GAIN"),string("512"));
+      SetCameraFeatureValue(string("RIGHT"),string("GAIN"),string("512"));
+      
 
-      SetCameraFeatureValue(string("LEFT"),string("BRIGHTNESS"),string("0"));
-      SetCameraFeatureValue(string("RIGHT"),string("BRIGHTNESS"),string("0"));
-
-      SetCameraFeatureValue(string("LEFT"),string("AUTO_EXPOSURE"),string("352"));
-      SetCameraFeatureValue(string("RIGHT"),string("AUTO_EXPOSURE"),string("352"));
-      
-      SetCameraFeatureValue(string("LEFT"),string("GAMMA"),string("1024"));
-      SetCameraFeatureValue(string("RIGHT"),string("GAMMA"),string("1024"));
-      
-      
+      */
       ODEBUG("NbBuffers");
       err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
       DC1394_ERR(err,"Could not setup camera-\nmake sure \
