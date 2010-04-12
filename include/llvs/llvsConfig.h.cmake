@@ -23,4 +23,13 @@
 /* Define to 1 if DC1394 v2 is installed */
 #define LLVS_HAVE_DC1394_V2 ${LLVS_HAVE_DC1394_V2}
 
+/* Define to 1 if OpenCV is installed */ 
+#define LLVS_HAVE_VISP ${LLVS_HAVE_VISP}
+
+/* Define to 1 if the model tracker of the lagadic team is installed */ 
+#define LLVS_HAVE_MBT ${LLVS_HAVE_MBT}
+
+/* Define to 1 if the new model tracker of the lagadic team is installed */ 
+#define LLVS_HAVE_NMBT ${LLVS_HAVE_NMBT}
+
 #endif /* _LLVS_CONFIG_H_IN_ */
