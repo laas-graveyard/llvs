@@ -25,20 +25,25 @@ SET(LLVS_CXX_FLAGS "-g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/
 # Specify the binary directory 
 SET(LLVS_BINARY_DIR ${LLVS_SOURCE_DIR}/server)
 
-
+# Specify the version
 SET(LLVS_VERSION_MAJOR "1")
 SET(LLVS_VERSION_MINOR "0")
 SET(LLVS_VERSION_PATCH "0")
 SET(LLVS_VERSION "${LLVS_VERSION_MAJOR}.${LLVS_VERSION_MINOR}.${LLVS_VERSION_PATCH}")
 
-SET(SEARCH_FOR_OPENCV 1)
-SET(SEARCH_FOR_VW 0)
-SET(SEARCH_FOR_SCENE 0)
-SET(SEARCH_FOR_VVV 0)
-SET(SEARCH_FOR_OMNIORB4 1)
-SET(SEARCH_FOR_MMX 0)
-SET(SEARCH_FOR_DC1394_V2 1)
+# display the defaultsearch option in ccmake menu
+OPTION(SEARCH_FOR_OPENCV "search for opencv lib." ON)
+OPTION(SEARCH_FOR_VW "search for vW lib." OFF)
+OPTION(SEARCH_FOR_SCENE "search for slam davison." OFF)
+OPTION(SEARCH_FOR_VVV "search for aist vision lib vvv." OFF)
+OPTION(SEARCH_FOR_OMNIORB4 "search for corba." ON)
+OPTION(SEARCH_FOR_MMX "search for mmx lib. " OFF)
+OPTION(SEARCH_FOR_DC1394_V2 "search for lib dc 1394 v2." ON)
+OPTION(SEARCH_FOR_VISP "search for visual servoing plateform." ON)
+OPTION(SEARCH_FOR_NMBT "search for model tracker new version." ON)
+OPTION(SEARCH_FOR_MBT "search for model tracker old version." ON)
 
+#Set defaut value for the third part libraries
 SET(LLVS_HAVE_OPENCV 0)
 SET(LLVS_HAVE_VW 0)
 SET(LLVS_HAVE_SCENE 0)
@@ -46,22 +51,27 @@ SET(LLVS_HAVE_VVV 0)
 SET(LLVS_HAVE_OMNIORB4 0)
 SET(LLVS_HAVE_MMX 0)
 SET(LLVS_HAVE_DC1394_V2 0)
+SET(LLVS_HAVE_VISP 0)
+SET(LLVS_HAVE_MBT 0)
+SET(LLVS_HAVE_NMBT 0)
 
 #-------------------
 # Important options
 #-------------------
 OPTION(BUILD_SHARED_LIBS "Build LLVS with shared libraries." ON)
 
-#--------------------------
+#--------------------
+# Init the llvs path
+#--------------------
 SET(LLVS_INCLUDE_DIR "${LLVS_BINARY_DIR}/include/llvs")
 SET(LLVS_DOC_DIR "${LLVS_BINARY_DIR}/doc")
 
 # Specify the include directory on which the code depend upon
 SET(LLVS_INTERN_INCLUDE_DIR ${LLVS_SOURCE_DIR}/include/llvs)
 
-# The location in which to install LLVS binaries
-
-# Specify the files on which the library depend upon
+#---------------------------------------------------
+# Specify the cmake path and option
+#----------------------------------------------------
 SET(CMAKE_C_INCLUDE_PATH "")
 SET(CMAKE_CXX_INCLUDE_PATH "")
 INCLUDE_DIRECTORIES(${LLVS_INTERN_INCLUDE_DIR})
@@ -72,6 +82,10 @@ SET(OS ${CMAKE_SYSTEM_NAME})
 # where are use-specific cmake modules
 SET(CMAKE_MODULE_PATH ${LLVS_SOURCE_DIR}/CMakeModules)
 
+#----------------------------------------
+#  Third part libraries
+#----------------------------------------
+
 # Detect Pkg config
 INCLUDE(FindPkgConfig)
 
@@ -79,7 +93,6 @@ INCLUDE(FindPkgConfig)
 INCLUDE(FindOpenHRP)
 
 # Detect VW config
-SET(LLVS_HAVE_VW 0)
 IF (SEARCH_FOR_VW)
   INCLUDE(FindVW)
   IF (VW_FOUND)
@@ -92,7 +105,6 @@ ENDIF(SEARCH_FOR_VW)
 
 # Detect VVV
 IF (SEARCH_FOR_VVV)
-  SET(LLVS_HAVE_VVV 0)
   INCLUDE(FindVVV)
   IF (VVV_FOUND)
      SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${VVV_CXX_FLAGS}")
@@ -104,7 +116,6 @@ ENDIF(SEARCH_FOR_VVV)
 
 # Detect OpenCV config
 IF (SEARCH_FOR_OPENCV)
-  SET(LLVS_HAVE_OPENCV 0)
   INCLUDE(FindOpenCV)
   IF (OPENCV_FOUND)
      SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${OPENCV_CXX_FLAGS}")
@@ -116,7 +127,6 @@ ENDIF(SEARCH_FOR_OPENCV)
 
 # Detect Scene
 IF (SEARCH_FOR_SCENE)
-  SET(LLVS_HAVE_SCENE 0)
   INCLUDE(FindScene)
   IF (SCENE_FOUND)
      SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${SCENE_CXX_FLAGS}")
@@ -128,7 +138,6 @@ ENDIF(SEARCH_FOR_SCENE)
 
 # Detect OmniOrb.
 IF (SEARCH_FOR_OMNIORB4)
-  SET(LLVS_HAVE_OMNIORB4 0)
   INCLUDE(${CMAKE_MODULE_PATH}/UseOmniORB4.cmake)
   IF (OMNIORB4_FOUND)
     SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${omniORB4_cflags}")
@@ -144,7 +153,6 @@ ENDIF(SEARCH_FOR_OMNIORB4)
 
 # Detect libdc1394
 IF (SEARCH_FOR_DC1394_V2)
-  SET(LLVS_HAVE_DC1394_V2 0)
   pkg_search_module(libdc1394-2 libdc1394-2 >= 2.0.2)
   IF (libdc1394-2_FOUND)  
       FOREACH(option_cxxflags ${libdc1394-2_CFLAGS})
@@ -162,6 +170,52 @@ IF (SEARCH_FOR_DC1394_V2)
      MESSAGE(STATUS "libdc1394-2 not found")
   ENDIF(libdc1394-2_FOUND)
 ENDIF(SEARCH_FOR_DC1394_V2)
+
+
+# Detect visp
+IF (SEARCH_FOR_VISP)
+  INCLUDE(FindVISP)
+  IF (VISP_FOUND)
+      LIST(APPEND LLVS_CXX_FLAGS  ${VISP_CXX_FLAGS})
+      LIST(APPEND LLVS_LINK_FLAGS ${VISP_LD_FLAGS})
+      SET(LLVS_HAVE_VISP 1)
+      #MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+  ENDIF(VISP_FOUND)
+ENDIF(SEARCH_FOR_VISP)
+
+# Detect visp
+IF (SEARCH_FOR_VISP)
+  INCLUDE(FindVISP)
+  IF (VISP_FOUND)
+      LIST(APPEND LLVS_CXX_FLAGS  ${VISP_CXX_FLAGS})
+      LIST(APPEND LLVS_LINK_FLAGS ${VISP_LD_FLAGS})
+      SET(LLVS_HAVE_VISP 1)
+      #MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+  ENDIF(VISP_FOUND)
+ENDIF(SEARCH_FOR_VISP)
+
+# Detect MBT
+IF (SEARCH_FOR_MBT)
+  INCLUDE(FindMBT)
+  IF (MBT_FOUND)
+      LIST(APPEND LLVS_CXX_FLAGS  ${LIBMBT_INCLUDE_DIR})
+      LIST(APPEND LLVS_LINK_FLAGS ${LIBMBT_LIBRARIES})
+      SET(LLVS_HAVE_MBT 1)
+      #MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+  ENDIF(MBT_FOUND)
+ENDIF(SEARCH_FOR_MBT)
+
+# Detect NMBT
+IF (SEARCH_FOR_NMBT)
+  INCLUDE(FindNMBT)
+  IF (NMBT_FOUND)
+      LIST(APPEND LLVS_CXX_FLAGS  ${LIBNMBT_INCLUDE_DIR})
+      LIST(APPEND LLVS_LINK_FLAGS ${LIBNMBT_LIBRARIES})
+      SET(LLVS_HAVE_NMBT 1)
+      #MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+  ENDIF(NMBT_FOUND)
+ENDIF(SEARCH_FOR_NMBT)
+
 
 SET(LLVS_SRC_FILES "")
 SET(LLVS_HEADERS_FILES "")   

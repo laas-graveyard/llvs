@@ -1,0 +1,37 @@
+# detection of the Libpng headers location
+  FIND_PATH(LIBMBT_INCLUDE_PATH 
+    NAMES mbtRobustTracking.h
+    PATHS $ENV{ROBOTPKG_BASE}/include/mbt
+    )
+  #MESSAGE("LIBPNG_HEADER=${LIBPNG_INCLUDE_PATH}")
+
+  # Detection of the Libpng library on Unix
+ FIND_LIBRARY(LIBMBT_LIBRARY 
+    NAMES   libmbt.a
+    PATHS   $ENV{ROBOTPKG_BASE}/lib
+    )
+  #MESSAGE("LIBMBT_LIBRARY=${LIBMBT_LIBRARY}")
+
+  MARK_AS_ADVANCED(
+    LIBMBT_LIBRARY
+    LIBMBT_INCLUDE_PATH
+  )
+  
+  # Load the configuration file
+  FIND_PATH(MBT_DIR 
+    NAMES MBTConfig.cmake
+    PATHS $ENV{ROBOTPKG_BASE}/lib
+    )
+  #MESSAGE("MBT_DIR : ${MBT_DIR}")
+  include(${MBT_DIR}/MBTConfig.cmake)
+
+
+## --------------------------------
+  
+IF(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
+  SET(LIBMBT_INCLUDE_DIR ${LIBMBT_INCLUDE_PATH})
+  SET(LIBMBT_LIBRARIES  ${LIBMBT_LIBRARY})
+  SET(LIBMBT_FOUND TRUE)
+ELSE(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
+  SET(LIBMBT_FOUND FALSE)
+ENDIF(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
