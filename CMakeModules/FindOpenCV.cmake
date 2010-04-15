@@ -23,6 +23,7 @@ ELSE(NOT UNIX)
   
   FIND_PATH(OPENCV_HOME NAMES include/opencv/cv.h
     PATHS /usr/local/
+    $ENV{ROBOTPKG_BASE}
     $ENV{HOME}/src )
     		
   # MESSAGE(STATUS "VW: ${VW_HOME}")    
