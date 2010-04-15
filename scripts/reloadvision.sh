@@ -1,5 +1,4 @@
-#!bash 
-
+#!/bin/bash 
 ./unloadvision.sh
 ./loadvision.sh
 
