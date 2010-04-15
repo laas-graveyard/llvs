@@ -130,7 +130,7 @@ namespace llvs
 			   string filename, 
 			   CORBA::ORB_var orb, 
 			   int Verbosity,
-			   string lCalibdir);
+			   string lCalibdir) throw(const char*);
 
       /* Destructor */
       virtual ~LowLevelVisionServer();

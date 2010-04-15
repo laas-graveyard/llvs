@@ -19,7 +19,6 @@
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
-
 #if 0
 #define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
 #else
@@ -295,7 +294,16 @@ int main(int argc, char * argv[])
       poa = PortableServer::POA::_narrow(obj);
       
       ODEBUG("Flag 1.5");
-      aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
+      try
+			{
+				aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
+			}
+			catch( const char* msg )
+			{
+				std::cerr << "Exception caught:" << msg << std::endl;
+				std::cerr << "Stopping now..." << std::endl;
+				exit(-1);
+			}
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
       GlobalVisionServerID = poa->activate_object(aVS);
