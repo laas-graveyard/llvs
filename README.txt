@@ -68,4 +68,11 @@ LowLevelVisionServer:Finished
 
 Then ^C will start the Server.
 
+-----------------------------------------------------
+PB: I can't push even if I am part of the vision group
+
+on jrlserver
+> find myGitFolder -type d |xargs chmod g+s
+
+
 
