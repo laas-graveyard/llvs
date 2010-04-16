@@ -106,7 +106,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 					   string afilename, 
 					   CORBA::ORB_var orb, 
 					   int Verbosity=0,
-					   string lCalibDir="")
+					   string lCalibDir="") throw(const char*)
 {
   m_Computing = 0;
   m_Verbosity = Verbosity;
@@ -224,16 +224,12 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   if (!m_ImagesInputMethod)
     {
-      cerr << "No vision system detected or simulation method set on" << endl;
-      cerr << "Stopping now..." << endl;
-      return;
+      throw("No vision system detected or simulation method set on");
     }
 
   if (!m_ImagesInputMethod->CameraPresent())
     {
-      cerr << "No camera detected or simulation method set on" << endl;
-      cerr << "Stopping now..." << endl;
-      return;
+      throw("No camera detected or simulation method set on");
     }
 
   /* Resize all the associated vectors */
