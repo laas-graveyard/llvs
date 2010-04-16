@@ -259,3 +259,12 @@ SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS
   "${LLVS_server_LINK_FLAGS} ${LLVS_LINK_FLAGS}  -L. -lllvs-0 ")
 
 ADD_DEPENDENCIES(LLVS_server ${LLVS_INTERN_LIBS})
+
+#--------------------------------------------------
+# Install
+#------------------------------------------------
+install(TARGETS LLVS_server DESTINATION bin)
+install(TARGETS ${LLVS_INTERN_LIBS} DESTINATION lib)
+install(FILES ${LLVS_HEADER_FILES} DESTINATION include)
+
+
