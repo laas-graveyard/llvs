@@ -34,18 +34,24 @@ And if you want to install your lib
 -------------------------------------------------------------------
 HOW TO RUN ?
 
-Basically this server detects the camera that are connected to your system. Then it matches the current detected camera with some previously defined vision profiles. Before to start, you need to copy the vision profiles in the same folder as the executables. Existing profiles are stored in LLVS/server/VisionProfiles.
+
+
+Basically this server detects the camera that are connected to your system. Then it matches the current detected camera with some previously defined vision profiles. 
+
+Before to start, you need to copy the vision profiles in the same folder as the executables. Existing profiles are stored in LLVS/server/VisionProfiles.
 
 Go to the build folder then
 > cp ../server/VisionProfiles/* .
-> cp ../scripts/run.sh
+> cp ../scripts/run.sh .
 
-Set up the varibles in the run.sh if needed.
+First launch the nameserver 
+> omniNames -start
+
+Set up the variables in the run.sh if needed.
 Then run the script.
 
 
 You will read : 
-
 SWidth 640  SHeight 480
 libdc1394 error: Invalid feature: in dc1394_feature_get_value (control.c, line 1230): You should use the specific functions to read from multiple-value features
 libdc1394 error: Invalid feature: in dc1394_feature_set_value (control.c, line 1256): You should use the specific functions to write from multiple-value features
