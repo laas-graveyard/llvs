@@ -63,10 +63,17 @@ IF (VVV_FOUND)
 ENDIF (VVV_FOUND)
 
 
-IF (FindOpenCV)
+IF (OPENCV_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
-	./OpenCV/MireDetectionProcess.cpp )
-ENDIF (FindOpenCV)
+	./OpenCV/StereoVisionProcess.cpp
+	./OpenCV/MireDetectionProcess.cpp
+  )
+  SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+  ./OpenCV/StereoVisionProcess.h 
+	./OpenCV/MireDetectionProcess.h 
+	)
+
+ENDIF (OPENCV_FOUND)
 
 IF (VW_FOUND)
   IF (FindScene)
