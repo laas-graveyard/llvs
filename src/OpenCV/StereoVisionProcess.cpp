@@ -54,13 +54,14 @@
 #define ODEBUG_CONT(x) 
 #endif
 
+#ifdef __OPENCV__
+
 HRP2StereoVisionProcess::HRP2StereoVisionProcess()
 {
   m_ProcessName = "Stereo Vision";
 
   m_parameters.clear();
 
-#ifdef LLVS_HAVE_OPENCV
   m_cameraParamLoaded = m_imgSizeKnown = false;
   m_imgRectified = m_inputImagesLoaded = false;
   m_rangeMapComputed = false;
@@ -72,7 +73,6 @@ HRP2StereoVisionProcess::HRP2StereoVisionProcess()
   m_stereoGCstate = NULL;
 
   setStereoAlgorithmType( STEREO_SGBM );
-#endif	
 }
 
 
@@ -82,12 +82,9 @@ HRP2StereoVisionProcess::~HRP2StereoVisionProcess()
   
   m_parameters.clear();
 
-#ifdef LLVS_HAVE_OPENCV
   if( m_stereoBM != NULL ) delete m_stereoBM;
   if( m_stereoSGBM != NULL ) delete m_stereoSGBM;
   if( m_stereoGCstate != NULL ) cvReleaseStereoGCState( &m_stereoGCstate );
-
-#endif	
 }
 
 
@@ -107,8 +104,6 @@ int HRP2StereoVisionProcess::RealizeTheProcess()
   return 0;
 }
 
-
-#ifdef LLVS_HAVE_OPENCV
 
 int HRP2StereoVisionProcess::setAlgoParameters( std::vector<int> parameters )
 {
@@ -231,7 +226,7 @@ int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename
   initUndistortRectifyMap( M1, D1, R1, P1, m_imgSize, CV_16SC2, m_rectifyMap[0][0], m_rectifyMap[0][1] );
   initUndistortRectifyMap( M2, D2, R2, P2, m_imgSize, CV_16SC2, m_rectifyMap[1][0], m_rectifyMap[1][1] );
   
-  if( stereoAlgo==STEREO_BM && m_stereoBM!=NULL ) {
+  if( m_StereoAlgo==STEREO_BM && m_stereoBM!=NULL ) {
     m_stereoBM->state->roi1 = roi1;
     m_stereoBM->state->roi2 = roi2;
   }
@@ -258,7 +253,7 @@ int HRP2StereoVisionProcess::stereoRectifyImages()
   return 0;
 }
 
-void HRP2StereoVisionProcess::SetInputImages( const Mat& InputImages[3], bool rectified )
+void HRP2StereoVisionProcess::SetInputImages( Mat InputImages[3], bool rectified )
 {
   FreeImages();
 
@@ -299,14 +294,14 @@ int HRP2StereoVisionProcess::ComputeRangeMap()
     case STEREO_BM:
     {
       if( m_stereoBM==NULL ) return -3;
-      m_stereoBM( m_InputImages[0], m_InputImages[1], m_OutputImage );
+      (*m_stereoBM)( m_InputImages[0], m_InputImages[1], m_OutputImage );
     }
       break;
     case STEREO_SGBM:
     case STEREO_HH:
     {
       if( m_stereoSGBM==NULL ) return -3;
-      m_stereoSGBM( m_InputImages[0], m_InputImages[1], m_OutputImage );
+      (*m_stereoSGBM)( m_InputImages[0], m_InputImages[1], m_OutputImage );
     }
       break;
 
@@ -337,75 +332,9 @@ int HRP2StereoVisionProcess::ComputeRangeMap()
   return 0;
 }
 
-
-#else
-
-// TODO: implement the functions when the image type is decided..
-
-int HRP2StereoVisionProcess::setAlgoParameters( std::vector<int> parameters )
-{
-  // TODO..
-  switch( m_StereoAlgo ) {
-    case STEREO_BM:
-	  break;
-			
-	case STEREO_SGBM:
-	  break;
-			
-	case STEREO_HH:
-	  break;		
-
-	case STEREO_GC:
-	  break;		
-
-	default:
-	  break;
-  }
-	
-  return 0;
-}
-
-int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
-{
-  // TODO ...
-  m_StereoAlgo = stereoAlgo;
-  return 0;
-}
-
-
-void HRP2StereoVisionProcess::FreeImages()
-{
-  for ( int i=0; i<3; ++i ) {
-	  //m_InputImages[i].release();
-	  //m_OutputImages[i].release();
-  }
-}
-
-void HRP2StereoVisionProcess::SetInputImages( void* InputImages[3], bool rectified )
-{
-  FreeImages();
-
-  for( int i=0; i<3; ++i ) {
-    //m_InputImages[i] = InputImages[i].clone();
-  }
-
-}
-
-void HRP2StereoVisionProcess::SetOutputImage( void* OutputImage )
-{
-  //m_OutputImages = OutputImages.clone();
-}
-
-int HRP2StereoVisionProcess::ComputeRangeMap()
-{
-  return 0;
-}
-#endif
-
-
 int HRP2StereoVisionProcess::CleanUpTheProcess()
 {
   return 0;
 }
 
-
+#endif

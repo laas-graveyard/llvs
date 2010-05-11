@@ -39,12 +39,12 @@
 #ifndef _HRP2_STEREO_VISION_PROCESS_H_
 #define _HRP2_STEREO_VISION_PROCESS_H_
 
-#ifdef LLVS_HAVE_OPENCV
+#include <vector>
+
+#ifdef __OPENCV__
+
 #include <cv.h>
 using namespace cv;
-#endif 
-
-#include <vector>
 
 #include "VisionBasicProcess.h"
 /*! HRP2VisionBasicProcess is used to derive all the vision process
@@ -90,7 +90,6 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   /* Use the rectified input images to generate a range map */
   int ComputeRangeMap();
 
-#ifdef LLVS_HAVE_OPENCV
   /* Set the input image sizes: width and height.
    * These sizes must be known before calling loadCameraParameters */
   void setImageSize( int w, int h );
@@ -107,21 +106,11 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   /* Set the input images: left, right, up 
    * If the images hve not been rectified before, stereoRectifyImages() is called
    * and thus the functions setImageSize and loadCameraParameters should have been before! */
-  void SetInputImages( const Mat& InputImages[3], bool rectified=false );
+  void SetInputImages( Mat InputImages[3], bool rectified=false );
   
   /* Set the output image: copy the obtained range map to the given image */
   int SetOutputImage( Mat& OutputImage );
   
-#else
-	// TODO: check what kind of images to use when OpenCV is not used?
-	// 		 For now, it is set to (void *)
-	
-  /* Set the input images: left, right, up */
-  void SetInputImages( void *InputImages[3], bool rectified=false );
-  
-  /* Set the output image: copy the obtained range map to the given image */
-  void SetOutputImage( void *OutputImage );
-#endif
 
   /* Free the images for internal purposes */
   void FreeImages();
@@ -146,7 +135,6 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
    */
   std::vector<int> m_parameters;
   
-#ifdef LLVS_HAVE_OPENCV
 
   Mat m_InputImages[3];
   Mat m_OutputImage;
@@ -163,15 +151,8 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   StereoBM *m_stereoBM;
   StereoSGBM *m_stereoSGBM;
   CvStereoGCState *m_stereoGCstate;
-
-#else
-
-	// TODO: check what kind of images to use when OpenCV is not used?
-	// 		 For now, it is set to (void *)
-  void* m_InputImages[3];
-  void* m_OutputImage;
-#endif
-
 };
+
+#endif /* __OPENCV__ */
 
 #endif /* _HRP2_STEREO_VISION_PROCESS_H_ */
