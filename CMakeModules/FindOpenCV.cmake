@@ -3,7 +3,7 @@
 # Copyright JRL, CNRS/AIST, 2008
 # 
 # Description:
-# Try to find VW
+# Try to find OpenCV
 # capabilities.
 # Once run this will define: 
 #

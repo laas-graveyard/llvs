@@ -1,5 +1,5 @@
 /** @doc This object implements a visual process
-    detecting a mire.
+    to compute a disparity map from 2 camera images.
     
     CVS Information:
    $Id$
@@ -39,12 +39,12 @@
 #ifndef _HRP2_STEREO_VISION_PROCESS_H_
 #define _HRP2_STEREO_VISION_PROCESS_H_
 
-#ifdef LLVS_HAVE_OPENCV
+#include <vector>
+
+#ifdef __OPENCV__
+
 #include <cv.h>
 using namespace cv;
-#endif 
-
-#include <vector>
 
 #include "VisionBasicProcess.h"
 /*! HRP2VisionBasicProcess is used to derive all the vision process
@@ -52,7 +52,7 @@ using namespace cv;
  */
 
 /* Lists the different stereo algorithm available */
-enum StereoAlgoType { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2 };
+enum StereoAlgoType { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_GC=3 };
 
 
 class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
@@ -84,28 +84,33 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   
   /* Set the parameters for the used stereo vision algorithm
      The meaning of the values depends on the algorithm used
-	 and the order of the values is important!  */
+	 and the order of the values is thus important!  */
   int setAlgoParameters( std::vector<int> parameters );
 
-  /* Use the given input images to generate a range map */
+  /* Use the rectified input images to generate a range map */
   int ComputeRangeMap();
 
-#ifdef LLVS_HAVE_OPENCV
-  /* Set the input images: left, right, up */
-  void SetInputImages( const Mat& InputImages[3] );
+  /* Set the input image sizes: width and height.
+   * These sizes must be known before calling loadCameraParameters */
+  void setImageSize( int w, int h );
+
+  /* Load intrinsic and extrinsic parameters from given files.
+   * The function initializes the m_rectifyMap matrices which are to be used
+   * in stereoRectifyImages function. */
+  int loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename[2] );
+
+  /* Process the input images using the m_rectifyMap matrices.
+   * Input images are replaced by the rectified version. */
+  int stereoRectifyImages( );
+  
+  /* Set the input images: left, right, up 
+   * If the images hve not been rectified before, stereoRectifyImages() is called
+   * and thus the functions setImageSize and loadCameraParameters should have been before! */
+  void SetInputImages( Mat InputImages[3], bool rectified=false );
   
   /* Set the output image: copy the obtained range map to the given image */
-  void SetOutputImage( Mat& OutputImage );
-#else
-	// TODO: check what kind of images to use when OpenCV is not used?
-	// 		 For now, it is set to (void *)
-	
-  /* Set the input images: left, right, up */
-  void SetInputImages( void *InputImages[3] );
+  int SetOutputImage( Mat& OutputImage );
   
-  /* Set the output image: copy the obtained range map to the given image */
-  void SetOutputImage( void *OutputImage );
-#endif
 
   /* Free the images for internal purposes */
   void FreeImages();
@@ -114,22 +119,40 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
  protected:
 
   StereoAlgoType m_StereoAlgo;
+
+  /* the set of parameters for the stereo algorithms
+   * the meaning of each value depends on the algorithm active:
+   *  - STEREO_BM:
+   *  preFilterCap, SADWindowSize, numberOfDisparities, uniquenessRatio, 
+   *  speckleWindowSize, speckleRange, disp12MaxDiff, textureThreshold
+   * 
+   *  - STEREO_SGBM and STEREO_HH:
+   *  preFilterCap, SADWindowSize, numberOfDisparities, uniquenessRatio, 
+   *  speckleWindowSize, speckleRange, disp12MaxDiff
+   * 
+   *  - STEREO_GC:
+   *  numberOfDisparities, maxIters
+   */
+  std::vector<int> m_parameters;
   
-#ifdef LLVS_HAVE_OPENCV
 
   Mat m_InputImages[3];
   Mat m_OutputImage;
+
+  Size m_imgSize;
+  Mat m_rectifyMap[3][2];
+  
+  bool m_imgSizeKnown;
+  bool m_inputImagesLoaded;
+  bool m_cameraParamLoaded;
+  bool m_imgRectified;
+  bool m_rangeMapComputed;
 	
   StereoBM *m_stereoBM;
   StereoSGBM *m_stereoSGBM;
-#else
-
-	// TODO: check what kind of images to use when OpenCV is not used?
-	// 		 For now, it is set to (void *)
-  void* m_InputImages[3];
-  void* m_OutputImage;
-#endif
-
+  CvStereoGCState *m_stereoGCstate;
 };
+
+#endif /* __OPENCV__ */
 
 #endif /* _HRP2_STEREO_VISION_PROCESS_H_ */

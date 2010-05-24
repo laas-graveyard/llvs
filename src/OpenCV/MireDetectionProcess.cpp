@@ -36,7 +36,7 @@
    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <MireDetectionProcess.h>
+#include "OpenCV/MireDetectionProcess.h"
 #include <iostream>
 #include <fstream>
 #include <math.h>
@@ -53,14 +53,12 @@
 #define ODEBUG_CONT(x) 
 #endif
 
+#ifdef __OPENCV__
+
 HRP2MireDetectionProcess::HRP2MireDetectionProcess()
 {
   m_ProcessName = "Mire Detection";
 
-  m_img = 0;
-  m_imd = 0;
-  m_ImgTempG = 0;
-  m_ImgTempD = 0;
   m_Corners[0] = 0;
   m_Corners[1] = 0;
 
@@ -70,24 +68,15 @@ HRP2MireDetectionProcess::HRP2MireDetectionProcess()
 
 HRP2MireDetectionProcess::~HRP2MireDetectionProcess()
 { 
-  FreeImages();  
-  
-  for(int i=0;i<2;i++)
-    if (m_Corners[i]!=0)
-      delete m_Corners[i];
+  if( m_Corners[0]!=0 ) delete m_Corners[0];
+  if( m_Corners[1]!=0 ) delete m_Corners[1];
 }
 
 void HRP2MireDetectionProcess::SetChessBoardSize(int NbCols, int NbRows)
 {
-  if (m_Corners[0]!=0)
-    delete m_Corners[0];
-  if (m_Corners[1]!=0)
-    delete m_Corners[1];
-
   m_ChessBoardSize[0] = NbCols;
   m_ChessBoardSize[1] = NbRows;
   
-
   ODEBUG3( NbCols << " " << NbRows);
   for(int i=0;i<2;i++)
     m_Corners[i] = new CvPoint2D32f[NbRows*NbCols];
@@ -105,21 +94,17 @@ int HRP2MireDetectionProcess::RealizeTheProcess()
   if (!m_Computing)
     return 0;
   
-
   int nb_corners;
-  int i,j;
-  for(j=0;j<m_InputImages[0].Width*m_InputImages[0].Height;j++)
-    m_img->imageData[j] = ((unsigned char *)m_InputImages[0].Image)[j];
-
-  for(j=0;j<m_InputImages[1].Width*m_InputImages[1].Height;j++)
-    m_imd->imageData[j] = ((unsigned char *)m_InputImages[1].Image)[j];
+  
+  m_img = m_InputImages[0];
+  m_imd = m_InputImages[1];
   
   nb_corners = DetectMireStereo();
   
   ODEBUG3(nb_corners);
   if (m_Verbosity>3)
     {
-      for(i=0;i<nb_corners;i++)
+      for( int i=0;i<nb_corners;i++)
 	{
 	  cerr << m_Corners[0][i].x << " " << m_Corners[0][i].y << " " 
 	       << m_Corners[1][i].x << " " << m_Corners[1][i].y << " " << endl;
@@ -129,73 +114,32 @@ int HRP2MireDetectionProcess::RealizeTheProcess()
   return 0;
 }
 
-void HRP2MireDetectionProcess::FreeImages()
+void HRP2MireDetectionProcess::SetInputImages( Mat InputImages[3] )
 {
-  if (m_img!=0)
-    {
-      cvReleaseImage(&m_img);
-      m_img = 0;
-    }
-  
-  if (m_imd!=0)
-    {
-      cvReleaseImage(&m_imd);
-      m_imd=0;
-    }
+  m_InputImages[0] = InputImages[0].clone();
+  m_InputImages[1] = InputImages[1].clone();
+  m_InputImages[2] = InputImages[2].clone();
 
-  if (m_ImgTempG!=0)
-    {
-      cvReleaseImage(&m_ImgTempG);
-      m_ImgTempG = 0;
-    }
+  m_img = Mat( m_InputImages[0].size(), CV_8UC1 );
+  m_ImgTempG = Mat( m_InputImages[0].size(), CV_8UC1 );
 
-  if (m_ImgTempD!=0)
-    {
-      cvReleaseImage(&m_ImgTempD);
-      m_ImgTempD = 0;
-    }
-
+  m_imd = Mat( m_InputImages[1].size(), CV_8UC1 );
+  m_ImgTempD = Mat( m_InputImages[1].size(), CV_8UC1 );
 }
 
-void HRP2MireDetectionProcess::SetInputImages(EPBM InputImages[3])
+void HRP2MireDetectionProcess::SetOutputImages( Mat OutputImages[3] )
 {
-  int i;
-  
-  FreeImages();
-
-  for(i=0;i<3;i++)
-    m_InputImages[i] = InputImages[i];
-
-  CvSize sim; 
-  
-  sim.width = m_InputImages[0].Width; 
-  sim.height = m_InputImages[0].Height;
-
-  m_img = cvCreateImage(sim,8,1);
-  m_ImgTempG = cvCreateImage(sim,8,1);
-
-
-  sim.width = m_InputImages[1].Width; 
-  sim.height = m_InputImages[1].Height;
-
-  m_imd = cvCreateImage(sim,8,1);
-  m_ImgTempD = cvCreateImage(sim,8,1);
-	
-
-}
-
-void HRP2MireDetectionProcess::SetOutputImages(EPBM OutputImages[3])
-{
-  int i;
-  
-  for(i=0;i<3;i++)
-    m_OutputImages[i] = OutputImages[i];
+  m_OutputImages[0] = OutputImages[0].clone();
+  m_OutputImages[1] = OutputImages[1].clone();
+  m_OutputImages[2] = OutputImages[2].clone();
 }
 
 int HRP2MireDetectionProcess::DetectMireStereo()
 {
   // From Benoit Telle's fonctions.cpp
-  CvSize sim; sim.width = m_img->width; sim.height = m_img->height;
+  CvSize sim;
+  sim.width = m_img.cols;
+  sim.height = m_img.rows;
     
   // detection grossiere
   CvSize sizeChess;
@@ -206,9 +150,13 @@ int HRP2MireDetectionProcess::DetectMireStereo()
   int nb_cornerg = nb_points;
   int nb_cornerd = nb_points;
 
-
-  cvFindChessBoardCornerGuesses(m_img,m_ImgTempG,0,sizeChess,m_Corners[0],&nb_cornerg);
-  cvFindChessBoardCornerGuesses(m_imd,m_ImgTempD,0,sizeChess,m_Corners[1],&nb_cornerd);
+  IplImage t_img = m_img;
+  IplImage t_imd = m_imd;
+  IplImage t_imtg = m_ImgTempG;
+  IplImage t_imtd = m_ImgTempD;
+  
+  cvFindChessBoardCornerGuesses( &t_img, &t_imtg, 0, sizeChess, m_Corners[0], &nb_cornerg );
+  cvFindChessBoardCornerGuesses( &t_imd, &t_imtd, 0, sizeChess, m_Corners[1], &nb_cornerd );
 
 
   // subpixel precision
@@ -228,11 +176,10 @@ int HRP2MireDetectionProcess::DetectMireStereo()
   int nb_corner = 0;
   
   if (nb_cornerg==nb_points)
-    cvFindCornerSubPix( m_img, m_Corners[0], nb_cornerg,win, 
-			zeroZone, SubPixelCritere );
+    cvFindCornerSubPix( &t_img, m_Corners[0], nb_cornerg, win, zeroZone, SubPixelCritere );
+  
   if (nb_cornerd==nb_points)
-    cvFindCornerSubPix( m_imd, m_Corners[1], nb_cornerd,win, 
-			zeroZone, SubPixelCritere );
+    cvFindCornerSubPix( &t_imd, m_Corners[1], nb_cornerd,win, zeroZone, SubPixelCritere );
   
   if(nb_cornerg==nb_points && nb_cornerd==nb_points)
     nb_corner = nb_points;
@@ -248,4 +195,4 @@ int HRP2MireDetectionProcess::CleanUpTheProcess()
   return 0;
 }
 
-
+#endif

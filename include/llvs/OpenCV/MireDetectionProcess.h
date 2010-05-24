@@ -39,18 +39,9 @@
 #ifndef _HRP2_MIRE_DETECTION_PROCESS_H_
 #define _HRP2_MIRE_DETECTION_PROCESS_H_
 
-
-#include <string>
-#include <vector>
-
 #ifdef __OPENCV__
 #include <cv.h>
-extern "C" 
-{
-#include "epbm.h"
-}
-#endif 
-using namespace::std;
+using namespace cv;
 
 #include "VisionBasicProcess.h"
 /*! This object is used to derive all the vision process
@@ -81,10 +72,10 @@ class HRP2MireDetectionProcess : public HRP2VisionBasicProcess
   int DetectMireStereo();
 
   /* Set the input images */
-  void SetInputImages(EPBM InputImages[3]);
+  void SetInputImages( Mat InputImages[3]);
   
   /* Set the output images */
-  void SetOutputImages(EPBM OutputImages[3]);
+  void SetOutputImages( Mat OutputImages[3]);
 
   /* Free the images for internal purposes */
   void FreeImages();
@@ -95,25 +86,24 @@ class HRP2MireDetectionProcess : public HRP2VisionBasicProcess
  protected:
 
   /* Gray level images */
-  IplImage * m_img, * m_imd;
+  Mat m_img, m_imd;
 
   /* Temporary images */
-  IplImage * m_ImgTempG, *m_ImgTempD;
+  Mat m_ImgTempG, m_ImgTempD;
 
   /* The input images */
-  EPBM m_InputImages[3];
-
+  Mat m_InputImages[3];
 
   /* The output images */
-  EPBM m_OutputImages[3];
+  Mat m_OutputImages[3];
 
   /* Size of the chessboard */
   int m_ChessBoardSize[2];
 
   /* Two sets of corners. */
   CvPoint2D32f * m_Corners[2];
-  
 
 };
+#endif /* __OPENCV__ */
 
 #endif /* _HRP2_MIRE_DETECTION_PROCESS_H_ */
