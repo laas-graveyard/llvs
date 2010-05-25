@@ -54,7 +54,7 @@
 #define ODEBUG_CONT(x) 
 #endif
 
-#ifdef __OPENCV__
+#if LLVS_HAVE_OPENCV
 
 HRP2StereoVisionProcess::HRP2StereoVisionProcess()
 {
@@ -118,6 +118,7 @@ int HRP2StereoVisionProcess::setAlgoParameters( std::vector<int> parameters )
   return 0;
 }
 
+
 int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
 {
   switch( stereoAlgo ) {
@@ -180,6 +181,7 @@ int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
   return 0;
 }
 
+
 void HRP2StereoVisionProcess::FreeImages()
 {
   for ( int i=0; i<3; ++i ) {
@@ -192,11 +194,13 @@ void HRP2StereoVisionProcess::FreeImages()
   m_rangeMapComputed = false;  
 }
 
+
 void HRP2StereoVisionProcess::setImageSize( int w, int h )
 {
   m_imgSize = Size( w, h );
   m_imgSizeKnown = true;
 }
+
 
 int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename[2] )
 {
@@ -236,6 +240,7 @@ int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename
   return 0;
 }
 
+
 int HRP2StereoVisionProcess::stereoRectifyImages()
 {
   if( !m_cameraParamLoaded ) return -1;
@@ -252,6 +257,7 @@ int HRP2StereoVisionProcess::stereoRectifyImages()
   
   return 0;
 }
+
 
 void HRP2StereoVisionProcess::SetInputImages( Mat InputImages[3], bool rectified )
 {
@@ -273,6 +279,7 @@ void HRP2StereoVisionProcess::SetInputImages( Mat InputImages[3], bool rectified
   m_inputImagesLoaded = true;
 }
 
+
 int HRP2StereoVisionProcess::SetOutputImage( Mat& OutputImage )
 {
   if( !m_rangeMapComputed ) return -1;
@@ -281,6 +288,7 @@ int HRP2StereoVisionProcess::SetOutputImage( Mat& OutputImage )
 
   return 0;
 }
+
 
 int HRP2StereoVisionProcess::ComputeRangeMap()
 {
@@ -332,9 +340,10 @@ int HRP2StereoVisionProcess::ComputeRangeMap()
   return 0;
 }
 
+
 int HRP2StereoVisionProcess::CleanUpTheProcess()
 {
   return 0;
 }
 
-#endif
+#endif    /* LLVS_HAVE_OPENCV */

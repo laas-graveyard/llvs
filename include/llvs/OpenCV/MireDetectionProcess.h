@@ -39,14 +39,16 @@
 #ifndef _HRP2_MIRE_DETECTION_PROCESS_H_
 #define _HRP2_MIRE_DETECTION_PROCESS_H_
 
-#ifdef __OPENCV__
-#include <cv.h>
-using namespace cv;
-
 #include "VisionBasicProcess.h"
 /*! This object is used to derive all the vision process
  * at least for the LowLevelVisionServer.
  */
+
+#if LLVS_HAVE_OPENCV
+
+using namespace cv;
+
+
 class HRP2MireDetectionProcess : public HRP2VisionBasicProcess
 {
 
@@ -104,6 +106,6 @@ class HRP2MireDetectionProcess : public HRP2VisionBasicProcess
   CvPoint2D32f * m_Corners[2];
 
 };
-#endif /* __OPENCV__ */
+#endif /* LLVS_HAVE_OPENCV */
 
 #endif /* _HRP2_MIRE_DETECTION_PROCESS_H_ */

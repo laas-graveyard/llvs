@@ -50,6 +50,8 @@
 #include <string>
 #include <vector>
 
+#include "llvsConfig.h"
+
 #if (LLVS_HAVE_OPENCV>0)
 #include <cv.h>
 #endif /* LLVS_HAVE_OPENCV */
