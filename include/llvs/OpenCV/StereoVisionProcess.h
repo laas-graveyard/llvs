@@ -50,7 +50,7 @@
 
 using namespace cv;
 
-/* Lists the different stereo algorithm available */
+/* Lists the different stereo algorithm available. These are available in OpenCV 2.1 */
 enum StereoAlgoType { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_GC=3 };
 
 
@@ -86,29 +86,32 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
 	 and the order of the values is thus important!  */
   int setAlgoParameters( std::vector<int> parameters );
 
-  /* Use the rectified input images to generate a range map */
-  int ComputeRangeMap();
-
   /* Set the input image sizes: width and height.
    * These sizes must be known before calling loadCameraParameters */
   void setImageSize( int w, int h );
 
   /* Load intrinsic and extrinsic parameters from given files.
    * The function initializes the m_rectifyMap matrices which are to be used
-   * in stereoRectifyImages function. */
-  int loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename[2] );
+   * in stereoRectifyImages function, and the m_Q matrix used in Get3DPoints(). */
+  int loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename );
+
+  /* Set the input images: left, right */
+  int SetInputImages( Mat InputImages[2], bool rectified=false );
 
   /* Process the input images using the m_rectifyMap matrices.
-   * Input images are replaced by the rectified version. */
+   * Input images are replaced by the rectified version.
+   * Requires that loadCameraParameters() and SetInputImages() have been executed before! */
   int stereoRectifyImages( );
+
+  /* Use the rectified input images to generate a range map */
+  int ComputeRangeMap();
   
-  /* Set the input images: left, right, up 
-   * If the images hve not been rectified before, stereoRectifyImages() is called
-   * and thus the functions setImageSize and loadCameraParameters should have been before! */
-  void SetInputImages( Mat InputImages[3], bool rectified=false );
+  /* Get the output image: copy the obtained range map to the given image */
+  int GetOutputImage( Mat& OutputImage );
   
-  /* Set the output image: copy the obtained range map to the given image */
-  int SetOutputImage( Mat& OutputImage );
+  /* Get the point of 3D points computed using the disparity map.
+   * ComputeRangeMap() should have been succesfully executed before */
+  int Get3DPoints( Mat &xyz );
   
 
   /* Free the images for internal purposes */
@@ -120,26 +123,28 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   StereoAlgoType m_StereoAlgo;
 
   /* the set of parameters for the stereo algorithms
-   * the meaning of each value depends on the algorithm active:
+   * the meaning of each value depends on the algorithm active: default values in ()
    *  - STEREO_BM:
-   *  preFilterCap, SADWindowSize, numberOfDisparities, uniquenessRatio, 
-   *  speckleWindowSize, speckleRange, disp12MaxDiff, textureThreshold
+   *  preFilterCap (31), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (15), 
+   *  speckleWindowSize (100), speckleRange (32), disp12MaxDiff (1), textureThreshold (10)
    * 
    *  - STEREO_SGBM and STEREO_HH:
-   *  preFilterCap, SADWindowSize, numberOfDisparities, uniquenessRatio, 
-   *  speckleWindowSize, speckleRange, disp12MaxDiff
+   *  preFilterCap (63), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (10), 
+   *  speckleWindowSize (100), speckleRange (32), disp12MaxDiff (1)
    * 
    *  - STEREO_GC:
-   *  numberOfDisparities, maxIters
+   *  numberOfDisparities (256), maxIters (2)
    */
   std::vector<int> m_parameters;
   
 
-  Mat m_InputImages[3];
+  Mat m_InputImages[2];
   Mat m_OutputImage;
+  
+  Mat m_Q;
 
   Size m_imgSize;
-  Mat m_rectifyMap[3][2];
+  Mat m_rectifyMap[2][2];
   
   bool m_imgSizeKnown;
   bool m_inputImagesLoaded;

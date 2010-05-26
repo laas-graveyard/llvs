@@ -81,6 +81,8 @@ HRP2StereoVisionProcess::~HRP2StereoVisionProcess()
   FreeImages();
   
   m_parameters.clear();
+  
+  m_Q.release();
 
   if( m_stereoBM != NULL ) delete m_stereoBM;
   if( m_stereoSGBM != NULL ) delete m_stereoSGBM;
@@ -127,12 +129,11 @@ int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
       
       m_stereoBM->state->preFilterCap = m_parameters.size() > 0 ? m_parameters[0] : 31;
       m_stereoBM->state->SADWindowSize = m_parameters.size() > 1 ? m_parameters[1] : 9;
-      m_stereoBM->state->numberOfDisparities = m_parameters.size() > 2 ? m_parameters[2] : 16;
+      m_stereoBM->state->numberOfDisparities = m_parameters.size() > 2 ? m_parameters[2] : 256;
       m_stereoBM->state->uniquenessRatio = m_parameters.size() > 3 ? m_parameters[3] : 15;
       m_stereoBM->state->speckleWindowSize = m_parameters.size() > 4 ? m_parameters[4] : 100;
       m_stereoBM->state->speckleRange = m_parameters.size() > 5 ? m_parameters[5] : 32;
       m_stereoBM->state->disp12MaxDiff = m_parameters.size() > 6 ? m_parameters[6] : 1;
-
       m_stereoBM->state->textureThreshold = m_parameters.size() > 7 ? m_parameters[7] : 10;
 
       m_stereoBM->state->minDisparity = 0;
@@ -147,8 +148,8 @@ int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
       if( m_inputImagesLoaded ) cn = m_InputImages[0].channels();
 
       m_stereoSGBM->preFilterCap = m_parameters.size() > 0 ? m_parameters[0] : 63;
-      m_stereoSGBM->SADWindowSize = m_parameters.size() > 1 ? m_parameters[1] : 3;
-      m_stereoSGBM->numberOfDisparities = m_parameters.size() > 2 ? m_parameters[2] : 16;
+      m_stereoSGBM->SADWindowSize = m_parameters.size() > 1 ? m_parameters[1] : 9;
+      m_stereoSGBM->numberOfDisparities = m_parameters.size() > 2 ? m_parameters[2] : 256;
       m_stereoSGBM->uniquenessRatio = m_parameters.size() > 3 ? m_parameters[3] : 10;
       m_stereoSGBM->speckleWindowSize = m_parameters.size() > 4 ? m_parameters[4] : 100;
       m_stereoSGBM->speckleRange = m_parameters.size() > 5 ? m_parameters[5] : 32;
@@ -164,10 +165,10 @@ int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
     case STEREO_GC:
       if( m_stereoGCstate==NULL ) {
         m_stereoGCstate = cvCreateStereoGCState( 
-                  (m_parameters.size() > 0 ? m_parameters[0] : 16),
+                  (m_parameters.size() > 0 ? m_parameters[0] : 256),
                   (m_parameters.size() > 1 ? m_parameters[1] : 2) );
       } else {
-        m_stereoGCstate->numberOfDisparities = m_parameters.size() > 0 ? m_parameters[0] : 16;
+        m_stereoGCstate->numberOfDisparities = m_parameters.size() > 0 ? m_parameters[0] : 256;
         m_stereoGCstate->maxIters = m_parameters.size() > 1 ? m_parameters[1] : 2;
       }
       break;		
@@ -184,9 +185,8 @@ int HRP2StereoVisionProcess::setStereoAlgorithmType( StereoAlgoType stereoAlgo )
 
 void HRP2StereoVisionProcess::FreeImages()
 {
-  for ( int i=0; i<3; ++i ) {
-    m_InputImages[i].release();
-  }
+  m_InputImages[0].release();
+  m_InputImages[1].release();
   m_OutputImage.release();
   
   m_inputImagesLoaded = false;
@@ -202,7 +202,7 @@ void HRP2StereoVisionProcess::setImageSize( int w, int h )
 }
 
 
-int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename[2] )
+int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename, const char* extrinsicFilename )
 {
   if( !m_imgSizeKnown ) return -1;
   
@@ -216,7 +216,7 @@ int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename
   fs["M2"] >> M2;
   fs["D2"] >> D2;
 
-  fs.open( extrinsicFilename[0], CV_STORAGE_READ );
+  fs.open( extrinsicFilename, CV_STORAGE_READ );
   if( !fs.isOpened() ) return -3;
 
   Mat R, T, R1, P1, R2, P2;
@@ -224,9 +224,8 @@ int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename
   fs["T"] >> T;
 
   Rect roi1, roi2;
-  Mat Q;
 
-  stereoRectify( M1, D1, M2, D2, m_imgSize, R, T, R1, R2, P1, P2, Q, -1, m_imgSize, &roi1, &roi2 );
+  stereoRectify( M1, D1, M2, D2, m_imgSize, R, T, R1, R2, P1, P2, m_Q, -1, m_imgSize, &roi1, &roi2 );
   initUndistortRectifyMap( M1, D1, R1, P1, m_imgSize, CV_16SC2, m_rectifyMap[0][0], m_rectifyMap[0][1] );
   initUndistortRectifyMap( M2, D2, R2, P2, m_imgSize, CV_16SC2, m_rectifyMap[1][0], m_rectifyMap[1][1] );
   
@@ -243,9 +242,9 @@ int HRP2StereoVisionProcess::loadCameraParameters( const char* intrinsicFilename
 
 int HRP2StereoVisionProcess::stereoRectifyImages()
 {
-  if( !m_cameraParamLoaded ) return -1;
+  if( !m_cameraParamLoaded || !m_inputImagesLoaded ) return -1;
   
-  // now only handling 2 cameras: left and right..
+  // only handling 2 cameras: left and right..
   Mat img1r, img2r;
   remap( m_InputImages[0], img1r, m_rectifyMap[0][0], m_rectifyMap[0][1], INTER_LINEAR );
   remap( m_InputImages[1], img2r, m_rectifyMap[1][0], m_rectifyMap[1][1], INTER_LINEAR );
@@ -259,32 +258,38 @@ int HRP2StereoVisionProcess::stereoRectifyImages()
 }
 
 
-void HRP2StereoVisionProcess::SetInputImages( Mat InputImages[3], bool rectified )
+int HRP2StereoVisionProcess::SetInputImages( Mat InputImages[2], bool rectified )
 {
   FreeImages();
 
-  for( int i=0; i<3; ++i ) {
-    m_InputImages[i] = InputImages[i].clone();
+  if( InputImages[0].size() != InputImages[1].size() ) {
+    m_inputImagesLoaded = false;
+    m_imgSizeKnown = false;
+    return -1;
   }
-  m_imgSize = m_InputImages[0].size();
+
+  m_InputImages[0] = InputImages[0].clone();
+  m_InputImages[1] = InputImages[1].clone();
+  m_imgSize = InputImages[0].size();
   
-  // be careful about this specific case:
+  // be careful about these specific cases:
   // 1- image sizes have changed
   // 2- input images are not rectified
-  // 3- loadCameraParameters has already been called
   // => the user needs to call again loadCameraParameters !!
 
   m_imgSizeKnown = true;
   m_imgRectified = rectified;
   m_inputImagesLoaded = true;
+  
+  return 0;
 }
 
 
-int HRP2StereoVisionProcess::SetOutputImage( Mat& OutputImage )
+int HRP2StereoVisionProcess::GetOutputImage( Mat& OutputImage )
 {
   if( !m_rangeMapComputed ) return -1;
   
-  m_OutputImage = OutputImage.clone();
+  OutputImage = m_OutputImage.clone();
 
   return 0;
 }
@@ -337,6 +342,16 @@ int HRP2StereoVisionProcess::ComputeRangeMap()
   
   m_rangeMapComputed = true;
   
+  return 0;
+}
+
+
+int HRP2StereoVisionProcess::Get3DPoints( Mat &xyz )
+{
+  if( !m_rangeMapComputed ) return -1;
+  
+  reprojectImageTo3D( m_OutputImage, xyz, m_Q, true );
+
   return 0;
 }
 
