@@ -41,15 +41,14 @@
 
 #include <vector>
 
-#ifdef __OPENCV__
-
-#include <cv.h>
-using namespace cv;
-
 #include "VisionBasicProcess.h"
 /*! HRP2VisionBasicProcess is used to derive all the vision process
  * at least for the LowLevelVisionServer.
  */
+
+#if LLVS_HAVE_OPENCV
+
+using namespace cv;
 
 /* Lists the different stereo algorithm available */
 enum StereoAlgoType { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_GC=3 };
@@ -153,6 +152,6 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   CvStereoGCState *m_stereoGCstate;
 };
 
-#endif /* __OPENCV__ */
+#endif /* LLVS_HAVE_OPENCV */
 
 #endif /* _HRP2_STEREO_VISION_PROCESS_H_ */

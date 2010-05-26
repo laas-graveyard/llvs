@@ -10,7 +10,7 @@
    $Log$
 
    Copyright (c) 2003-2006, 
-   @author Olivier Stasse
+   @author Olivier Stasse, Torea Foissotte
    
    JRL-Japan, CNRS/AIST
 
@@ -53,7 +53,7 @@
 #define ODEBUG_CONT(x) 
 #endif
 
-#ifdef __OPENCV__
+#if LLVS_HAVE_OPENCV
 
 HRP2MireDetectionProcess::HRP2MireDetectionProcess()
 {
@@ -195,4 +195,4 @@ int HRP2MireDetectionProcess::CleanUpTheProcess()
   return 0;
 }
 
-#endif
+#endif  /* LLVS_HAVE_OPENCV */
