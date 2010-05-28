@@ -54,6 +54,8 @@
 // include visp lib files
 #include<visp/vpImage.h>
 #include<visp/vpMe.h>
+#include<visp/vpCameraParameters.h>
+#include<visp/vpHomogeneousMatrix.h>
 //include lagadic tracking lib files
 #include"nmbtTracking.h"
 
@@ -96,16 +98,16 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   
   
   /*! Set tracker parameters : moving edge parameters*/
-  inline void setMovingEdges(vpMe &_me){tracker.setMovingEdges(_me)};
+  inline void setMovingEdges(vpMe &_me){tracker.setMovingEdges(_me);}
   
   /*! Set tracker parameters : gain of the virtual visual servoing*/
-  inline void setLambda(const double _lambda){tracker.setLambda(_lambda)};
+  inline void setLambda(const double _lambda){tracker.setLambda(_lambda);}
 
   /*! Set tracker parameters : camera parameters */
-  inline void setCameraParameters(const vpCameraParameters & _cam){tracker.setCameraParameters(_cam)};  
+  inline void setCameraParameters(const vpCameraParameters & _cam){tracker.setCameraParameters(_cam);}  
 
   /*! Set tracker parameters : camera/object pose cMo*/
-  inline void setcMo(const vpHomogeneousMatrix & _cMo){tracker.setcMo(_cMo)};  
+  inline void setcMo(const vpHomogeneousMatrix & _cMo){tracker.setcMo(_cMo);}  
 
   /*! Set the image */
   inline void setInputVispImage(const vpImage<unsigned char> & _I){m_InputVispImage=_I;}  
@@ -140,7 +142,7 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
 
 protected:
   // lagadic tracker
-  nmbTracking m_tracker;
+  nmbtTracking m_tracker;
    
   // visp images
   vpImage<unsigned char> m_inputVispImage;

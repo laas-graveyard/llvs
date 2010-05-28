@@ -75,6 +75,17 @@ IF (OPENCV_FOUND)
 
 ENDIF (OPENCV_FOUND)
 
+# Model tracker uses Visp
+IF (VISP_FOUND AND NMBT_FOUND)
+    SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
+	./ModelTracker/nmbt/warpNmbtTracking.cpp	
+  )
+  SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+  	./ModelTracker/warpNmbtTracking.h
+  )
+ENDIF (VISP_FOUND AND NMBT_FOUND)
+
+
 IF (VW_FOUND)
   IF (FindScene)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
