@@ -35,7 +35,7 @@
    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "ModelTracker/warpNmbtTracking.h"
+#include "ModelTracker/nmbtTrackingProcess.h"
 #include <iostream>
 
 
@@ -90,7 +90,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
 
 
 
-HRP2TrackingProcess:: ~HRP2TrackingProcess()
+HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 {
   
 }
@@ -121,11 +121,15 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   // If the parameter already exist is value is overwritten. 
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
-  HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
+  int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
-  // get the 4 first parameter to find the parame type
-  std::paramType = aParameter.substr(0,4);
+  // get the 4 first parameter to find the parameter type
+  std::string paramType = aParameter.substr(0,4);
+  // get the  first parameter to find the parameter type
+  std::string paramId = aParameter.substr(6,8);
+  
 
+  return(outputVBPSetParameters);
 }
 
 /*! Initialize the process. */

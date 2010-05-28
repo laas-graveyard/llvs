@@ -8,7 +8,8 @@ SET(LLVS_SRC_FILES_1
 	LowLevelVisionServer.cpp 
 	ConnectionToSot.cpp
 	./Simu/SimulatorInputMethod.cpp 
-	./Simu/FileImagesInputMethod.cpp  )
+	./Simu/FileImagesInputMethod.cpp  
+        ./unitTesting/testHRP2nmbtTrackingProcess.cpp)
 
 SET(LLVS_HEADER_FILES_1 
 	ImagesInputMethod.h
@@ -72,16 +73,15 @@ IF (OPENCV_FOUND)
   ./OpenCV/StereoVisionProcess.h 
 	./OpenCV/MireDetectionProcess.h 
 	)
-
 ENDIF (OPENCV_FOUND)
 
 # Model tracker uses Visp
 IF (VISP_FOUND AND NMBT_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
-	./ModelTracker/nmbt/warpNmbtTracking.cpp	
+	./ModelTracker/nmbt/nmbtTrackingProcess.cpp	
   )
   SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
-  	./ModelTracker/warpNmbtTracking.h
+  	./ModelTracker/nmbtTrackingProcess.h
   )
 ENDIF (VISP_FOUND AND NMBT_FOUND)
 
