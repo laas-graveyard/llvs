@@ -137,7 +137,7 @@ int HRP2nmbtTrackingProcess:: InitializeTheProcess()
 {
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
-  m_tracker.setcMo(m_inputCMo);
+  m_tracker.setcMo(m_inputcMo);
 }
 
 /*! Realize the process 
@@ -166,7 +166,7 @@ int HRP2nmbtTrackingProcess::RealizeTheProcess()
      m_trackerTrackSuccess= false;
      
      // set the cMo matrix to identity   
-     m_outputMatrix.setIdentity();
+     m_outputcMo.setIdentity();
  
      // return a negative value
      return -1;
@@ -179,7 +179,7 @@ int HRP2nmbtTrackingProcess::RealizeTheProcess()
    m_trackerTrackSuccess= false;
    
    // set the resulting transform between the object and the image
-   m_tracker.getcMo(m_outputcMo);  
+   m_tracker.getPose(m_outputcMo);  
 
    return 0;
 
@@ -198,7 +198,7 @@ int HRP2nmbtTrackingProcess::loadModel( const std::string & pathToModel, const s
   // load the initial position matrix file
   std::ostringstream tmp_stream; 
   tmp_stream << pathToModel<< "/" << modelName<<"/"<< modelName<<".wrl" ;
-  tmp_stream.str();
-  tracker.loadModel(tmp.stream.str());
+  
+  m_tracker.loadModel(tmp_stream.str().c_str());
 }
 
