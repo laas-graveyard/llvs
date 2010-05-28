@@ -17,7 +17,7 @@
 #############################################################################
 
 IF(NOT UNIX)
-  # MESSAGE("FindVVV.cmake: only available for Unix.")
+   MESSAGE("FindOpencv.cmake: only available for Unix.")
   SET(OPENCV_FOUND FALSE)
 ELSE(NOT UNIX)
   
@@ -36,13 +36,8 @@ ELSE(NOT UNIX)
   ENDIF(OPENCV_HOME)
 
   IF(OPENCV_FOUND)
-#    IF(OMNIORB4_FOUND)
-#      SET(OPENHRP_CXX_FLAGS "-DCOMMERCIAL -Wall -Wunused ")
-#      SET(OPENHRP_LDD_FLAGS "")
-#    ENDIF(OMNIORB4_FOUND)
-  ENDIF(OPENCV_FOUND)
-  
-  set(OPENCV_CXX_FLAGS "-I${OPENCV_HOME}/include/opencv -D__OPENCV__")
-  set(OPENCV_LD_FLAGS "-L${OPENCV_HOME}/lib -lcv" )
+    set(OPENCV_CXX_FLAGS "-I${OPENCV_HOME}/include/opencv -D__OPENCV__")
+    set(OPENCV_LD_FLAGS "-L${OPENCV_HOME}/lib -lcv" )
   MESSAGE(STATUS "OpenCV: ${OPENCV_HOME} ${OPENCV_FOUND}")
+  ENDIF(OPENCV_FOUND)
 ENDIF(NOT UNIX)

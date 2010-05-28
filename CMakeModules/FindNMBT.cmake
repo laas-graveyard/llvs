@@ -1,4 +1,25 @@
-# detection of the Libpng headers location
+##############################################################################
+#
+# Copyright JRL, CNRS/AIST, 2010
+# 
+# Description:
+# Try to find NMBT
+# capabilities.
+# Once run this will define: 
+#
+# NMBT_FOUND
+# NMBT_CXX_FLAGS
+# NMBT_LINK_FLAGS
+#
+# Authors:
+# Claire Dune
+#
+#############################################################################
+IF(NOT UNIX)
+  MESSAGE("FindNMBT.cmake: only available for Unix.")
+  SET(NMBT_FOUND FALSE)
+ELSE(NOT UNIX)
+# detection of the Libnmbt headers location
   FIND_PATH(LIBNMBT_INCLUDE_PATH 
     NAMES
     nmbtTracking.h
@@ -41,3 +62,12 @@ IF(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
 ELSE(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
   SET(NMBT_FOUND FALSE)
 ENDIF(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
+
+  IF(NMBT_FOUND)
+    SET(NMBT_CXX_FLAGS "-I${LIBNMBT_INCLUDE_PATH} -D__NMBT__")
+    SET(NMBT_LD_FLAGS "-L${LIBNMBT_LIBRARY} -lcv" )
+  MESSAGE(STATUS "NmbtTracker:  ${NMBT_FOUND}")
+  ENDIF(NMBT_FOUND)
+
+
+ENDIF(NOT UNIX)
