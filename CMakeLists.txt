@@ -113,7 +113,20 @@
 
 #---------------------------------------------------------
 #  Third part libraries
+#
+# Two solutions are used here to include lib:
+# 
+#   1) The first solution is to directly fill the variables 
+#      LLVS_CXX_FLAGS and LLVS_LINK_FLAGS. This mean you will
+#      have to write -I/pathToMyDeclarations and -L/pahtToMyLib/mylib.so 
+#      This solution is well suited when a.pc file is available
+#         
+#   2) The second solution is used when no .pc files are availabe
+#      It lists the pathToMyDeclarations in LLVS_EXTERN_INCLUDE_DIR
+#      and pahtToMyLib in LLVS_INTERN_LIBS and then us the command 
+#      "INCLUDE_DIRECTORIES" and "LINK_LIBRARIES" to take them into account
 #------------------------------------------------------------
+
 #Detect Pkg config
   INCLUDE(FindPkgConfig)
 
@@ -180,7 +193,8 @@
   IF (SEARCH_FOR_DC1394_V2)
      pkg_search_module(libdc1394-2 libdc1394-2>=2.0.2)
      IF (libdc1394-2_FOUND)
-     	FOREACH(option_cxxflags ${libdc1394-2_CFLAGS})
+     	MESSAGE(STATUS "libdc1394-2 found")
+  	FOREACH(option_cxxflags ${libdc1394-2_CFLAGS})
 	  SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${option_cxxflags}")
           MESSAGE(STATUS "option CXX lidc1394: ${option_cxxflags}")
         ENDFOREACH(option_cxxflags)
@@ -190,7 +204,7 @@
         ENDFOREACH(option_ldflags)
         MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS}")
         SET(LLVS_HAVE_DC1394_V2 1)
-        SET(LLVS_EXTERN_LIBS ${LLVS_EXTERN_LIBS} "dc1394-2")
+        SET(LLVS_EXTERN_LIBS ${LLVS_EXTERN_LIBS} "dc1394")
     ELSE(libdc1394-2_FOUND)
 	MESSAGE(STATUS "libdc1394-2 not found")
     ENDIF(libdc1394-2_FOUND)
@@ -265,7 +279,9 @@ ENDIF(SEARCH_FOR_NMBT)
 # Create the library. 
 #----------------------------------------------------
   ADD_LIBRARY(${LLVS_INTERN_LIBS} ${LLVS_SRC_FILES} ${LLVS_HEADER_FILES})
-  SET_TARGET_PROPERTIES(${LLVS_INTERN_LIBS} PROPERTIES COMPILE_FLAGS "${LLVS_CXX_FLAGS}")
+  SET_TARGET_PROPERTIES(${LLVS_INTERN_LIBS} PROPERTIES 
+    COMPILE_FLAGS "${LLVS_CXX_FLAGS}"
+    LINK_FLAGS " ${LLVS_LINK_FLAGS} ")
 
 #----------------------------------------------------
 # Create the server.
@@ -274,7 +290,7 @@ ENDIF(SEARCH_FOR_NMBT)
   TARGET_LINK_LIBRARIES(${binary} 
     ${LLVS_INTERN_LIBS} ${LLVS_EXTERN_LIBS})
   
-SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS 
+  SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS 
   "${LLVS_server_CXX_FLAGS} ${LLVS_CXX_FLAGS}"
   LINK_FLAGS 
   "${LLVS_server_LINK_FLAGS} ${LLVS_LINK_FLAGS}  -L. -lllvs-0 ")
