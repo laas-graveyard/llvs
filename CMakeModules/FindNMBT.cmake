@@ -1,73 +1,42 @@
-##############################################################################
+#############################################################################
 #
-# Copyright JRL, CNRS/AIST, 2010
-# 
+# Copyright JRL, CNRS/AIST, 2009
+#
 # Description:
-# Try to find NMBT
-# capabilities.
+# Try to find VISP library
+#
 # Once run this will define: 
 #
-# NMBT_FOUND
-# NMBT_CXX_FLAGS
-# NMBT_LINK_FLAGS
-#
+# NMBT_FOUND : flag to say if the file has been detected
+# NMBT_INCLUDE_DIR : include dir of all the lib nmbt is using
+# NMBT_LIBRARIES : names of the libraries
+# NMBT_LINK_DIRECTORIES : path to the lib
+# NMBT_SOURCE_DIR : path to the source
+# 
 # Authors:
 # Claire Dune
 #
 #############################################################################
-IF(NOT UNIX)
-  MESSAGE("FindNMBT.cmake: only available for Unix.")
-  SET(NMBT_FOUND FALSE)
-ELSE(NOT UNIX)
-# detection of the Libnmbt headers location
-  FIND_PATH(LIBNMBT_INCLUDE_PATH 
-    NAMES
-    nmbtTracking.h
-    PATHS
-    $ENV{ROBOTPKG_BASE}/include/nmbt
-    )
-  #MESSAGE("LIBPNG_HEADER=${LIBPNG_INCLUDE_PATH}")
 
-  # Detection of the Libpng library on Unix
-  FIND_LIBRARY(LIBNMBT_LIBRARY
-    NAMES
-    libnmbt.a
-    PATHS
-     $ENV{ROBOTPKG_BASE}/lib
-    )
-  #MESSAGE("LIBPNG_LIBRARY=${LIBPNG_LIBRARY}")
+# search for the the file in
+FIND_PATH(NMBT_DIR 
+          NAMES 
+	  	NMBTConfig.cmake 
+    	  PATHS  
+	  	 $ENV{ROBOTPKG_BASE}/share/cmake
+           	 $ENV{ROBOTPKG_BASE}/lib 
+    	)
 
+# if NMBT has been found     
+IF(NMBT_DIR)
+    SET(NMBT_FOUND TRUE)
+    INCLUDE(${NMBT_DIR}/NMBTConfig.cmake)
+ELSE(MNBT_DIR)
+    SET(NMBT_FOUND FALSE)
+ENDIF(NMBT_DIR)
 
-  MARK_AS_ADVANCED(
-    LIBNMBT_LIBRARY
-    LIBNMBT_INCLUDE_PATH
-  )
-  
-  # Load the configuration file
-  FIND_PATH(NMBT_DIR 
-    NAMES 
-    NMBTConfig.cmake
-    PATHS 
-    $ENV{ROBOTPKG_BASE}/lib
-    )
- # MESSAGE("NMBT_DIR : ${NMBT_DIR}")
-  include(${NMBT_DIR}/NMBTConfig.cmake)
-
-## --------------------------------
-  
-IF(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
-  SET(LIBNMBT_INCLUDE_DIR ${LIBNMBT_INCLUDE_PATH})
-  SET(LIBNMBT_LIBRARIES  ${LIBNMBT_LIBRARY})
-  SET(NMBT_FOUND TRUE)
-ELSE(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
-  SET(NMBT_FOUND FALSE)
-ENDIF(LIBNMBT_LIBRARY AND LIBNMBT_INCLUDE_PATH)
-
-  IF(NMBT_FOUND)
-    SET(NMBT_CXX_FLAGS "-I${LIBNMBT_INCLUDE_PATH} -D__NMBT__")
-    SET(NMBT_LD_FLAGS "-L${LIBNMBT_LIBRARY} -lcv" )
-  MESSAGE(STATUS "NmbtTracker:  ${NMBT_FOUND}")
-  ENDIF(NMBT_FOUND)
+# Status message to check if everything is ok 
+MESSAGE(STATUS "NMBT Found :  ${NMBT_FOUND}")
+MESSAGE(STATUS "NMBT path  : ${NMBT_DIR}")
 
 
-ENDIF(NOT UNIX)

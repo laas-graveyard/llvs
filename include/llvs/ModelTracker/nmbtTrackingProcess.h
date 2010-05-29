@@ -57,7 +57,7 @@
 #include<visp/vpCameraParameters.h>
 #include<visp/vpHomogeneousMatrix.h>
 //include lagadic tracking lib files
-#include"nmbtTracking.h"
+#include<nmbt/nmbtTracking.h>
 
 
 /*!
@@ -69,6 +69,7 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
 
  public:
  
+  static void test();
   /*! Constructor */
   HRP2nmbtTrackingProcess();
 
@@ -88,8 +89,6 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Load the Model*/
   int loadModel( const std::string & pathToModel, const std::string & modelName);
 
-  /*! Get the name of the process */
-  string GetName();
 
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);

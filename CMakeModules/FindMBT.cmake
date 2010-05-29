@@ -1,75 +1,47 @@
-##############################################################################
-#
-# Copyright JRL, CNRS/AIST, 2010
-# 
-# Description:
-# Try to find NMBT
-# capabilities.
-# Once run this will define: 
-#
-# MBT_FOUND
-# MBT_CXX_FLAGS
-# MBT_LINK_FLAGS
-#
-# Authors:
-# Claire Dune
-#
-#############################################################################
-IF(NOT UNIX)
-  MESSAGE("FindMBT.cmake: only available for Unix.")
-  SET(MBT_FOUND FALSE)
+MESSAGE("---- Find MBT ---- ")
 
-
-ELSE(NOT UNIX)
-# detection of the Libmbt headers location
-  FIND_PATH(LIBMBT_INCLUDE_PATH 
+# detection of the Libpng headers location
+  FIND_PATH(MBT_INCLUDE_PATH 
     NAMES
-    mbtTracking.h
+    mbtRobustTracking.h
     PATHS
-    $ENV{ROBOTPKG_BASE}/include/nmbt
+    $ENV{ROBOTPKG_BASE}/include/mbt
     )
+ MESSAGE("MBT_INCLUDE_DIR=${MBT_INCLUDE_DIR}")
 
-
-  # Detection of the Libpng library on Unix
-  FIND_LIBRARY(LIBMBT_LIBRARY
+  # Detection of the Libmbtlibrary on Unix
+ FIND_LIBRARY(MBT_LIBRARY
     NAMES
     libmbt.a
     PATHS
      $ENV{ROBOTPKG_BASE}/lib
     )
-  #MESSAGE("LIBPNG_LIBRARY=${LIBPNG_LIBRARY}")
+ MESSAGE("MBT_LIBRARY=${MBT_LIBRARY}")
 
 
   MARK_AS_ADVANCED(
-    LIBMBT_LIBRARY
-    LIBMBT_INCLUDE_PATH
+    MBT_LINK_DIR 
+    MBT_INCLUDE_DIR
   )
   
   # Load the configuration file
   FIND_PATH(MBT_DIR 
     NAMES 
-    NMBTConfig.cmake
+    MBTConfig.cmake
     PATHS 
     $ENV{ROBOTPKG_BASE}/lib
     )
- # MESSAGE("MBT_DIR : ${MBT_DIR}")
+
+MESSAGE("MBT_DIR=${MBT_DIR}")
   include(${MBT_DIR}/MBTConfig.cmake)
+
 
 ## --------------------------------
   
-IF(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
-  SET(LIBMBT_INCLUDE_DIR ${LIBMBT_INCLUDE_PATH})
-  SET(LIBMBT_LIBRARIES  ${LIBMBT_LIBRARY})
-  SET(NMBT_FOUND TRUE)
-ELSE(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
+IF(MBT_LIBRARY AND MBT_INCLUDE_DIR)
+  SET(MBT_LINK_DIR "${MBT_DIR}")
+  SET(MBT_FOUND TRUE)
+  SET(MBT_LIB_NAME "mbt")
+ELSE(MBT_LIBRARY AND MBT_INCLUDE_DIR)
   SET(MBT_FOUND FALSE)
-ENDIF(LIBMBT_LIBRARY AND LIBMBT_INCLUDE_PATH)
-
-  IF(MBT_FOUND)
-    SET(MBT_CXX_FLAGS "-I${LIBMBT_INCLUDE_PATH} -D__MBT__")
-    SET(MBT_LD_FLAGS "-L${LIBMBT_LIBRARY} -lcv" )
-  MESSAGE(STATUS "MbtTracker:  ${MBT_FOUND}")
-  ENDIF(MBT_FOUND)
-
-
-ENDIF(NOT UNIX)
+ENDIF(MBT_LIBRARY AND MBT_INCLUDE_DIR)

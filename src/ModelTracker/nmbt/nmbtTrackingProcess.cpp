@@ -54,6 +54,10 @@
 #endif
 
 
+void HRP2nmbtTrackingProcess::test()
+{
+cout<<"test ---------> ok"<<endl;
+}
 
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
 {
@@ -63,6 +67,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
 
+  cout<< "HRP2 tracker built" <<endl;  
 }
 
 /*HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess(const vpImage<unsigned char>& _I,
@@ -92,7 +97,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
 
 HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 {
-  
+  cout<< "HRP2 tracker destroyed" <<endl;  
 }
 
 
@@ -138,6 +143,8 @@ int HRP2nmbtTrackingProcess:: InitializeTheProcess()
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.setcMo(m_inputcMo);
+
+  return 0;
 }
 
 /*! Realize the process 
@@ -189,7 +196,7 @@ int HRP2nmbtTrackingProcess::RealizeTheProcess()
 int HRP2nmbtTrackingProcess::CleanUpTheProcess()
 {
 
-
+  return 0;
 }
 
 /*! Load the Model*/
@@ -200,5 +207,7 @@ int HRP2nmbtTrackingProcess::loadModel( const std::string & pathToModel, const s
   tmp_stream << pathToModel<< "/" << modelName<<"/"<< modelName<<".wrl" ;
   
   m_tracker.loadModel(tmp_stream.str().c_str());
+  
+  return 0;
 }
 

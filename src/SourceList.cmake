@@ -8,8 +8,7 @@ SET(LLVS_SRC_FILES_1
 	LowLevelVisionServer.cpp 
 	ConnectionToSot.cpp
 	./Simu/SimulatorInputMethod.cpp 
-	./Simu/FileImagesInputMethod.cpp  
-        ./unitTesting/testHRP2nmbtTrackingProcess.cpp)
+	./Simu/FileImagesInputMethod.cpp  )
 
 SET(LLVS_HEADER_FILES_1 
 	ImagesInputMethod.h
