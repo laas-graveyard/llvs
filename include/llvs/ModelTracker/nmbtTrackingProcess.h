@@ -69,7 +69,7 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
 
  public:
  
-  static void test();
+ 
   /*! Constructor */
   HRP2nmbtTrackingProcess();
 

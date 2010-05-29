@@ -54,10 +54,7 @@
 #endif
 
 
-void HRP2nmbtTrackingProcess::test()
-{
-cout<<"test ---------> ok"<<endl;
-}
+
 
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
 {
@@ -67,37 +64,18 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
 
-  cout<< "HRP2 tracker built" <<endl;  
+    
 }
-
-/*HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess(const vpImage<unsigned char>& _I,
-						 const vpCameraParameters & _cam, 
-						 const vpHomogeneousMatrix & _cMo,
-						 const std::string & _pathToModel, 
-						 const std::string & _modelName)
-{
-  
-  m_ProcessName = "nmbtTrackingProcess";
-  m_cameraParamLoaded = true;
-   
-  m_inputVispImage = _I; 
-  m_inputImagesLoaded = true;
-  
-  loadModel( _pathToModel, _modelName);
-  tracker.setCameraParameters(_cam);
-  m_modelLoaded = true;
-
-  m_inputcMo = _cMo;
-  tracker.setcMo(_cMo);
-  
-  }*/
 
 
 
 
 HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 {
-  cout<< "HRP2 tracker destroyed" <<endl;  
+  m_cameraParamLoaded = false;
+  m_inputImagesLoaded = false;
+  m_modelLoaded = false;
+  m_trackerTrackSuccess =false;
 }
 
 
@@ -132,6 +110,7 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   std::string paramType = aParameter.substr(0,4);
   // get the  first parameter to find the parameter type
   std::string paramId = aParameter.substr(6,8);
+  
   
 
   return(outputVBPSetParameters);

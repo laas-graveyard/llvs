@@ -39,6 +39,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <sstream>
 
 #include "ModelTracker/nmbtTrackingProcess.h"
 
@@ -63,19 +65,55 @@ using namespace std;
 // test the functions implemented in the class 
 int main(void)
 {
-  cout <<" -------------------------- " << endl; 
+  cout <<" -------------------------- " << endl;
+  cout << endl; 
   cout <<" Test NMBT tracking class"    << endl;
+  cout << endl; 
   cout <<" ---------------------------" << endl;
 
-  HRP2nmbtTrackingProcess::test();
+
   // create a default object tracker
-  //HRP2nmbtTrackingProcess tracker;
-
-  // set parameter, one listed and one unknown
-  //tracker.SetParameter("VPME_MASK_SIZE","5");
-  //tracker.SetParameter("FALSE_PARAM","DAME"); 
+  HRP2nmbtTrackingProcess tracker;
   
+  // get process name
+  string name = tracker.GetName();
+  cout << "1."<<endl << "Name of the process : " << name << endl;  
+ 
+  // set parameter, one listed and one unknown
+  tracker.SetParameter("VPME_MASK_SIZE","5");
+  tracker.SetParameter("FALSE_PARAM","-450"); 
+  tracker.SetParameter("MODEL_PATH","/home/dune/model"); 
+  tracker.SetParameter("MODEL_NAME","woodenBox"); 
+ 
+  // get the parameters  
+  vector<string> parameters, values; 
+  tracker.GetParametersAndValues(parameters, values);
+  int nbParam(parameters.size());  
+  cout << "2."<<endl
+       <<"Num \tParam \t\tValue" <<endl; 
+  for (int i = 0;i< nbParam;++i)
+    {
+      cout << i<<"\t"
+	   << parameters[i] <<"\t"
+	   << values[i]<<endl;
+      
+    }
+  
+  cout << "3."<< endl
+       << "convert a string into a double";
+  double d;
+  string ds("5");
+  std::istringstream i(ds);
+  i >> d;
+     
 
+  cout << d << endl;
+  cout << endl;  
+  cout <<" -------------------------- " << endl; 
+  cout << endl; 
+  cout <<"    .....End of the test    "    << endl;
+  cout << endl; 
+  cout <<" ---------------------------" << endl;
   // everything went well
   return 0;
 }
