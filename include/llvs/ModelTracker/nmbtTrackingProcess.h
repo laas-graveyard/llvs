@@ -76,6 +76,8 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Destructor */
   virtual ~HRP2nmbtTrackingProcess();
 
+  /*! Default Param*/
+  int SetDefaultParam(); 
 
   /*! Initialize the process. */
   int InitializeTheProcess();
@@ -87,45 +89,41 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   int CleanUpTheProcess();
 
   /*! Load the Model*/
-  int loadModel( const std::string & pathToModel, const std::string & modelName);
-
+  int LoadModel( const std::string & pathToModel);
 
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);
 
     
   /*! Set tracker parameters : moving edge parameters*/
-  inline void setMovingEdge(vpMe &_me){m_tracker.setMovingEdge(_me);}
+  inline void SetMovingEdge(vpMe &_me){m_tracker.setMovingEdge(_me);}
   
   /*! Set tracker parameters : gain of the virtual visual servoing*/
-  inline void setLambda(const double _lambda){m_tracker.setLambda(_lambda);}
+  inline void SetLambda(const double _lambda){m_tracker.setLambda(_lambda);}
 
   /*! Set tracker parameters : camera parameters */
-  inline void setCameraParameters(const vpCameraParameters & _cam){m_tracker.setCameraParameters(_cam);}  
+  inline void SetCameraParameters(const vpCameraParameters & _cam){m_tracker.setCameraParameters(_cam);}  
 
   /*! Set tracker parameters : camera/object pose cMo*/
-  inline void setcMo(const vpHomogeneousMatrix & _cMo){vpHomogeneousMatrix cMo(_cMo);m_tracker.setcMo(cMo);}  
+  void SetcMo(const vpHomogeneousMatrix & _cMo);  
 
   /*! Set the image */
-  inline void setInputVispImage(const vpImage<unsigned char> & _I){m_inputVispImage=_I;}  
+  inline void SetInputVispImage(const vpImage<unsigned char> & _I){m_inputVispImage=_I;m_inputImagesLoaded=true;}  
  
-  /*! Set the inputcMo */
-  inline void setInputcMo(const vpHomogeneousMatrix & _inputcMo){this->m_inputcMo=_inputcMo;} 
-
   /*! Get tracker parameters : camera parameters */
-  inline void getCameraParameters(vpCameraParameters & _cam){m_tracker.getCameraParameters(_cam);}  
+  inline void GetCameraParameters(vpCameraParameters & _cam){m_tracker.getCameraParameters(_cam);}  
 
   /*! Get tracker parameters : cMo camera /object pose */
-  inline void getcMo(vpHomogeneousMatrix &cMo){m_tracker.getPose(cMo);}
+  inline void GetcMo(vpHomogeneousMatrix &cMo){m_tracker.getPose(cMo);}
 
   /*! Get the image */
-  inline void getInputVispImage(vpImage<unsigned char> & _I){_I=this->m_inputVispImage;}  
+  inline void GetInputVispImage(vpImage<unsigned char> & _I){_I=this->m_inputVispImage;}  
   
   /*! Get the inputcMo */
-  inline void getInputcMo(vpHomogeneousMatrix & _inputcMo){_inputcMo=this->m_inputcMo;} 
+  inline void GetInputcMo(vpHomogeneousMatrix & _inputcMo){_inputcMo=this->m_inputcMo;} 
   
   /*! Get the inputcMo */
-  inline void getOutputcMo(vpHomogeneousMatrix & _outputcMo){_outputcMo=this->m_outputcMo;} 
+  inline void GetOutputcMo(vpHomogeneousMatrix & _outputcMo){_outputcMo=this->m_outputcMo;} 
  
 
 
@@ -149,7 +147,7 @@ protected:
   bool m_cameraParamLoaded;
   bool m_modelLoaded;
   bool m_trackerTrackSuccess;
-	
+  bool m_initPoseLoaded;	
 };
 
 

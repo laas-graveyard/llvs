@@ -202,7 +202,7 @@
           MESSAGE(STATUS "option LD lidc1394: ${option_ldflags}")
           SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${option_ldflags}")
         ENDFOREACH(option_ldflags)
-        MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS}")
+#       MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS}")
         SET(LLVS_HAVE_DC1394_V2 1)
         SET(LLVS_EXTERN_LIBS ${LLVS_EXTERN_LIBS} "dc1394")
     ELSE(libdc1394-2_FOUND)
@@ -235,9 +235,7 @@ ENDIF(SEARCH_FOR_DC1394_V2)
       	  SET(LLVS_HAVE_NMBT 1)
       	  LIST(APPEND LLVS_EXTERN_LIBS ${NMBT_LIBRARIES})
           LIST(APPEND LLVS_EXTERN_INCLUDE_DIR ${NMBT_INCLUDE_DIR})
-          MESSAGE("NMBT INCLUDE DIR:${NMBT_INCLUDE_DIR}") 
       	  LIST(APPEND LLVS_EXTERN_LIB_DIR ${NMBT_LINK_DIRECTORIES})
-          MESSAGE("NMBT LIB LINK DIRc:${NMBT_LINK_DIRECTORIES}") 
        ENDIF (NMBT_FOUND)
      ENDIF(NOT VISP_FOUND)
 ENDIF(SEARCH_FOR_NMBT)
@@ -273,8 +271,8 @@ ENDIF(SEARCH_FOR_NMBT)
   INCLUDE(${PROJECT_SOURCE_DIR}/src/SourceList.cmake)
   INCLUDE(${PROJECT_SOURCE_DIR}/include/llvs/SourceList.cmake)
 
-  MESSAGE(STATUS "LLVS_SRC_FILES: ${LLVS_SRC_FILES}")
-  MESSAGE(STATUS "LLVS_HEADER_FILES: ${LLVS_HEADER_FILES}")
+#  MESSAGE(STATUS "LLVS_SRC_FILES: ${LLVS_SRC_FILES}")
+#  MESSAGE(STATUS "LLVS_HEADER_FILES: ${LLVS_HEADER_FILES}")
 #----------------------------------------------------
 # Create the library. 
 #----------------------------------------------------
@@ -308,7 +306,5 @@ ADD_DEPENDENCIES(LLVS_server ${LLVS_INTERN_LIBS})
 #----------------------------------------------------------------------
 # Propagation in sub dirs
 #----------------------------------------------------------------------
-  MESSAGE("LLVS intern libs ${LLVS_INTERN_LIBS}")
-  MESSAGE("LLVS extern libs ${LLVS_EXTERN_LIBS}")
-  SUBDIRS(unitTesting)
+   SUBDIRS(unitTesting)
 

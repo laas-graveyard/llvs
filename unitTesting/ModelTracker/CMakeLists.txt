@@ -12,6 +12,7 @@
 # If you want to add/remove a source, modify here
 SET (SOURCE
 testHRP2nmbtTrackingProcess.cpp
+testParameters.cpp
 )
 
 # rule for binary build

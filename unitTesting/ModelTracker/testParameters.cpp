@@ -37,22 +37,12 @@
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-//standard lib and system lib
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
 
-//LLVS lib
 #include "ModelTracker/nmbtTrackingProcess.h"
-
-//tracker lib
-#include<nmbt/nmbtTracking.h>
-
-//visp
-#include <visp/vpImage.h>
-#include <visp/vpImageIo.h>
-#include <visp/vpDisplayX.h>
 
 using namespace std;
 
@@ -72,63 +62,63 @@ using namespace std;
 
 
 
-// test the functions implemented in the class 
+// test the parameters functions
 int main(void)
 {
   cout <<" -------------------------- " << endl;
   cout << endl; 
   cout <<" Test NMBT tracking class"    << endl;
+  cout <<"  parameter input/output test"    << endl;
   cout << endl; 
   cout <<" ---------------------------" << endl;
- 
-  // image path
+
+  
+  // create the path to the box
   char* homePath;
-  homePath                    = getenv ("HOME");
-  string defaultPath          = "data";
-  string imagePath            = "images/imageWide.ppm"  ;
+  homePath = getenv ("HOME");
+  string defaultPath ( "data/model/WoodenBox/WoodenBox.wrl");
   ostringstream tmp_stream;
-  tmp_stream<< homePath << "/"<<defaultPath<<"/"<< imagePath;
-  
-  // read the image 
-  vpImage<unsigned char> Isrc;
-  vpImageIo::readPPM(Isrc,tmp_stream.str().c_str());   
-    
-  // create the display associated to the image
-  vpDisplayX display(Isrc,0,0,"Image");
-  vpDisplay::display(Isrc);
-  vpDisplay::flush(Isrc);
+  tmp_stream<< homePath << "/"<<defaultPath;
+  cout << "Path :" << tmp_stream.str()  <<endl;
 
-  //create a temporary tracker
-  tmp_stream.str("");
-  tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox.wrl";
-  cout <<tmp_stream.str() <<endl;
-  nmbtTracking tracker_tmp;
-  tracker_tmp.loadModel(tmp_stream.str().c_str());
-  tmp_stream.str("");
-  tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox";
-  tracker_tmp.initClick(Isrc, tmp_stream.str().c_str()) ; 
+  // create a default object tracker
+  HRP2nmbtTrackingProcess tracker;
   
-  // create an initial pose
-  vpHomogeneousMatrix cMo;
-  tracker_tmp.getPose(cMo);
-  cout << "cMo \n"<< cMo<<endl ;
+  // get process name
+  string name = tracker.GetName();
+  cout <<endl<<"1."<<endl << "Name of the process : " << name << endl;  
+ 
+  cout << endl<<"2."<<endl <<"Add parameters"<<endl;
+  // set parameter, one listed and one unknown
+  tracker.SetParameter("VPME_MASK_SIZE","5");
+  tracker.SetParameter("FALSE_PARAM","-450"); 
+  tracker.SetParameter("PATH_MODEL",tmp_stream.str()); 
+  tracker.SetParameter("TRAC_LAMBDA","0.4"); 
+ 
+  // get the parameters  
+  vector<string> parameters, values; 
+  tracker.GetParametersAndValues(parameters, values);
+  int nbParam(parameters.size());  
   
-  // use this pose to init the LLVS tracker
-   tmp_stream.str("");
-   tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox.wrl";
-   cout <<tmp_stream.str() <<endl;
-   HRP2nmbtTrackingProcess tracker;
-   tracker.LoadModel(tmp_stream.str().c_str());
-   
-  // set the tracker parameters
-   tracker.SetcMo(cMo);
-   tracker.SetInputVispImage(Isrc);
-   tracker.InitializeTheProcess();
-   tracker.RealizeTheProcess();
+  cout << endl<<"Print all  parameters"<<endl
+       <<"Num \tParam \t\tValue" <<endl; 
+  for (int i = 0;i< nbParam;++i)
+    {
+      cout << i<<"\t"
+	   << parameters[i] <<"\t"
+	   << values[i]<<endl;
+      
+    }
+  
+  cout << endl<<"3."<< endl
+       << "convert a string into a double"<<endl;
+  double d;
+  string ds("5");
+  std::istringstream i(ds);
+  i >> d;
+     
 
-
-  cout<< "Click on the image to exit" << endl;
-  vpDisplay::getClick(Isrc);
+  cout <<"convert " << ds << " to " << d << endl;
   cout << endl;  
   cout <<" -------------------------- " << endl; 
   cout << endl; 
