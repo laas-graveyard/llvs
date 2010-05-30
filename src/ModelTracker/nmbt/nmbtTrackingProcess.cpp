@@ -42,6 +42,9 @@
 #include <visp/vpConfig.h>
 #include <visp/vpXmlParserCamera.h>
 
+#include <visp/vpDisplayX.h>
+
+
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << __FILE__ << ": l" << __LINE__ << ": " << x << endl
 #define ODEBUG3_CONT(x) cerr << x 
@@ -61,13 +64,15 @@ Default constructor
 
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
 {
+  
   m_ProcessName = "nmbtTrackingProcess";
   m_cameraParamLoaded = false;
   m_initPoseLoaded = false;
   m_inputImagesLoaded = false;
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
-
+  m_inputVispImage=0x0;
+  
   SetDefaultParam();
 }
 
@@ -78,11 +83,15 @@ Destructor
 ------------------------------------- */
 HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 {
+  
   m_cameraParamLoaded = false;
   m_inputImagesLoaded = false;
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
   m_initPoseLoaded = false;
+  m_inputVispImage=0x0;
+
+  
 }
 
 
@@ -92,28 +101,115 @@ HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
     - cMo  : init pose of the object in the image
     - path : path to file .wrl, the vrml model
 -------------------------------------*/
-int  HRP2nmbtTrackingProcess::SetDefaultParam()
+int HRP2nmbtTrackingProcess::SetDefaultParam()
 {
   //----- create the path to the box
+  
+  // get the home env var
   char* homePath;
   homePath = getenv ("HOME");
+  
+  // set the model default path
   string defaultPath ( "data/model/WoodenBox/WoodenBox");
   ostringstream tmp_stream;
-  tmp_stream<< homePath << "/"<<defaultPath<<".wrl";
-  cout << "Path :" << tmp_stream.str()  <<endl;
-  LoadModel(tmp_stream.str());
+  tmp_stream<< homePath << "/"<<defaultPath;
+  m_pathPose = tmp_stream.str(); 
+
+  tmp_stream<<".wrl";
+  m_pathVrml = tmp_stream.str(); 
+
+  // load the model and set the flag model loaded to true
+  LoadModel( m_pathVrml.c_str());
   m_modelLoaded = true;
+
+  //----- Load the init box pose
  
-  //----- Load the last poses from files
-  fstream finitpos ;
-  vpPoseVector initpos ;
+  // read the pose
+  ParsePose();
+  m_initPoseLoaded = true;
+
+  //----- Load the default camera parameters
+  
+  // init path to xml file
+  string camParamPath ("data/hrp2CamParam/hrp2.xml");
   tmp_stream.str("");
-  tmp_stream<< homePath << "/"<<defaultPath<<".0.pos";
+  tmp_stream<<homePath<< "/"<< camParamPath;
+  m_pathCam = tmp_stream.str();
+  
+  // init cam name
+  m_nameCam = "cam1394_3_rectif";
+
+  // init proje Type
+  m_projType= vpCameraParameters::perspectiveProjWithoutDistortion;
+  
+  // init image dim
+  m_imageWidth=320;
+  m_imageHeight=240;
+  
+  // parse the cam
+  ParseCamParam();
+
+  // set the tracker cam parameters
+  m_tracker.setCameraParameters(m_cam) ;
+  
+  // everything is ok
+  return 0;
+
+
+}
+
+/*!-------------------------------------
+
+Parse camera parameters
+
+----------------------------------------*/
+int HRP2nmbtTrackingProcess::ParseCamParam()
+{
+
+#if defined(VISP_HAVE_XML2) 
+  //create a parser
+  vpXmlParserCamera parser;
+  parser.parse(m_cam,
+		m_pathCam.c_str(),
+		m_nameCam.c_str(),
+		m_projType,
+		m_imageWidth, 
+		m_imageHeight);
+  
+   m_cameraParamLoaded=true;
+   return 0;
+#else
+  
+   cerr << "Error: No parser available cannot parse the camera file"<<end;
+   return -1;
+   
+#endif
+
+   
+}
+
+/*------------------------------------
+
+Read cMo From File
+Load the last poses from files
+--------------------------------------*/
+int HRP2nmbtTrackingProcess::ParsePose()
+{
+   
+  // create the file name
+  ostringstream tmp_stream;
+  tmp_stream << m_pathPose<<".0.pos";
+  
+  // open the file
+  fstream finitpos ;
   finitpos.open(tmp_stream.str().c_str()) ;
   if(finitpos.fail() ){
     cout << "cannot read " <<tmp_stream.str()<<endl << "Init Failed"  << endl;
     return -1;
   }
+  
+  // if the file can be read
+  vpPoseVector initpos ;
   finitpos >> initpos[0];
   finitpos >> initpos[1];
   finitpos >> initpos[2];
@@ -121,34 +217,37 @@ int  HRP2nmbtTrackingProcess::SetDefaultParam()
   finitpos >> initpos[4];
   finitpos >> initpos[5];
 
-  finitpos.close(); 
+  // build cMo
   m_inputcMo.buildFrom(initpos) ;
-  m_initPoseLoaded = true;
-
-  //----- Load the default camera parameters
-  tmp_stream.str("");
-  string camParamPath ("data/hrp2CamParam/hrp2.xml");
-  tmp_stream<<homePath<< "/"<< camParamPath;
-
-#if defined(VISP_HAVE_XML2) 
-  //create a parser
-  vpXmlParserCamera parser;
-  vpCameraParameters cam;
-  int image_width(320);
-  int image_height(240);
-  string camName = "cam1394_4_rectif";
-  parser.parse(cam,
-  	       tmp_stream.str().c_str(),
-  	       camName.c_str(),
-  	       vpCameraParameters::perspectiveProjWithoutDistortion,
-  	       image_width, 
-	       image_height);
-  m_tracker.setCameraParameters(cam) ;
-#endif
+  
+  //close file
+  finitpos.close();
+  
+  // evrything went well  
   return 0;
-
-
 }
+
+/*-------------------------------------
+
+Set input image
+
+ --------------------------------------*/
+
+void HRP2nmbtTrackingProcess::SetInputVispImage(vpImage<unsigned char> * _I)
+{
+  m_inputVispImage=_I;
+  m_inputImagesLoaded=true;
+ 
+  // if the dimension are different from the stored
+  // one update the dimension and the calib param
+  if (m_imageWidth!=m_inputVispImage->getWidth())
+    {
+      m_imageWidth=m_inputVispImage->getWidth();
+      m_imageHeight=m_inputVispImage->getWidth();
+      ParseCamParam();
+      m_tracker.setCameraParameters(m_cam) ;
+    }
+}  
 
 
 /*!-------------------------------------
@@ -167,9 +266,13 @@ VPME_MU2              mu2
 
 PATH_MODEL            path name to the place where 
                       the model are stored
+PATH_CAM              path name to the cam xml file
 
 TRAC_LAMBDA           lambda parameter gain of the 
                       virtual visual servoing
+
+CAME_PROJ_TYP         camera projection type
+CAME_NAME             camera name
 
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aValue)
@@ -192,6 +295,7 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   bool isAPathParam(false);
   bool isAVpMeParam(false);
   bool isATrackerParam(false);
+  bool isACameraParam(false);
 
   if (paramType=="VPME")
     {
@@ -204,6 +308,10 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   else if(paramType=="TRAC")
     {
       isATrackerParam =true;  
+    }
+  else if(paramType=="CAME")
+    {
+      isACameraParam =true; 
     }
   else
     {
@@ -262,6 +370,10 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
        { 
  	 LoadModel(aValue);
        }
+     else if (paramId =="CAM")//"PATH_CAM"
+       {
+         m_pathCam = aValue;
+       }
      else 
        {
 	 cout << "Warning : unknown path parameter :"<< paramId << endl; 
@@ -285,8 +397,38 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
        }
     }
   
+  //------- CAMERA--------------//
+  else if(isACameraParam )
+    {
+      if (paramId=="PRO")//"CAME_PROJ_TYP"
+       { 
+         if(aValue=="withDistorsion")
+	   {
+	     m_projType=vpCameraParameters::perspectiveProjWithDistortion;
+	   }
+	 else if(aValue=="withoutDistorsion")
+	   {
+	     m_projType=vpCameraParameters::perspectiveProjWithDistortion;
+	   }
+	 else
+           {
+	     cout << "Warning : unknown distorsion type :"<< aValue << endl; 
+             return -2;
+           }
 
+       }
+      else if(paramId=="NAME")//"CAME_NAME"
+       {
+	 m_nameCam = aValue;
+       }
+      else 
+       {
+	 cout << "Warning : unknown path parameter :"<< paramId << endl; 
+	 return -1;
+       }
 
+    }
+ 
   return(outputVBPSetParameters);
 }
 
@@ -295,6 +437,7 @@ Set cMo
 ------------------------------------- */
 void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & _cMo)
 {
+  
   m_inputcMo=_cMo;   
   m_tracker.setcMo(m_inputcMo);
   m_initPoseLoaded = true;
@@ -308,8 +451,7 @@ int HRP2nmbtTrackingProcess:: InitializeTheProcess()
 {
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
-  m_tracker.setcMo(m_inputcMo);
-
+  m_tracker.init(*m_inputVispImage,m_inputcMo );
   return 0;
 }
 
@@ -324,38 +466,46 @@ the object model
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::RealizeTheProcess()
 {
-   
+  m_trackerTrackSuccess = false;
  
   if(m_inputImagesLoaded)
-   try
-   {  	
-      m_tracker.track(m_inputVispImage) ;
-   }
-   catch(std::string a) // tracking got lost
-   {
-     std::cerr << std::endl;
-     std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
-     std::cerr << std::endl;
-     
-     // set the tracking flag
-     m_trackerTrackSuccess= false;
-     
-     // set the cMo matrix to identity   
-     m_outputcMo.setIdentity();
+    {
  
-     // return a negative value
-     return -1;
+      try
+	{  	
+	  m_tracker.track(*m_inputVispImage) ;
+	}
+      catch(std::string a) // tracking got lost
+	{
+	  std::cerr << std::endl;
+	  std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
+	  std::cerr << std::endl;
+	  
+	  // set the tracking flag
+	  m_trackerTrackSuccess= false;
+	  
+	  // set the cMo matrix to identity   
+	  m_outputcMo.setIdentity();
+	  
+	  // return a negative value
+	  return -1;
+	  
+	}
+    
+      // tracking succeed
+      m_trackerTrackSuccess= true;
       
-   }
-
-   // tracking succeed
-   m_trackerTrackSuccess= true;
-   
-   // set the resulting transform between the object and the image
-   m_tracker.getPose(m_outputcMo);  
-
-   return 0;
-
+      // set the resulting transform between the object and the image
+      m_tracker.getPose(m_outputcMo);  
+      
+      return 0;
+    }
+  else 
+    {
+      cerr << "Error :HRP2nmbtTrackingProcess::RealizeTheProcess>>  No image " <<endl; 
+      return -1;   
+    }
+ 
 }
   
 /*!-------------------------------------
@@ -363,7 +513,7 @@ int HRP2nmbtTrackingProcess::RealizeTheProcess()
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::CleanUpTheProcess()
 {
-
+  m_tracker.resetTracker();
   return 0;
 }
 

@@ -88,12 +88,8 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Cleanup the process */
   int CleanUpTheProcess();
 
-  /*! Load the Model*/
-  int LoadModel( const std::string & pathToModel);
-
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);
-
     
   /*! Set tracker parameters : moving edge parameters*/
   inline void SetMovingEdge(vpMe &_me){m_tracker.setMovingEdge(_me);}
@@ -102,13 +98,13 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   inline void SetLambda(const double _lambda){m_tracker.setLambda(_lambda);}
 
   /*! Set tracker parameters : camera parameters */
-  inline void SetCameraParameters(const vpCameraParameters & _cam){m_tracker.setCameraParameters(_cam);}  
+  inline void SetCameraParameters(const vpCameraParameters & _cam){m_cam=_cam;m_tracker.setCameraParameters(_cam);}  
 
   /*! Set tracker parameters : camera/object pose cMo*/
   void SetcMo(const vpHomogeneousMatrix & _cMo);  
 
   /*! Set the image */
-  inline void SetInputVispImage(const vpImage<unsigned char> & _I){m_inputVispImage=_I;m_inputImagesLoaded=true;}  
+  void SetInputVispImage(vpImage<unsigned char> * _I);  
  
   /*! Get tracker parameters : camera parameters */
   inline void GetCameraParameters(vpCameraParameters & _cam){m_tracker.getCameraParameters(_cam);}  
@@ -117,7 +113,7 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   inline void GetcMo(vpHomogeneousMatrix &cMo){m_tracker.getPose(cMo);}
 
   /*! Get the image */
-  inline void GetInputVispImage(vpImage<unsigned char> & _I){_I=this->m_inputVispImage;}  
+  inline void GetInputVispImage(vpImage<unsigned char> & _I){_I=*(m_inputVispImage);}  
   
   /*! Get the inputcMo */
   inline void GetInputcMo(vpHomogeneousMatrix & _inputcMo){_inputcMo=this->m_inputcMo;} 
@@ -125,29 +121,58 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Get the inputcMo */
   inline void GetOutputcMo(vpHomogeneousMatrix & _outputcMo){_outputcMo=this->m_outputcMo;} 
  
+private:
+  /*! Parse camera parameters*/
+  int ParseCamParam();
+  
+  /*! Load the Model*/
+  int LoadModel( const std::string & pathToModel);
 
-
+  /*! Parse pose init*/
+  int ParsePose();
 
 protected:
   // lagadic tracker
   nmbtTracking m_tracker;
    
-  // visp images
-  vpImage<unsigned char> m_inputVispImage;
-   
+  /*! visp images*/
+  vpImage<unsigned char> *m_inputVispImage;
+  
+  /*! image dimensions*/
+  int m_imageHeight;
+  int m_imageWidth;
+    
   /*! transformation between the object and the camera*/
   vpHomogeneousMatrix m_inputcMo;
    
   /*! computed transformation between the object and the camera*/
   vpHomogeneousMatrix m_outputcMo;  
  
+  /*! camera parameters*/
+  vpCameraParameters m_cam; 
+
+  /*! path cam param*/
+  string m_pathCam;
+  
+  /*! name cam*/
+  string m_nameCam;
+
+  /*! path pose cMo*/
+  string m_pathPose;
+
+  /*! path vrml*/
+  string m_pathVrml;
+
+  /*! perspective type*/
+  vpCameraParameters::vpCameraParametersProjType m_projType;
 
  public:
   bool m_inputImagesLoaded;
   bool m_cameraParamLoaded;
   bool m_modelLoaded;
   bool m_trackerTrackSuccess;
-  bool m_initPoseLoaded;	
+  bool m_initPoseLoaded;
+ 	
 };
 
 

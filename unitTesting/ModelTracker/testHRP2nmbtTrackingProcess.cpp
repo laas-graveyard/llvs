@@ -81,50 +81,76 @@ int main(void)
   cout << endl; 
   cout <<" ---------------------------" << endl;
  
-  // image path
+
+  // use this pose to init the LLVS tracker
+  HRP2nmbtTrackingProcess trackerServer;
+  vpCameraParameters cam;
+  trackerServer.GetCameraParameters(cam);
+
+  // string operator
+   ostringstream tmp_stream;
+  
+  // Create the path
   char* homePath;
   homePath                    = getenv ("HOME");
   string defaultPath          = "data";
   string imagePath            = "images/imageWide.ppm"  ;
-  ostringstream tmp_stream;
-  tmp_stream<< homePath << "/"<<defaultPath<<"/"<< imagePath;
+  string objectName           = "WoodenBox";
   
+  tmp_stream<< homePath << "/"<<defaultPath<<"/"<< imagePath;
+  imagePath = tmp_stream.str() ;
+  
+  tmp_stream.str("");
+  tmp_stream<< homePath << "/"<<defaultPath<<"/model/"<<objectName<<"/"<<objectName ;
+  string modelPath =  tmp_stream.str() ;
+  tmp_stream<<".wrl"; 
+  string vrmlPath =  tmp_stream.str() ;
+  tmp_stream.str("");
+ 
   // read the image 
   vpImage<unsigned char> Isrc;
-  vpImageIo::readPPM(Isrc,tmp_stream.str().c_str());   
+  vpImageIo::readPPM(Isrc,imagePath.c_str());   
     
   // create the display associated to the image
   vpDisplayX display(Isrc,0,0,"Image");
   vpDisplay::display(Isrc);
   vpDisplay::flush(Isrc);
 
-  //create a temporary tracker
-  tmp_stream.str("");
-  tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox.wrl";
-  cout <<tmp_stream.str() <<endl;
-  nmbtTracking tracker_tmp;
-  tracker_tmp.loadModel(tmp_stream.str().c_str());
-  tmp_stream.str("");
-  tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox";
-  tracker_tmp.initClick(Isrc, tmp_stream.str().c_str()) ; 
+  // create a temporary tracker
+  nmbtTracking trackerClient;
+  trackerClient.loadModel( vrmlPath.c_str());
+  trackerClient.setCameraParameters(cam);
+   
+ 
+  // init the tracking with clicks
+  trackerClient.initClick(Isrc, modelPath.c_str()) ; 
   
   // create an initial pose
   vpHomogeneousMatrix cMo;
-  tracker_tmp.getPose(cMo);
+  trackerClient.getPose(cMo);
   cout << "cMo \n"<< cMo<<endl ;
-  
-  // use this pose to init the LLVS tracker
-   tmp_stream.str("");
-   tmp_stream<< homePath << "/"<<defaultPath<<"/model/WoodenBox/WoodenBox.wrl";
-   cout <<tmp_stream.str() <<endl;
-   HRP2nmbtTrackingProcess tracker;
-   tracker.LoadModel(tmp_stream.str().c_str());
+  trackerClient.track(Isrc);  
+  trackerClient.getPose(cMo);
+  cout << "cMo after track \n"<< cMo<<endl ;
+  trackerClient.display(Isrc, cMo, cam, vpColor::red,2); 
+   
+
    
   // set the tracker parameters
-   tracker.SetcMo(cMo);
-   tracker.SetInputVispImage(Isrc);
-   tracker.InitializeTheProcess();
-   tracker.RealizeTheProcess();
+  //trackerServer.SetcMo(cMo);
+  trackerServer.SetInputVispImage(&(Isrc));
+
+  //----
+  trackerServer.InitializeTheProcess();
+  trackerServer.RealizeTheProcess();
+
+  // get the tracking result
+  trackerServer.GetcMo(cMo);
+  
+  // display it using the client tracker
+  trackerClient.display(Isrc, cMo, cam, vpColor::red,2); 
+  
+  
 
 
   cout<< "Click on the image to exit" << endl;
