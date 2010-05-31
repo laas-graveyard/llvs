@@ -81,8 +81,8 @@
 
 #include "ImagesInputMethod.h"
 
-#if (LLVS_HAVE_OPENCV>0)
-
+#if (LLVS_HAVE_NMBT>0)
+#include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
 #include <vector>
@@ -193,7 +193,7 @@ namespace llvs
       static const CORBA::Long CAMERA_LEFT  = 0;
       static const CORBA::Long CAMERA_RIGHT = 1;
       static const CORBA::Long CAMERA_UP    = 2;
-
+      static const CORBA::Long CAMERA_WIDE  = 3;
       /*! Interface : returns the synchronization mode */
       LowLevelVisionSystem::InputMode GetInputMode()
 	throw(CORBA::SystemException) ;
@@ -442,6 +442,14 @@ namespace llvs
       /*! Image Size used during calibration */
       vector<CORBA::Long> m_CalibrationWidth, m_CalibrationHeight;
 
+
+#if (LLVS_HAVE_NMBT>0)
+      /*! Model Tracker process. */
+      HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
+#endif
+
+      
+
 #if (LLVS_HAVE_VVV>0)
       /*! Initial image in the VVV formalism. */
       EPBM m_epbm[4];
@@ -467,6 +475,7 @@ namespace llvs
       /*! Mire detection process. */
       HRP2MireDetectionProcess *m_MireDetectionProcess;
 
+     
       /*! Optical Flow Process */
       HRP2OpticalFlowProcess *m_OP;
 
@@ -500,6 +509,7 @@ namespace llvs
       EPBM_DistortionParameter m_DistortionParameter[4];
 
 #endif
+
 
 #if (LLVS_HAVE_SCENE>0)
       /*! SingleCameraSLAMProcess */

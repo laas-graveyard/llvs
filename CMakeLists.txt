@@ -63,7 +63,7 @@
   SET(CMAKE_CXX_INCLUDE_PATH "")
 #Create include directory which will contain all the headers
   MAKE_DIRECTORY(${LLVS_INTERN_INCLUDE_DIR})
-
+  
 #where are use-specific cmake modules
   SET(CMAKE_MODULE_PATH ${LLVS_SOURCE_DIR}/CMakeModules)
   INCLUDE(CheckLibraryExists)
@@ -72,7 +72,7 @@
 # Specify the compile flags for the overall library
 #------------------------------------------------------------
 #To be used for debugging
-  SET(LLVS_CXX_FLAGS "-g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/local/")
+  SET(LLVS_CXX_FLAGS "-I${LLVS_INTERN_INCLUDE_DIR} -g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/local/")
 #Normal settings
   #SET(LLVS_CXX_FLAGS "-O3 -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS")
 
@@ -198,6 +198,7 @@
 	  SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${option_cxxflags}")
           MESSAGE(STATUS "option CXX lidc1394: ${option_cxxflags}")
         ENDFOREACH(option_cxxflags)
+	MESSAGE(STATUS "libdc1394: LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
 	FOREACH(option_ldflags ${libdc1394-2_LDFLAGS})
           MESSAGE(STATUS "option LD lidc1394: ${option_ldflags}")
           SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${option_ldflags}")
@@ -214,12 +215,12 @@ ENDIF(SEARCH_FOR_DC1394_V2)
   IF (SEARCH_FOR_VISP)
      FIND_PACKAGE(VISP)
      IF (VISP_FOUND)
-     	 INCLUDE(${VISP_USE_FILE})
-      	 SET(LLVS_HAVE_VISP 1)
+         SET(LLVS_HAVE_VISP 1)
       	 LIST(APPEND LLVS_EXTERN_LIBS ${VISP_LIBRARIES})
          LIST(APPEND LLVS_EXTERN_INCLUDE_DIR ${VISP_INCLUDE_DIR}) 
-      	 LIST(APPEND LLVS_EXTERN_LIB_DIR ${VISP_LINK_DIRECTORIES})
-   	 ENDIF(VISP_FOUND)
+      	 LIST(APPEND LLVS_EXTERN_LINK_DIR ${VISP_LINK_DIRECTORIES})
+     ENDIF(VISP_FOUND)
+  MESSAGE (STATUS "VISP LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
   ENDIF(SEARCH_FOR_VISP)
 
 
@@ -231,30 +232,39 @@ ENDIF(SEARCH_FOR_DC1394_V2)
      ELSE(NOT VISP_FOUND)
        FIND_PACKAGE(NMBT)
        IF (NMBT_FOUND)
-      	  INCLUDE(${NMBT_USE_FILE})
       	  SET(LLVS_HAVE_NMBT 1)
       	  LIST(APPEND LLVS_EXTERN_LIBS ${NMBT_LIBRARIES})
           LIST(APPEND LLVS_EXTERN_INCLUDE_DIR ${NMBT_INCLUDE_DIR})
-      	  LIST(APPEND LLVS_EXTERN_LIB_DIR ${NMBT_LINK_DIRECTORIES})
+      	  LIST(APPEND LLVS_EXTERN_LINK_DIR ${NMBT_LINK_DIRECTORIES})
        ENDIF (NMBT_FOUND)
      ENDIF(NOT VISP_FOUND)
-ENDIF(SEARCH_FOR_NMBT)
+     MESSAGE (STATUS "NMBT LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+  ENDIF(SEARCH_FOR_NMBT)
 
 
 #------------------------------------------------------------
 # Concatenate intern and third party include dirs
 #------------------------------------------------------------
-  INCLUDE_DIRECTORIES(${LLVS_INTERN_INCLUDE_DIR} ${LLVS_EXTERN_INCLUDE_DIR})
+ 
+ SET (${LLVS_INCLUDE_DIR} "")
+ LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_INTERN_INCLUDE_DIR}")
+ LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_EXTERN_INCLUDE_DIR}")
+ MESSAGE("LLVS_INCLUDE_DIR:${LLVS_INCLUDE_DIR}")
+ INCLUDE_DIRECTORIES(${LLVS_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Add library path
 #------------------------------------------------------------
-  LINK_DIRECTORIES(${LLVS_INTERN_LINK_DIR} ${LLVS_EXTERN_LINK_DIR})
+ SET (${LLVS_LINK_DIR} "")
+ LIST(APPEND LLVS_LINK_DIR "${LLVS_INTERN_LINK_DIR}")
+ LIST(APPEND LLVS_LINK_DIR "${LLVS_EXTERN_LINK_DIR}")
+ MESSAGE("LLVS_LINK_DIR:${LLVS_LINK_DIR}")
+ LINK_DIRECTORIES(${LLVS_LINK_DIR})
 
 #------------------------------------------------------------
 # Link Libraries
 #------------------------------------------------------------
-  LINK_LIBRARIES(${LLVS_EXTERN_LIBS} ${LLVS_INTERN_LIBS})
+  LINK_LIBRARIES(${LLVS_INTERN_LIBS};${LLVS_EXTERN_LIBS})
 
 #----------------------------------------------------
 # Generate the package dependent file sotConfig.h
@@ -281,6 +291,7 @@ ENDIF(SEARCH_FOR_NMBT)
     COMPILE_FLAGS "${LLVS_CXX_FLAGS}"
     LINK_FLAGS " ${LLVS_LINK_FLAGS} ")
 
+ 
 #----------------------------------------------------
 # Create the server.
 #----------------------------------------------------

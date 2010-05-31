@@ -68,6 +68,11 @@ extern "C"
 }
 #endif
 
+#if (LLVS_HAVE_NMBT>0)
+#include "ModelTracker/nmbtTrackingProcess.h"
+#endif
+
+
 using namespace std; 
 
 #include "Corba/Camera_impl.h"
@@ -83,6 +88,9 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
+#if (LLVS_HAVE_NMBT>0)
+#include "ModelTracker/nmbtTrackingProcess.h"
+#endif
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "LowLevelVisionServer:" << x << endl
@@ -108,6 +116,9 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 					   int Verbosity=0,
 					   string lCalibDir="") throw(const char*)
 {
+
+ 
+
   m_Computing = 0;
   m_Verbosity = Verbosity;
 #if (LLVS_HAVE_VVV>0)
@@ -297,7 +308,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   
   /* Disparity process */
   m_DP = new HRP2DisparityProcess(0);
-
   m_DP->SetInputImages(m_CorrectedImages);
   m_DP->SetCalibrationSize(m_CalibrationWidth[0], m_CalibrationHeight[0]);
   m_DP->InitializeTheProcess(m_CalibrationWidth[0], m_CalibrationHeight[0]);
@@ -362,8 +372,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* Create Color detection process */ 
   m_ColorDetection = new HRP2ColorDetectionProcess(m_cxt,this,
 						   m_CalibrationDirectory);
-   m_ColorDetection->SetInputImages(m_epbm[0],m_epbm[1]);
-   m_ColorDetection->InitializeTheProcess();
+  m_ColorDetection->SetInputImages(m_epbm[0],m_epbm[1]);
+  m_ColorDetection->InitializeTheProcess();
   m_ColorDetection->StopProcess();
   
   //  m_ColorDetection->StopProcess();
@@ -379,11 +389,33 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_SingleCameraSLAM);
 #endif
   
+#if (LLVS_HAVE_NMBT>0)
+  /*! Model Tracker process. */
+  m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
+ 
+  //
+  // TODO il faut entrer une image dans le tracker avant
+  // de pouvoir l'initialiser, il faut donc faire la conv
+  // des images acquises a des images ViSP
+  // 
+  // m_ModelTrackerProcess->SetInputVispImage(&(Isrc));
+  // m_ModelTrackerProcess->InitializeTheProcess();
+ 
+  //
+  // rq : on pourrait peut etre utiliser aussi l'emplacement
+  // m_RobotVisionCalibrationDirectory="/home/hrpuser/hrp2/HRP2eyes/rbt_calib/hmat";
+  // pour stocker notre fichier xml ?
+  //m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
+#endif
+
+
   /* Set the framegrabber trigger to zero. */
   m_SynchroTrigger = false;
 
 
   ODEBUG("Step 5");
+   
+  
   m_RobotVisionCalibrationDirectory="/home/hrpuser/hrp2/HRP2eyes/rbt_calib/hmat";
   for(int i=0;i<16;i++)
     m_headTorg[i] = 0.0;
