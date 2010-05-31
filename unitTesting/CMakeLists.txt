@@ -10,7 +10,9 @@
 #
 # If you add/remove a directory, modify here
 SET (SRC_SUBDIRS
-  ModelTracker)
+  ModelTracker
+  TestConvertImages
+)
 
 # Build process propagation in the sub directories
 SUBDIRS(${SRC_SUBDIRS})
