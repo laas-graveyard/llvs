@@ -79,57 +79,65 @@ convertGrey(const cv::Mat* src,
   int lineStep = (flip) ? 1 : 0;
 
 
-cout << width << "Heigth" <<height<<endl;
- cout<< "nChannel :" << nChannel<<" depth :" << depth<<endl;
+  cout << width << "Heigth" <<height<<endl;
+  cout<< "nChannel :" << nChannel<<" depth :" << depth<<endl;
  
   if (flip == false)
   {
-  	if(widthStep == width){
-  	  if(nChannel == 1 && depth == 0){
-  	    dest.resize(height,width) ;
-  	    memcpy(dest.bitmap, src->data,
-  	            height*width);
-  	  }
-  	  if(nChannel == 3 && depth == 0){
-  	    dest.resize(height,width) ;
-  	    vpImageConvert::BGRToGrey((unsigned char*)src->data,dest.bitmap,width,height,false);
-  	  }
-  	}
-  	else{
-  	  if(nChannel == 1 && depth == 0){
-  	    dest.resize(height,width) ;
-  	    for (int i =0  ; i < height ; i++){
-  	      memcpy(dest.bitmap+i*width, src->data + i*widthStep,
-  	            width);
-  	    }
-  	  }
-  	  if(nChannel == 3 && depth == 0){
-  	    dest.resize(height,width) ;
-  	    for (int i = 0  ; i < height ; i++){
-  	      vpImageConvert::BGRToGrey((unsigned char*)src->data + i*widthStep,
-  	                  dest.bitmap + i*width,width,1,false);
-  	    }
-  	  }
-  	}
+    if(widthStep == width)
+      {
+      if(nChannel == 1 && depth == 0)
+	{
+	  dest.resize(height,width) ;
+	  memcpy(dest.bitmap, src->data,
+		 height*width);
+	}
+      else if(nChannel == 3 && depth == 0)
+	{
+	  dest.resize(height,width) ;
+	  vpImageConvert::BGRToGrey((unsigned char*)src->data,dest.bitmap,width,height,false);
+	}
+      }
+    else{
+      if(nChannel == 1 && depth == 0)
+	{
+	  dest.resize(height,width) ;
+	  for (int i =0  ; i < height ; ++i)
+	    {
+	      memcpy(dest.bitmap+i*width, src->data + i*widthStep,width);
+	    }
+	}
+      else if(nChannel == 3 && depth == 0)
+	{
+	  dest.resize(height,width) ;
+	  for (int i = 0  ; i < height ; i++)
+	    {
+	      vpImageConvert::BGRToGrey((unsigned char*)src->data + i*widthStep,
+					dest.bitmap + i*width,width,1,false);
+	    }
+	}
+    }
   }
   else 
-  {
-  	  if(nChannel == 1 && depth == 0){
-	    unsigned char* beginOutput = (unsigned char*)dest.bitmap;
-  	    dest.resize(height,width) ;
-  	    for (int i =0  ; i < height ; i++){
-  	      memcpy(beginOutput + lineStep * ( 4 * width * ( height - 1 - i ) ) , src->data + i*widthStep,
-  	            width);
-  	    }
-  	  }
-  	  if(nChannel == 3 && depth == 0){
-  	    dest.resize(height,width) ;
-  	    //for (int i = 0  ; i < height ; i++){
-  	      vpImageConvert::BGRToGrey((unsigned char*)src->data /*+ i*widthStep*/,
-  	                  dest.bitmap /*+ i*width*/,width,height/*1*/,true);
-  	    //}
-  	  }
-  }
+    {
+      if(nChannel == 1 && depth == 0)
+	{
+	  unsigned char* beginOutput = (unsigned char*)dest.bitmap;
+	  dest.resize(height,width) ;
+	  for (int i =0  ; i < height ; i++){
+	    memcpy(beginOutput + lineStep * ( 4 * width * ( height - 1 - i ) ) , src->data + i*widthStep,
+		   width);
+	  }
+	}
+      else if(nChannel == 3 && depth == 0)
+	{
+	  dest.resize(height,width) ;
+	  //for (int i = 0  ; i < height ; i++){
+	  vpImageConvert::BGRToGrey((unsigned char*)src->data /*+ i*widthStep*/,
+				    dest.bitmap /*+ i*width*/,width,height/*1*/,true);
+	  //}
+	}
+    }
 }
 
 void convertRGBa(const cv::Mat* src, vpImage<vpRGBa> & dest, bool flip)
