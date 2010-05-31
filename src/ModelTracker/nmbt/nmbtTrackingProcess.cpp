@@ -94,7 +94,88 @@ HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
   
 }
 
+/*!------------------------------------- 
+Set tracker parameters : moving edge parameters
+-------------------------------------*/
+void HRP2nmbtTrackingProcess::SetMovingEdge(vpMe &_me)
+{
+  m_tracker.setMovingEdge(_me);
+}
+  
+/*!------------------------------------- 
+Set tracker parameters : gain of the virtual visual servoing
+-------------------------------------*/
+void HRP2nmbtTrackingProcess::SetLambda(const double _lambda)
+{
+  m_tracker.setLambda(_lambda);
+}
 
+/*!------------------------------------- 
+Set tracker parameters : camera parameters 
+-------------------------------------*/
+void HRP2nmbtTrackingProcess::SetCameraParameters(const vpCameraParameters & _cam)
+{
+  m_cam=_cam;m_tracker.setCameraParameters(_cam);
+}
+
+
+/*!
+ Set Image Height
+*/
+void  HRP2nmbtTrackingProcess::SetHeight(const int&_height)
+{
+  m_imageHeight= _height;
+}   
+
+/*! 
+  Set Image Width
+*/
+void  HRP2nmbtTrackingProcess::SetWidth(const int&_width)
+{
+  m_imageWidth=_width;
+} 
+
+/*! Get tracker parameters : camera parameters */
+void  HRP2nmbtTrackingProcess::GetCameraParameters(vpCameraParameters & _cam)
+{
+  m_tracker.getCameraParameters(_cam);
+}  
+
+/*! Get tracker parameters : cMo camera /object pose */
+void  HRP2nmbtTrackingProcess::GetcMo(vpHomogeneousMatrix &cMo)
+{
+  m_tracker.getPose(cMo);
+}
+
+/*! Get the image */
+void  HRP2nmbtTrackingProcess::GetInputVispImages(vpImage<unsigned char> & _I)
+{
+  _I=*(m_inputVispImage);
+}  
+  
+/*! Get the inputcMo */
+void  HRP2nmbtTrackingProcess::GetInputcMo(vpHomogeneousMatrix & _inputcMo)
+{
+  _inputcMo=this->m_inputcMo;
+} 
+  
+/*! Get the inputcMo */
+void  HRP2nmbtTrackingProcess::GetOutputcMo(vpHomogeneousMatrix & _outputcMo)
+{
+  _outputcMo=this->m_outputcMo;
+} 
+ 
+/*! Get Image Height*/
+void  HRP2nmbtTrackingProcess::GetHeight(int&_height)
+{
+  _height= m_imageHeight;
+}   
+
+/*! Get Image Width*/
+void  HRP2nmbtTrackingProcess::GetWidth(int&_width)
+{
+  _width = m_imageWidth;
+}  
 
 /*!-------------------------------------
    Set Default Parameters
@@ -103,8 +184,11 @@ HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::SetDefaultParam()
 {
-  //----- create the path to the box
-  
+
+  //-------------------------------
+  // create the path to the box
+  //-------------------------------
+
   // get the home env var
   char* homePath;
   homePath = getenv ("HOME");
@@ -122,14 +206,20 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   LoadModel( m_pathVrml.c_str());
   m_modelLoaded = true;
 
-  //----- Load the init box pose
  
+  //-------------------------------
+  // Load the init box pose
+  //-------------------------------
+
   // read the pose
-  ParsePose();
+  LoadPose();
+  m_tracker.setcMo(m_inputcMo) ;
   m_initPoseLoaded = true;
 
-  //----- Load the default camera parameters
-  
+  //---------------------------------
+  // Load the default camera parameters
+  //--------------------------------- 
+
   // init path to xml file
   string camParamPath ("data/hrp2CamParam/hrp2.xml");
   tmp_stream.str("");
@@ -143,20 +233,24 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   m_projType= vpCameraParameters::perspectiveProjWithoutDistortion;
   
   // init image dim
-  m_imageWidth=320;
-  m_imageHeight=240;
+  m_imageWidth= 320;
+  m_imageHeight= 240;
   
   // parse the cam
   ParseCamParam();
 
   // set the tracker cam parameters
   m_tracker.setCameraParameters(m_cam) ;
-  
+  m_cameraParamLoaded = true;
+
+  //---------------------------------
   // everything is ok
+  //---------------------------------
   return 0;
 
 
 }
+
 
 /*!-------------------------------------
 
@@ -193,7 +287,7 @@ int HRP2nmbtTrackingProcess::ParseCamParam()
 Read cMo From File
 Load the last poses from files
 --------------------------------------*/
-int HRP2nmbtTrackingProcess::ParsePose()
+int HRP2nmbtTrackingProcess::LoadPose()
 {
    
   // create the file name
@@ -210,12 +304,12 @@ int HRP2nmbtTrackingProcess::ParsePose()
   
   // if the file can be read
   vpPoseVector initpos ;
-  finitpos >> initpos[0];
-  finitpos >> initpos[1];
-  finitpos >> initpos[2];
-  finitpos >> initpos[3];
-  finitpos >> initpos[4];
-  finitpos >> initpos[5];
+  finitpos >> initpos[0]; // tx
+  finitpos >> initpos[1]; // ty
+  finitpos >> initpos[2]; // tz
+  finitpos >> initpos[3]; // thetaU x
+  finitpos >> initpos[4]; // thetaU y
+  finitpos >> initpos[5]; // thetaU z
 
   // build cMo
   m_inputcMo.buildFrom(initpos) ;
@@ -233,7 +327,7 @@ Set input image
 
  --------------------------------------*/
 
-void HRP2nmbtTrackingProcess::SetInputVispImage(vpImage<unsigned char> * _I)
+void HRP2nmbtTrackingProcess::SetInputVispImages(vpImage<unsigned char> * _I)
 {
   m_inputVispImage=_I;
   m_inputImagesLoaded=true;
@@ -242,8 +336,8 @@ void HRP2nmbtTrackingProcess::SetInputVispImage(vpImage<unsigned char> * _I)
   // one update the dimension and the calib param
   if (m_imageWidth!=m_inputVispImage->getWidth())
     {
-      m_imageWidth=m_inputVispImage->getWidth();
-      m_imageHeight=m_inputVispImage->getWidth();
+      m_imageWidth  = m_inputVispImage->getWidth();
+      m_imageHeight = m_inputVispImage->getWidth();
       ParseCamParam();
       m_tracker.setCameraParameters(m_cam) ;
     }
@@ -286,8 +380,10 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
   // get the 4 first parameter to find the parameter type
+  // get 4 letters starting from the letter number 0
   string paramType = aParameter.substr(0,4);
   // get the  first parameter to find the parameter type
+  // get 3 letters starting from the letter number 5
   string paramId = aParameter.substr(5,3);
   
   //cout << "paramType: " << paramType   << endl;
@@ -369,10 +465,12 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
      if (paramId=="MOD")//"PATH_MODEL"
        { 
  	 LoadModel(aValue);
+         m_pathVrml = aValue;
        }
      else if (paramId =="CAM")//"PATH_CAM"
        {
          m_pathCam = aValue;
+         ParseCamParam();
        }
      else 
        {
@@ -380,7 +478,7 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
 	 return -1;
        }
     }
-//-------- TRACKER ------------//
+  //-------- TRACKER ------------//
   else if(isATrackerParam)
     {
      if (paramId=="LAM")//"TRAC_LAMBDA"
@@ -405,10 +503,12 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
          if(aValue=="withDistorsion")
 	   {
 	     m_projType=vpCameraParameters::perspectiveProjWithDistortion;
+	     ParseCamParam();
 	   }
 	 else if(aValue=="withoutDistorsion")
 	   {
-	     m_projType=vpCameraParameters::perspectiveProjWithDistortion;
+	     m_projType=vpCameraParameters::perspectiveProjWithoutDistortion;
+	     ParseCamParam();
 	   }
 	 else
            {
@@ -420,6 +520,7 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
       else if(paramId=="NAME")//"CAME_NAME"
        {
 	 m_nameCam = aValue;
+	 ParseCamParam();
        }
       else 
        {
@@ -437,7 +538,6 @@ Set cMo
 ------------------------------------- */
 void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & _cMo)
 {
-  
   m_inputcMo=_cMo;   
   m_tracker.setcMo(m_inputcMo);
   m_initPoseLoaded = true;
@@ -532,3 +632,28 @@ int HRP2nmbtTrackingProcess::LoadModel( const std::string & pathToModel)
   return 0;
 }
 
+
+/*!-------------------------------------- 
+  Convert LLVS image To VISP Image
+-----------------------------------------*/
+int HRP2nmbtTrackingProcess::ConvertLLVSImageToViSPImage()
+{
+  
+  cout << "ConvertLLVSImageToViSPImage >> To be implemented" <<endl;
+ 
+  return 0;
+}  
+
+
+
+/*!-------------------------------------- 
+  Convert LLVS image To VISP Image
+-----------------------------------------*/
+int HRP2nmbtTrackingProcess::SetInputImages()
+{
+
+  //ConvertLLVSImageToViSPImage();
+  cout << "SetInputImages >> To be implemented" <<endl;
+  //SetInputVispImages(vpImage<unsigned char> * _I);  
+  return 0;
+}  

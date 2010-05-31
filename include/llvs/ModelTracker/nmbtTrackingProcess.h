@@ -56,6 +56,7 @@
 #include<visp/vpMe.h>
 #include<visp/vpCameraParameters.h>
 #include<visp/vpHomogeneousMatrix.h>
+
 //include lagadic tracking lib files
 #include<nmbt/nmbtTracking.h>
 
@@ -92,44 +93,71 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   int SetParameter(string aParameter, string aValue);
     
   /*! Set tracker parameters : moving edge parameters*/
-  inline void SetMovingEdge(vpMe &_me){m_tracker.setMovingEdge(_me);}
+  void SetMovingEdge(vpMe &_me);
   
   /*! Set tracker parameters : gain of the virtual visual servoing*/
-  inline void SetLambda(const double _lambda){m_tracker.setLambda(_lambda);}
+  void SetLambda(const double _lambda);
 
   /*! Set tracker parameters : camera parameters */
-  inline void SetCameraParameters(const vpCameraParameters & _cam){m_cam=_cam;m_tracker.setCameraParameters(_cam);}  
-
+  void SetCameraParameters(const vpCameraParameters & _cam);
+ 
   /*! Set tracker parameters : camera/object pose cMo*/
   void SetcMo(const vpHomogeneousMatrix & _cMo);  
 
   /*! Set the image */
-  void SetInputVispImage(vpImage<unsigned char> * _I);  
+  void SetInputVispImages(vpImage<unsigned char> * _I);  
  
+  /* Set input image : on passe un pointeur vers une image 
+     acquise dans "LLVS"
+     dans la fonction on la converti en image visp
+     et on appelle SetInputVispImages 
+  */
+  int SetInputImages();
+
+  /*! Set Image Height*/
+  void SetHeight(const int&_height);   
+
+  /*! Set Image Width*/
+  void SetWidth(const int&_width);   
+  
   /*! Get tracker parameters : camera parameters */
-  inline void GetCameraParameters(vpCameraParameters & _cam){m_tracker.getCameraParameters(_cam);}  
-
+  void GetCameraParameters(vpCameraParameters & _cam); 
+  
   /*! Get tracker parameters : cMo camera /object pose */
-  inline void GetcMo(vpHomogeneousMatrix &cMo){m_tracker.getPose(cMo);}
-
+  void GetcMo(vpHomogeneousMatrix &cMo);
+  
   /*! Get the image */
-  inline void GetInputVispImage(vpImage<unsigned char> & _I){_I=*(m_inputVispImage);}  
+  void GetInputVispImages(vpImage<unsigned char> & _I); 
+   
+  /*! Get the inputcMo */
+  void GetInputcMo(vpHomogeneousMatrix & _inputcMo); 
   
   /*! Get the inputcMo */
-  inline void GetInputcMo(vpHomogeneousMatrix & _inputcMo){_inputcMo=this->m_inputcMo;} 
+  void GetOutputcMo(vpHomogeneousMatrix & _outputcMo);
   
-  /*! Get the inputcMo */
-  inline void GetOutputcMo(vpHomogeneousMatrix & _outputcMo){_outputcMo=this->m_outputcMo;} 
+  /*! Get Image Height*/
+  void GetHeight(int&_height)   ;
+  
+  /*! Get Image Width*/
+  void GetWidth(int&_width)  ;
+
  
 private:
+  
+  // TODO : uniformiser les 3.
+
   /*! Parse camera parameters*/
   int ParseCamParam();
   
   /*! Load the Model*/
-  int LoadModel( const std::string & pathToModel);
+  int LoadModel(const std::string & pathToModel);
 
   /*! Parse pose init*/
-  int ParsePose();
+  int LoadPose();
+
+  /*! Convert LLVS image To VISP Image*/
+  int ConvertLLVSImageToViSPImage();  
+  
 
 protected:
   // lagadic tracker

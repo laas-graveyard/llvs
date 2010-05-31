@@ -84,6 +84,9 @@ int main(void)
 
   // use this pose to init the LLVS tracker
   HRP2nmbtTrackingProcess trackerServer;
+  
+  // get the camera parameters Client and Server must have
+  // the same parameter
   vpCameraParameters cam;
   trackerServer.GetCameraParameters(cam);
 
@@ -97,12 +100,16 @@ int main(void)
   string imagePath            = "images/imageWide.ppm"  ;
   string objectName           = "WoodenBox";
   
+  // path to image
   tmp_stream<< homePath << "/"<<defaultPath<<"/"<< imagePath;
   imagePath = tmp_stream.str() ;
   
+  // path to model without extension 
   tmp_stream.str("");
   tmp_stream<< homePath << "/"<<defaultPath<<"/model/"<<objectName<<"/"<<objectName ;
   string modelPath =  tmp_stream.str() ;
+  
+  // path to vrml with .wrl extension
   tmp_stream<<".wrl"; 
   string vrmlPath =  tmp_stream.str() ;
   tmp_stream.str("");
@@ -129,18 +136,18 @@ int main(void)
   vpHomogeneousMatrix cMo;
   trackerClient.getPose(cMo);
   cout << "cMo \n"<< cMo<<endl ;
-  trackerClient.track(Isrc);  
-  trackerClient.getPose(cMo);
+  //trackerClient.track(Isrc);  
+  //trackerClient.getPose(cMo);
   cout << "cMo after track \n"<< cMo<<endl ;
   trackerClient.display(Isrc, cMo, cam, vpColor::red,2); 
    
-
    
   // set the tracker parameters
-  //trackerServer.SetcMo(cMo);
-  trackerServer.SetInputVispImage(&(Isrc));
+  trackerServer.SetcMo(cMo); // The Client should give this
+  trackerServer.SetInputVispImages(&(Isrc)); // LLVS should give this
 
-  //----
+  // initialise the process, init the moving edge
+  // with cMo and I stored
   trackerServer.InitializeTheProcess();
   trackerServer.RealizeTheProcess();
 
