@@ -52,7 +52,7 @@ HRP2vispConvertImageProcess:: ~HRP2vispConvertImageProcess()
 }
 
 
-/*! Get the image */
+/*! Get the images */
 void  HRP2vispConvertImageProcess::SetImages(vpImage<unsigned char>* &Ivisp,
 					     cv::Mat* &Icv)
 {
@@ -73,13 +73,14 @@ void  HRP2vispConvertImageProcess::SetImages(vpImage<unsigned char>* &Ivisp,
 
     }
 
+
   if (m_conversion == VISPU8_MAT)
     {
       m_ImgParam.height = m_VispGreyImage->getHeight();
       m_ImgParam. width  = m_VispGreyImage->getWidth();
 
       m_ImgParam. depth = 0;
-      m_ImgParam.nChannel = 3;
+      m_ImgParam.nChannel = 1;
 
       if (m_MatImage != NULL)
 	{
@@ -91,11 +92,11 @@ void  HRP2vispConvertImageProcess::SetImages(vpImage<unsigned char>* &Ivisp,
 	      if(m_MatImage->channels() != 0) 
 		m_MatImage->release();
 
-	      m_MatImage->create(m_ImgParam.height, m_ImgParam.width, CV_8UC3);
+	      m_MatImage->create(m_ImgParam.height, m_ImgParam.width, CV_8UC1);
 	    } 
 	}
       else 
-	m_MatImage->create(m_ImgParam.height, m_ImgParam.width, CV_8UC3);
+	m_MatImage->create(m_ImgParam.height, m_ImgParam.width, CV_8UC1);
       
       m_ImgParam.widthStep = m_MatImage->step;
 
@@ -127,8 +128,8 @@ void HRP2vispConvertImageProcess::SetImages(vpImage<vpRGBa>* & Ivisp,
 
   if (m_conversion == VISPRGB_MAT)
     {
-      m_ImgParam.height = m_VispGreyImage->getHeight();
-      m_ImgParam. width  = m_VispGreyImage->getWidth();
+      m_ImgParam.height = m_VispRGBaImage->getHeight();
+      m_ImgParam. width  = m_VispRGBaImage->getWidth();
 
       m_ImgParam. depth = 0;
       m_ImgParam.nChannel = 3;
@@ -150,7 +151,7 @@ void HRP2vispConvertImageProcess::SetImages(vpImage<vpRGBa>* & Ivisp,
 	m_MatImage->create(m_ImgParam.height, m_ImgParam.width, CV_8UC3);
 
       m_ImgParam.widthStep = m_MatImage->step;
-    }
+    } 
 
     m_ImagesInitialized	= true;
 }  
@@ -228,7 +229,18 @@ int HRP2vispConvertImageProcess::RealizeTheProcess()
 	{
 	  ConvertMatToViSPU8Image(m_flip);
 	}
+      else if	(m_conversion == VISPRGB_MAT)	
+	{
+	  ConvertViSPRGBaToMatImage();
+	}
+      else if	(m_conversion == VISPU8_MAT)	
+	{
+	  ConvertViSPU8ToMatImage();
+	}
     }
+
+  m_imageConvertSucces = true;
+
   return 0;
  
 }
@@ -383,7 +395,7 @@ void HRP2vispConvertImageProcess::ConvertMatToViSPRGBaImage(bool flip)
 /*!--------------------------------------------------------
   Convert VISP RGBa Image To OpenCV Mat image
   ----------------------------------------------------------*/
-void HRP2vispConvertImageProcess::convertViSPRGBaToMatImage()
+void HRP2vispConvertImageProcess::ConvertViSPRGBaToMatImage()
 {
 
   //starting source address
@@ -416,31 +428,19 @@ void HRP2vispConvertImageProcess::convertViSPRGBaToMatImage()
 /*!--------------------------------------------------------
   Convert VISP U8 Image To OpenCV Mat image
   ----------------------------------------------------------*/
-void HRP2vispConvertImageProcess::convertViSPU8ToMatImage()
+void HRP2vispConvertImageProcess::ConvertViSPU8ToMatImage()
 {
-  //starting source address
-  unsigned char * input = (unsigned char*)m_VispGreyImage->bitmap;//rgba image
-  unsigned char * line;
-  unsigned char * output = (unsigned char*)m_MatImage->data;//bgr image
 
-  unsigned int j=0;
-  unsigned int i=0;
-
-  for(i=0 ; i < m_ImgParam.height ; i++)
-    {
-      output = (unsigned char*)m_MatImage->data + i* m_ImgParam.widthStep;
-      line = input;
-      for( j=0 ; j < m_ImgParam.width ; j++)
-	{
-	  *output++ = *(line+2);  //B
-	  *output++ = *(line+1);  //G
-	  *output++ = *(line);  //R
-
-	  line+=4;
-	}
-      //go to the next line
-      input+=4* m_ImgParam.width;
+  if ( m_ImgParam.width == m_ImgParam.widthStep){
+    memcpy(m_MatImage->data,m_VispGreyImage->bitmap,m_ImgParam.width*m_ImgParam.height);
+  }
+  else{
+    //copying each line taking account of the widthStep
+    for (unsigned int i =0  ; i < m_ImgParam.height ; i++){
+          memcpy(m_MatImage->data + i*m_ImgParam.widthStep,m_VispGreyImage->bitmap + i*m_ImgParam.width,
+                m_ImgParam.width);
     }
+  }
 }
 
 

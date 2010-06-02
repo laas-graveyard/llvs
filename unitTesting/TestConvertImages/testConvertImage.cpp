@@ -127,19 +127,40 @@ int main(void)
 
   convIprocU8Mat.InitializeTheProcess();
 
-  convIprocU8Mat.SetImages (IvispRGBp,ImatresU8p);
+  convIprocU8Mat.SetImages (Ivispgp,ImatresU8p);
 
   convIprocU8Mat.RealizeTheProcess();
-
-
-  std::cout << "USER : wait for the user to click on the view to continue" <<endl;
-  vpDisplay::getClick(IvispRGB);
-
 
   cv::namedWindow("MatGrey"  ,CV_WINDOW_AUTOSIZE );
 
   cv::imshow( "MatGrey", ImatresU8 );
+
+
+
   cvWaitKey(0);
+
+
+  cv::Mat ImatresRGB;
+
+  cv::Mat* ImatresRGBp = &ImatresRGB;
+
+  HRP2vispConvertImageProcess convIprocRGBMat (HRP2vispConvertImageProcess::VISPRGB_MAT );
+
+  convIprocRGBMat.InitializeTheProcess();
+
+  convIprocRGBMat.SetImages (IvispRGBp,ImatresRGBp);
+
+  convIprocRGBMat.RealizeTheProcess();
+
+
+  cv::namedWindow("MatColor"  ,CV_WINDOW_AUTOSIZE );
+
+  cv::imshow( "MatColor", ImatresRGB );
+
+  std::cout << "USER : wait for the user to click press a key to continue" <<endl;
+
+  cvWaitKey(0);
+
 
   return 0;
 }

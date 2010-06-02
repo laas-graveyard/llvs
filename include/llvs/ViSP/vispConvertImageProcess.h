@@ -89,10 +89,10 @@ private:
   void ConvertMatToViSPRGBaImage( bool flip=false); 
 
   /*! Convert VISP RGBa Image To OpenCV Mat image*/
-  void convertViSPRGBaToMatImage();
+  void ConvertViSPRGBaToMatImage();
 
   /*! Convert VISP U8 Image To OpenCV Mat image*/
-  void convertViSPU8ToMatImage();
+  void ConvertViSPU8ToMatImage();
 
 
 protected:
