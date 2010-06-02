@@ -48,17 +48,18 @@
 
 
 // include opencv files
-#include<cv.h>
+// #include <cv.h>		// already included in "VisionBasicProcess.h"
 
+#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
 
 // include visp lib files
-#include<visp/vpImage.h>
-#include<visp/vpMe.h>
-#include<visp/vpCameraParameters.h>
-#include<visp/vpHomogeneousMatrix.h>
+#include <visp/vpImage.h>
+#include <visp/vpMe.h>
+#include <visp/vpCameraParameters.h>
+#include <visp/vpHomogeneousMatrix.h>
 
 //include lagadic tracking lib files
-#include<nmbt/nmbtTracking.h>
+#include <nmbt/nmbtTracking.h>
 
 
 /*!
@@ -203,6 +204,7 @@ protected:
  	
 };
 
+#endif // LLVS_HAVE_VISP && LLVS_HAVE_NMBT
 
 
 #endif 

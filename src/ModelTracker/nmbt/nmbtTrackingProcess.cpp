@@ -36,7 +36,9 @@
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "ModelTracker/nmbtTrackingProcess.h"
-#include <iostream>
+
+#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
+
 #include <sstream>
 
 #include <visp/vpConfig.h>
@@ -657,3 +659,5 @@ int HRP2nmbtTrackingProcess::SetInputImages()
   //SetInputVispImages(vpImage<unsigned char> * _I);  
   return 0;
 }  
+
+#endif

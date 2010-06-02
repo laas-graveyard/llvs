@@ -25,11 +25,12 @@ FOREACH(source ${SOURCE})
   TARGET_LINK_LIBRARIES(${binary} 
     ${LLVS_INTERN_LIBS} ${LLVS_EXTERN_LIBS}
     )
-
+	
+  SET_TARGET_PROPERTIES(${binary} PROPERTIES 
+  COMPILE_FLAGS "${LLVS_CXX_FLAGS}"
+  LINK_FLAGS "${LLVS_LINK_FLAGS}")
+	
  
- 
-
-   
   # Add test
   ADD_TEST(${binary} ${binary})
 
