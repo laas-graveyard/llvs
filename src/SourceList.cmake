@@ -84,6 +84,16 @@ IF (VISP_FOUND AND NMBT_FOUND)
   )
 ENDIF (VISP_FOUND AND NMBT_FOUND)
 
+# Visp image convertion need OpenCV
+IF (VISP_FOUND AND OPENCV_FOUND)
+    SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
+	./ViSP/vispConvertImageProcess.cpp	
+  )
+  SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+  	./ViSP/vispConvertImageProcess.h
+  )
+ENDIF (VISP_FOUND AND OPENCV_FOUND)
+
 
 IF (VW_FOUND)
   IF (FindScene)

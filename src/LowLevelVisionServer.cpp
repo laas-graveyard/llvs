@@ -72,6 +72,9 @@ extern "C"
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
+#if (LLVS_HAVE_VISP>0)
+#include "ViSP/vispImageConvertProcess.h"
+#endif
 
 using namespace std; 
 
