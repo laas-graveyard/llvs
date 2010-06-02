@@ -74,7 +74,7 @@
 # Specify the compile flags for the overall library
 #------------------------------------------------------------
 #To be used for debugging
-  SET(LLVS_CXX_FLAGS " -g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/local/")
+  SET(LLVS_CXX_FLAGS " -g -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS -I/usr/local/include/")
 #Normal settings
   #SET(LLVS_CXX_FLAGS "-O3 -c  -Wall -Wno-unused -fexceptions -DSTDC_HEADERS")
 
@@ -143,6 +143,7 @@
      	SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${VW_LD_FLAGS}")
      	SET(LLVS_HAVE_VW 1)
      ENDIF(VW_FOUND)
+	 MESSAGE(STATUS "VW found: ${VW_FOUND}")
   ENDIF(SEARCH_FOR_VW)
 
 #Detect VVV
@@ -152,7 +153,8 @@
      	SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${VVV_CXX_FLAGS}")
      	SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${VVV_LD_FLAGS}")
      	SET(LLVS_HAVE_VVV 1)
-      	ENDIF(VVV_FOUND)
+     ENDIF(VVV_FOUND)
+	 MESSAGE(STATUS "VVV found: ${VVV_FOUND}")
   ENDIF(SEARCH_FOR_VVV)
 
 #Detect OpenCV config
@@ -160,8 +162,10 @@
      INCLUDE(FindOpenCV)
      IF (OPENCV_FOUND)
        	SET(LLVS_HAVE_OPENCV 1)
-       	MESSAGE(STATUS "OpenCV:OPENCV_FOUND }")
+     	SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${OPENCV_CXX_FLAGS}")
+     	SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${OPENCV_LD_FLAGS}")
      ENDIF(OPENCV_FOUND)
+	 MESSAGE(STATUS "OPENCV found: ${OPENCV_FOUND}")
   ENDIF(SEARCH_FOR_OPENCV)
 
 #Detect Scene
@@ -171,47 +175,44 @@
      	SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${SCENE_CXX_FLAGS}")
      	SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${SCENE_LD_FLAGS}")
      	SET(LLVS_HAVE_SCENE 1)
-     	#MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
      ENDIF(SCENE_FOUND)
+	 MESSAGE(STATUS "SCENE found: ${SCENE_FOUND}")
   ENDIF(SEARCH_FOR_SCENE)
 
 #Detect OmniOrb.
   IF (SEARCH_FOR_OMNIORB4)
-     INCLUDE(${CMAKE_MODULE_PATH}/UseOmniORB4.cmake)
-     IF (OMNIORB4_FOUND)
+    INCLUDE(${CMAKE_MODULE_PATH}/UseOmniORB4.cmake)
+    IF (OMNIORB4_FOUND)
      	SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${omniORB4_cflags}")
     	IF(omniORB4_include_DIR)
 		SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} -I${omniORB4_include_DIR}")
     	ENDIF(omniORB4_include_DIR)
     	SET(LLVS_HAVE_OMNIORB4 1)
     	SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${omniORB4_link_FLAGS}")
-    	MESSAGE(STATUS "OmniOrb4: LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
-      ELSE(OMNIORB4_FOUND)
-	MESSAGE(STATUS "OMNIORB4 not found")
-      ENDIF (OMNIORB4_FOUND)
+    	#MESSAGE(STATUS "OmniOrb4: LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+    ENDIF (OMNIORB4_FOUND)
+	MESSAGE(STATUS "OMNIORB4 found: ${OMNIORB4_FOUND}")
   ENDIF(SEARCH_FOR_OMNIORB4)
 
 #Detect libdc1394
   IF (SEARCH_FOR_DC1394_V2)
-     pkg_search_module(libdc1394-2 libdc1394-2>=2.0.2)
-     IF (libdc1394-2_FOUND)
-     	MESSAGE(STATUS "libdc1394-2 found")
-  	FOREACH(option_cxxflags ${libdc1394-2_CFLAGS})
-	  SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${option_cxxflags}")
-          MESSAGE(STATUS "option CXX lidc1394: ${option_cxxflags}")
-        ENDFOREACH(option_cxxflags)
-	MESSAGE(STATUS "libdc1394: LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
-	FOREACH(option_ldflags ${libdc1394-2_LDFLAGS})
-          MESSAGE(STATUS "option LD lidc1394: ${option_ldflags}")
-          SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${option_ldflags}")
-        ENDFOREACH(option_ldflags)
-#       MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS}")
-        SET(LLVS_HAVE_DC1394_V2 1)
-        SET(LLVS_EXTERN_LIBS ${LLVS_EXTERN_LIBS} "dc1394")
-    ELSE(libdc1394-2_FOUND)
-	MESSAGE(STATUS "libdc1394-2 not found")
+	pkg_search_module(libdc1394-2 libdc1394-2>=2.0.2)
+	IF (libdc1394-2_FOUND)
+		FOREACH(option_cxxflags ${libdc1394-2_CFLAGS})
+			SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${option_cxxflags}")
+			MESSAGE(STATUS "option CXX libdc1394: ${option_cxxflags}")
+		ENDFOREACH(option_cxxflags)
+		#MESSAGE(STATUS "libdc1394: LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+		FOREACH(option_ldflags ${libdc1394-2_LDFLAGS})
+			MESSAGE(STATUS "option LD libdc1394: ${option_ldflags}")
+			SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} ${option_ldflags}")
+		ENDFOREACH(option_ldflags)
+        #MESSAGE(STATUS "libdc1394: ${LLVS_LINK_FLAGS}")
+		SET(LLVS_HAVE_DC1394_V2 1)
+		SET(LLVS_EXTERN_LIBS ${LLVS_EXTERN_LIBS} "dc1394")
     ENDIF(libdc1394-2_FOUND)
-ENDIF(SEARCH_FOR_DC1394_V2)
+	MESSAGE(STATUS "libdc1394-2 found: ${libdc1394-2_FOUND}")
+  ENDIF(SEARCH_FOR_DC1394_V2)
 
 #Detect visp
   IF (SEARCH_FOR_VISP)
@@ -221,8 +222,9 @@ ENDIF(SEARCH_FOR_DC1394_V2)
       	 LIST(APPEND LLVS_EXTERN_LIBS ${VISP_LIBRARIES})
          LIST(APPEND LLVS_EXTERN_INCLUDE_DIR ${VISP_INCLUDE_DIR}) 
       	 LIST(APPEND LLVS_EXTERN_LINK_DIR ${VISP_LINK_DIRECTORIES})
-     ENDIF(VISP_FOUND)
-  MESSAGE (STATUS "VISP LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+    ENDIF(VISP_FOUND)
+    #MESSAGE (STATUS "VISP LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+	MESSAGE(STATUS "VISP found: ${VISP_FOUND}")
   ENDIF(SEARCH_FOR_VISP)
 
 
@@ -240,8 +242,23 @@ ENDIF(SEARCH_FOR_DC1394_V2)
       	  LIST(APPEND LLVS_EXTERN_LINK_DIR ${NMBT_LINK_DIRECTORIES})
        ENDIF (NMBT_FOUND)
      ENDIF(NOT VISP_FOUND)
-     MESSAGE (STATUS "NMBT LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+     #MESSAGE(STATUS "NMBT LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+	 MESSAGE(STATUS "NMBT found: ${NMBT_FOUND}")
   ENDIF(SEARCH_FOR_NMBT)
+
+
+# Display the compilation and linker options once and for all
+MESSAGE(STATUS "LLVS_CXX_FLAGS: ${LLVS_CXX_FLAGS}")
+MESSAGE(STATUS "LLVS_LINK_FLAGS: ${LLVS_LINK_FLAGS}")
+
+MESSAGE(STATUS "LLVS_INTERN_INCLUDE_DIR : ${LLVS_INTERN_INCLUDE_DIR}")
+MESSAGE(STATUS "LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
+
+MESSAGE(STATUS "LLVS_INTERN_LINK_DIR : ${LLVS_INTERN_LINK_DIR}")
+MESSAGE(STATUS "LLVS_EXTERN_LINK_DIR : ${LLVS_EXTERN_LINK_DIR}")
+
+MESSAGE(STATUS "LLVS_INTERN_LIBS : ${LLVS_INTERN_LIBS}")
+MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
 
 
 #------------------------------------------------------------
@@ -267,7 +284,7 @@ ENDIF(SEARCH_FOR_DC1394_V2)
   LINK_LIBRARIES(${LLVS_INTERN_LIBS};${LLVS_EXTERN_LIBS})
 
 #----------------------------------------------------
-# Generate the package dependent file sotConfig.h
+# Generate the package dependent file llvsConfig.h
 #------------------------------------------------------------
   CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/include/llvs/llvsConfig.h.cmake
 	${PROJECT_SOURCE_DIR}/include/llvs/llvsConfig.h)

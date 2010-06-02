@@ -43,18 +43,21 @@
 #include <vector>
 #include <sstream>
 
+using namespace std;
+
 //LLVS lib
 #include "ModelTracker/nmbtTrackingProcess.h"
 
+
+#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
+
 //tracker lib
-#include<nmbt/nmbtTracking.h>
+#include <nmbt/nmbtTracking.h>
 
 //visp
 #include <visp/vpImage.h>
 #include <visp/vpImageIo.h>
 #include <visp/vpDisplayX.h>
-
-using namespace std;
 
 
 
@@ -172,4 +175,12 @@ int main(void)
   return 0;
 }
 
+#else
 
+int main(void)
+{
+  cout <<" Cannot Test NMBT tracking class: NMBT not found!" << endl;
+  return 0;
+}
+
+#endif

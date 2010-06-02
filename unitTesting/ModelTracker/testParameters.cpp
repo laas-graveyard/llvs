@@ -42,10 +42,12 @@
 #include <vector>
 #include <sstream>
 
-#include "ModelTracker/nmbtTrackingProcess.h"
-
 using namespace std;
 
+
+#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
+
+#include "ModelTracker/nmbtTrackingProcess.h"
 
 
 #define ODEBUG2(x)
@@ -128,3 +130,14 @@ int main(void)
   // everything went well
   return 0;
 }
+
+
+#else
+
+int main (void)
+{
+  cout <<"NMBT not found -> cannot test the parameters!\n";
+  return 0;
+}
+
+#endif
