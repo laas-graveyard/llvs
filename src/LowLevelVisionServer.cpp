@@ -72,9 +72,12 @@ extern "C"
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
+/*
 #if (LLVS_HAVE_VISP>0)
 #include "ViSP/vispImageConvertProcess.h"
+#include "ViSP/vispUndistordedProcess.h"
 #endif
+*/
 
 using namespace std; 
 
@@ -392,10 +395,38 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_SingleCameraSLAM);
 #endif
   
+
+#if(LLVS_HAVE_VISP>0)
+  m_CamParamPath="/home/embarki/devel-src/hrp2_10/data/ViSP/hrp2CamParam/hrp2.xml";
+  m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
+  m_ParserCam.parse(m_Widecam_param,
+	      m_CamParamPath.c_str(),
+	      "cam1394_3",
+	       vpCameraParameters::perspectiveProjWithDistortion,
+	      m_Width[3],
+	      m_Height[3]);
+
+  m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess->InitializeTheProcess();
+  m_vispUndistordedProcess->SetImages(m_BinaryImages[3],
+				      m_Widecam_image_undistorded);
+  m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
+
+#endif
+
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
- 
+
+
+  /* From unitesting*/
+  m_ModelTrackerProcess->SetCameraParameters(m_Widecam_param);
+  m_ModelTrackerProcess->SetcMo(m_cMo);
+  m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
+  m_ModelTrackerProcess->InitializeTheProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
+
   //
   // TODO il faut entrer une image dans le tracker avant
   // de pouvoir l'initialiser, il faut donc faire la conv
