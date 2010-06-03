@@ -244,14 +244,7 @@ int HRP2vispConvertImageProcess::RealizeTheProcess()
   return 0;
  
 }
-  
-/*!-------------------------------------
-  Cleanup the process 
-  -------------------------------------*/
-int HRP2vispConvertImageProcess::CleanUpTheProcess()
-{
-  return 0;
-}
+
 
 /*!--------------------------------------------
   Convert OpenCV MAT image To VISP Grey Image

@@ -42,6 +42,8 @@
 #include <vector>
 #include <sstream>
 
+#if (LLVS_HAVE_NMBT>0)
+
 #include "ModelTracker/nmbtTrackingProcess.h"
 
 using namespace std;
@@ -128,3 +130,14 @@ int main(void)
   // everything went well
   return 0;
 }
+
+ #else
+
+int main(void)
+{
+  std::cout <<std::endl<<"Need NMBT tracker to execute this example"<<std::endl;
+
+  return 0;
+}
+
+#endif

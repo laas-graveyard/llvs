@@ -37,12 +37,16 @@
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+
+
+
 //standard lib and system lib
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
 
+#if (LLVS_HAVE_NMBT>0)
 //LLVS lib
 #include "ModelTracker/nmbtTrackingProcess.h"
 
@@ -171,5 +175,13 @@ int main(void)
   // everything went well
   return 0;
 }
+#else
 
+int main(void)
+{
+  std::cout <<std::endl<<"Need NMBT tracker to execute this example"<<std::endl;
 
+  return 0;
+}
+
+#endif

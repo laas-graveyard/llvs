@@ -15,7 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-
+#if (LLVS_HAVE_VISP>0 && LLVS_HAVE_OPENCV >0)
 //visp
 #include <visp/vpImageIo.h>
 #include <visp/vpDisplayX.h>
@@ -164,3 +164,15 @@ int main(void)
 
   return 0;
 }
+
+
+#else
+
+int main(void)
+{
+  std::cout <<std::endl<<"Need ViSP and OpenCv to execute this example"<<std::endl;
+
+  return 0;
+
+}
+#endif

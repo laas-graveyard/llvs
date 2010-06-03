@@ -334,7 +334,7 @@ void HRP2nmbtTrackingProcess::SetInputVispImages(vpImage<unsigned char> * _I)
  
   // if the dimension are different from the stored
   // one update the dimension and the calib param
-  if (m_imageWidth!=m_inputVispImage->getWidth())
+  if (m_imageWidth!=(int) m_inputVispImage->getWidth())
     {
       m_imageWidth  = m_inputVispImage->getWidth();
       m_imageHeight = m_inputVispImage->getWidth();
