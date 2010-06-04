@@ -250,7 +250,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
   /* Resize all the associated vectors */
-  int lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
+  int lNbCams = 4;//m_ImagesInputMethod->GetNumberOfCameras();
   m_Width.resize(lNbCams);
   m_Height.resize(lNbCams);
   m_depth.resize(lNbCams);
@@ -397,14 +397,14 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   
 
 #if(LLVS_HAVE_VISP>0)
-  m_CamParamPath="/home/embarki/devel-src/hrp2_10/data/ViSP/hrp2CamParam/hrp2.xml";
+  m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
   m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
   m_ParserCam.parse(m_Widecam_param,
-	      m_CamParamPath.c_str(),
-	      "cam1394_3",
-	       vpCameraParameters::perspectiveProjWithDistortion,
-	      m_Width[3],
-	      m_Height[3]);
+		    m_CamParamPath.c_str(),
+		    "cam1394_3",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[3],
+		    m_Height[3]);
 
   m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
   m_vispUndistordedProcess->InitializeTheProcess();
@@ -555,7 +555,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
   if (m_ImagesInputMethod==0)
     return -1;
 
-  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
+  for(unsigned int i=0;i<4;i++)
     {
       if ((m_Width[i]!=0) && (m_Height[i]!=0))
 	{
@@ -593,7 +593,9 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       
       unsigned char ** local_BinaryImages;
-      m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+      if (m_Cameras[i]!=0)
+	m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+
 #if (LLVS_HAVE_VVV>0)
       if (m_CorrectedImages[i].Image!=0)
 	{

@@ -103,24 +103,27 @@ namespace llvs
       int GetImageSingleRGB(unsigned char **Image, int camera, struct timeval &timestamp);
 
       /* Real implementation for single PGM */
-      int GetImagePGM(unsigned char *Image, int camera);
+      int GetImagePGM(unsigned char *Image, int SemanticCamera);
   
       /*! \brief Get the current format of the image 
 	according to the camera index. 
 	@param[in] CameraNumber: camera to which the format applies.
       */
-      virtual string GetFormat(unsigned int CameraNumber);
+      virtual string GetFormat(unsigned int SemanticCameraNumber);
 
       /*! \brief Set the format of the current image: default PGM 
 	@param[in] aFormat: Name of the format to use.
 	@param[in] CameraNumber: Camera which should switch to format aFormat.
       */
-      int SetFormat(string aFormat, unsigned int CameraNumber);
+      int SetFormat(string aFormat, unsigned int SemanticCameraNumber);
 
-      /*! Get the current image size for the appropriate camera */
-      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+      /*! Get the current image size for the appropriate camera 
+       */
+      virtual int GetImageSize(int &lw, int &lh, int SemanticCameraNumber);
 
-      /*! Set the size of the image willing to be grabbed. */
+      /*! Set the size of the image willing to be grabbed. 
+	\param CameraNumber specifies the Semantic camera number.
+       */
       virtual int SetImageSize(int lw, int lh, int CameraNumber);
 
 
@@ -192,6 +195,9 @@ namespace llvs
       /*! From FrameRate to Time */
       void FromFrameRateToTime(int CameraNumber);
 
+      /*! Provide semantic */
+      int GetSemanticOfCamera(int lCameraIndexOnComputer);
+
     protected:
 
       /*! Clean memory when stopping the board. */
@@ -199,7 +205,10 @@ namespace llvs
 
       /*! Number of cameras */
       unsigned int m_numCameras;
-  
+
+      /*! Map from semantic camera to real ones */
+      vector<int> m_MapFromSemanticToRealCamera;
+
       /*! Pointer to the copy memory. */
       vector<unsigned char *> m_TmpImage;
 

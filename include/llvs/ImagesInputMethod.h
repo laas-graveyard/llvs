@@ -115,6 +115,24 @@ namespace llvs
        */
       virtual int Cleanup()=0;
 
+      /*! \brief Get semantic image.
+	More precisely, this link any camera to a specific
+	data flow which is related to a specific image.
+	Currently by convention we assume a 4 cameras vision 
+	base system. For purposes of debugging, it is possible
+	to not have the all system on your desktop.
+	You can therefore relate a camera to a specific meaning:
+	0 is the left image.
+	1 is the right image.
+	2 is the cyclope image
+	3 is the wide image.
+	In order to specify the mapping please see the Visual System Profile
+	format.
+	\param CameraNumberOnWS : The index of the camera detected on your computer.
+	\return int : The index of the image in the semantic described below.
+       */
+      virtual int GetSemanticOfCamera(int CameraNumberOnWS)=0;
+
     protected:
 
       /*! Members of the class storing the size of the images. 
