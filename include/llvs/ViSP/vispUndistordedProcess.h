@@ -56,21 +56,14 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
   /*! Destructor */
   virtual ~HRP2vispUndistordedProcess();
 
-  /*! Initialize the process. */
-  int InitializeTheProcess();
 
-  /*! Realize the process */
-  int RealizeTheProcess();
-  
-  /*! Cleanup the process */
-   int CleanUpTheProcess();
 
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);
    
   /*! Set the image */
-  void SetImages(unsigned char * Iraw , vpImage<unsigned char>* &Ivisp ); 
-  void SetImages(unsigned char *  Iraw , vpImage<vpRGBa>* Ivisp );  
+  void SetImages(unsigned char ** Iraw , vpImage<unsigned char>* Ivisp ); 
+  void SetImages(unsigned char **  Iraw , vpImage<vpRGBa>* Ivisp );  
 
   /*! Set the camera parameter*/
   void SetCameraParameters(const vpCameraParameters & _cam);
@@ -78,6 +71,15 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
 
 protected:
 
+
+  /*! Initialize the process. */
+  int pInitializeTheProcess();
+
+  /*! Realize the process */
+  int pRealizeTheProcess();
+  
+  /*! Cleanup the process */
+   int pCleanUpTheProcess();
   /*! visp images*/
 
   vpImage<unsigned char> m_tmpVispGreyImages;
@@ -86,7 +88,7 @@ protected:
   vpImage<vpRGBa> *       m_VispRGBaImages;
 
   /*! unsigned char images vector*/
-  unsigned char *         m_RawImages; 
+  unsigned char **         m_RawImages; 
 
 
 

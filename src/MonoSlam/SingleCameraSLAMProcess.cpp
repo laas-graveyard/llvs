@@ -160,13 +160,13 @@ HRP2SingleCameraSLAMProcess::~HRP2SingleCameraSLAMProcess()
     delete m_grabbed_image;
 }
 
-int HRP2SingleCameraSLAMProcess::InitializeTheProcess()
+int HRP2SingleCameraSLAMProcess::pInitializeTheProcess()
 {
   return 0;
 }
 
 
-int HRP2SingleCameraSLAMProcess::RealizeTheProcess()
+int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
 {
   double lGyro[3]={0.0,0.0,0.0};
   double lAccelerometer[3] = { 0.0, 0.0, 0.0 };
@@ -390,7 +390,7 @@ int HRP2SingleCameraSLAMProcess::RealizeTheProcess()
 }
 
 
-int HRP2SingleCameraSLAMProcess::CleanUpTheProcess()
+int HRP2SingleCameraSLAMProcess::pCleanUpTheProcess()
 {
   return 0;
 }

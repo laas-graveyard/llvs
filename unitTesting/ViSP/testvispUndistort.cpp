@@ -29,6 +29,8 @@
 #include <vector>
 #include <sstream>
 
+#include "llvsConfig.h"
+
 #if (LLVS_HAVE_VISP>0)
 //visp
 #include <visp/vpImageIo.h>
@@ -114,7 +116,7 @@ int main(void)
   IvispGrey=new  vpImage<unsigned char>;
 
   IvispGrey->resize(240,320);
-
+  /*
   HRP2vispUndistordedProcess undistort(HRP2vispUndistordedProcess::RGB_VISPU8 );
 
 
@@ -125,11 +127,11 @@ int main(void)
   undistort.SetCameraParameters(cam);
 
   undistort.RealizeTheProcess();
- 
+  
   // create the display associated to the image
   vpDisplayX displayg(*IvispGrey,0,600,"Image grey undistorded");
   vpDisplay::display(*IvispGrey);
-  vpDisplay::flush(*IvispGrey);
+  vpDisplay::flush(*IvispGrey);*/
 
   std::cout << "USER : wait for the user to click on the view to continue" <<endl;
   vpDisplay::getClick(*IvispGrey);

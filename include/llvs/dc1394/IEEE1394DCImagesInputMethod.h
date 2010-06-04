@@ -182,7 +182,6 @@ namespace llvs
        */
       virtual int Cleanup();
 
-      
       /*! @} */
 
       void StartContinuousShot();
@@ -197,6 +196,16 @@ namespace llvs
 
       /*! Provide semantic */
       int GetSemanticOfCamera(int lCameraIndexOnComputer);
+
+      /*! Initialize the process. */
+      int pInitializeTheProcess(){return 0;};
+
+      /*! Realize the process */
+      int pRealizeTheProcess(){return 0;};
+  
+      /*! Cleanup the process */
+      int pCleanUpTheProcess(){return 0;};
+
 
     protected:
 

@@ -53,22 +53,22 @@ HRP2VisionBasicProcess::~HRP2VisionBasicProcess()
 {
 }
 
-
-int HRP2VisionBasicProcess::InitializeTheProcess()
+/*
+int HRP2VisionBasicProcess::pInitializeTheProcess()
 {
   return 0;
 }
 
-int HRP2VisionBasicProcess::RealizeTheProcess()
+int HRP2VisionBasicProcess::pRealizeTheProcess()
 {
   return 0;
 }
 
-int HRP2VisionBasicProcess::CleanUpTheProcess()
+int HRP2VisionBasicProcess::pCleanUpTheProcess()
 {
   return 0;
 }
-
+*/
 int HRP2VisionBasicProcess::StopProcess()
 {
   m_Computing = 0;
@@ -302,4 +302,22 @@ IplImage * HRP2VisionBasicProcess::FromEPBMToIPL(EPBM &anEPBM, int aMode, IplIma
 int HRP2VisionBasicProcess::GetInstance()
 {
   return m_Instance;
+}
+
+int HRP2VisionBasicProcess::InitializeTheProcess()
+{
+  return pInitializeTheProcess();
+}
+
+int HRP2VisionBasicProcess::RealizeTheProcess()
+{
+  if (m_Computing==1)
+    return pRealizeTheProcess();
+    
+  return 0;
+}
+
+int HRP2VisionBasicProcess::CleanUpTheProcess()
+{
+  return pCleanUpTheProcess();
 }

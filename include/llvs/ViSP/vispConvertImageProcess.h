@@ -63,11 +63,13 @@ class HRP2vispConvertImageProcess : public HRP2VisionBasicProcess
   virtual ~HRP2vispConvertImageProcess();
 
   /*! Initialize the process. */
-  int InitializeTheProcess();
+  int pInitializeTheProcess();
 
   /*! Realize the process */
-  int RealizeTheProcess();
+  int pRealizeTheProcess();
   
+   /*! Cleanup the process */
+  int pCleanUpTheProcess();
  
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);

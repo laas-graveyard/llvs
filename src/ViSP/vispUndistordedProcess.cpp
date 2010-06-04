@@ -24,7 +24,7 @@ HRP2vispUndistordedProcess::HRP2vispUndistordedProcess(typeConversion type)
   m_CameraParamLoaded     =  false;
   m_conversion = type;
 
-  m_ProcessName = "vispConvertImageProcess";
+  m_ProcessName = "vispUndistordedProcess";
   m_ImagesInitialized	= false;
   m_imageUndistortSucces	= false;
   m_flip		= false;
@@ -56,8 +56,8 @@ HRP2vispUndistordedProcess:: ~HRP2vispUndistordedProcess()
 
 
 /*! Set the images */
-void  HRP2vispUndistordedProcess::SetImages(unsigned char * Iraw 
-					    ,vpImage<unsigned char>* &Ivisp )
+void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
+					    ,vpImage<unsigned char>* Ivisp )
 {
  //TODO some verification and resize?
   m_ImagesInitialized	= false;
@@ -72,7 +72,7 @@ void  HRP2vispUndistordedProcess::SetImages(unsigned char * Iraw
   m_ImagesInitialized	= true;
 }  
 
-void HRP2vispUndistordedProcess::SetImages(unsigned char * Iraw 
+void HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
 					    ,vpImage<vpRGBa>* Ivisp )
 {
   //TODO some verification and resize?
@@ -131,7 +131,7 @@ int HRP2vispUndistordedProcess::SetParameter(std::string aParameter,
 /*!------------------------------------- 
   Initialize the process. 
   -------------------------------------*/
-int HRP2vispUndistordedProcess:: InitializeTheProcess()
+int HRP2vispUndistordedProcess:: pInitializeTheProcess()
 {
   m_imageUndistortSucces  = false;
 
@@ -147,7 +147,7 @@ int HRP2vispUndistordedProcess:: InitializeTheProcess()
   the object model
    
   -------------------------------------*/
-int HRP2vispUndistordedProcess::RealizeTheProcess()
+int HRP2vispUndistordedProcess::pRealizeTheProcess()
 {
   m_imageUndistortSucces = false;
 
@@ -155,16 +155,22 @@ int HRP2vispUndistordedProcess::RealizeTheProcess()
     {
 
       if(m_conversion == RGB_VISPU8 ) 
-	{
-	  
-	      vpImageConvert::RGBToGrey( m_RawImages,
+	{	  
+
+	  cout<< "address "<< (void*) m_RawImages<< endl;
+
+	    vpImageConvert::RGBToGrey( *m_RawImages,
 					 m_tmpVispGreyImages.bitmap,
 					 m_ImgParam.width,
 					 m_ImgParam.height, m_flip);
-		
+
+
+	    vpImageIo::writePPM(m_tmpVispGreyImages,"./test.ppm");
+
+
 	      vpImageTools::undistort(m_tmpVispGreyImages,
 				      m_CamParam,
-				      *(m_VispGreyImages)); 
+				      *(m_VispGreyImages));
 	}
 
     }
@@ -175,7 +181,7 @@ int HRP2vispUndistordedProcess::RealizeTheProcess()
  
 }
 
-int  HRP2vispUndistordedProcess::CleanUpTheProcess()
+int  HRP2vispUndistordedProcess::pCleanUpTheProcess()
 {
 
   return 0;

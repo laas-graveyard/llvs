@@ -15,6 +15,9 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+
+#include "llvsConfig.h"
+
 #if (LLVS_HAVE_VISP>0 && LLVS_HAVE_OPENCV >0)
 //visp
 #include <visp/vpImageIo.h>

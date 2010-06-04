@@ -526,10 +526,6 @@ namespace llvs
 #endif
 
 
-
-/*--------------------------------------
-*        ADDED BY EMBARKI
--------------------------------------   */
 #if (LLVS_HAVE_VISP>0)
      
       /*Visp grey undistorded image for wide cam*/
@@ -545,13 +541,6 @@ namespace llvs
 
  
 #endif
-
-/*--------------------------------------
-*     END   ADDED BY EMBARKI
--------------------------------------   */
-
-
-
 
       /*! Binary maps of the images */
       vector<unsigned char *>m_BinaryImages;

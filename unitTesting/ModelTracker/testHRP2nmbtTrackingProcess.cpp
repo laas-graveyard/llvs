@@ -46,6 +46,8 @@
 #include <vector>
 #include <sstream>
 
+#include "llvsConfig.h"
+
 #if (LLVS_HAVE_NMBT>0)
 //LLVS lib
 #include "ModelTracker/nmbtTrackingProcess.h"

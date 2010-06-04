@@ -199,7 +199,7 @@ int HRP2vispConvertImageProcess::SetParameter(std::string aParameter,
 /*!------------------------------------- 
   Initialize the process. 
   -------------------------------------*/
-int HRP2vispConvertImageProcess:: InitializeTheProcess()
+int HRP2vispConvertImageProcess:: pInitializeTheProcess()
 {
   m_imageConvertSucces  = false;
  
@@ -215,7 +215,7 @@ int HRP2vispConvertImageProcess:: InitializeTheProcess()
   the object model
    
   -------------------------------------*/
-int HRP2vispConvertImageProcess::RealizeTheProcess()
+int HRP2vispConvertImageProcess::pRealizeTheProcess()
 {
   m_imageConvertSucces = false;
 
@@ -437,6 +437,11 @@ void HRP2vispConvertImageProcess::ConvertViSPU8ToMatImage()
 }
 
 
+int  HRP2vispConvertImageProcess::pCleanUpTheProcess()
+{
+
+  return 0;
+} 
 
 
 
