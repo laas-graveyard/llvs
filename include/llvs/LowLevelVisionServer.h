@@ -81,11 +81,20 @@
 
 #include "ImagesInputMethod.h"
 
+#if (LLVS_HAVE_VISP>0)
+#include "ViSP/vispConvertImageProcess.h"
+#include "ViSP/vispUndistordedProcess.h"
+#include "visp/vpXmlParserCamera.h"
+#include "visp/vpHomogeneousMatrix.h"
+#endif
+
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
+
 #include <vector>
+
 using namespace std;
 
 namespace llvs
@@ -514,6 +523,23 @@ namespace llvs
 #if (LLVS_HAVE_SCENE>0)
       /*! SingleCameraSLAMProcess */
       HRP2SingleCameraSLAMProcess * m_SingleCameraSLAM;
+#endif
+
+
+#if (LLVS_HAVE_VISP>0)
+     
+      /*Visp grey undistorded image for wide cam*/
+
+      vpImage<unsigned char>* m_Widecam_image_undistorded;
+      vpCameraParameters      m_Widecam_param;
+
+      HRP2vispUndistordedProcess* m_vispUndistordedProcess;
+      
+      std::string             m_CamParamPath;
+      vpXmlParserCamera       m_ParserCam;
+      vpHomogeneousMatrix     m_cMo;
+
+ 
 #endif
 
       /*! Binary maps of the images */

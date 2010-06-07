@@ -90,14 +90,14 @@ HRP2StereoVisionProcess::~HRP2StereoVisionProcess()
 }
 
 
-int HRP2StereoVisionProcess::InitializeTheProcess()
+int HRP2StereoVisionProcess::pInitializeTheProcess()
 {
   
   return 0;
 }
 
 
-int HRP2StereoVisionProcess::RealizeTheProcess()
+int HRP2StereoVisionProcess::pRealizeTheProcess()
 {
   if( !m_Computing ) return 0;
   
@@ -356,7 +356,7 @@ int HRP2StereoVisionProcess::Get3DPoints( Mat &xyz )
 }
 
 
-int HRP2StereoVisionProcess::CleanUpTheProcess()
+int HRP2StereoVisionProcess::pCleanUpTheProcess()
 {
   return 0;
 }

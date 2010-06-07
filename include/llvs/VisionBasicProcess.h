@@ -92,13 +92,13 @@ class HRP2VisionBasicProcess
   int GetStatus();
 
   /*! Initialize the process. */
-  virtual int InitializeTheProcess();
+  int InitializeTheProcess();
 
   /*! Realize the process */
-  virtual int RealizeTheProcess();
+  int RealizeTheProcess();
   
   /*! Cleanup the process */
-  virtual int CleanUpTheProcess();
+  int CleanUpTheProcess();
 
   /*! Get the name of the process */
   virtual string GetName();
@@ -160,7 +160,14 @@ class HRP2VisionBasicProcess
 #endif
 
  protected:
+
+  /*! To redefined and called only by inherited classes */
+  virtual int pInitializeTheProcess()=0;
+
+  virtual int pRealizeTheProcess()=0;
   
+  virtual int pCleanUpTheProcess()=0;
+
   /*! Name of the process */
   string m_ProcessName;
 

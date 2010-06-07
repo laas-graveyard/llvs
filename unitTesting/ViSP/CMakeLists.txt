@@ -10,8 +10,11 @@
 # the source name.
 #
 # If you want to add/remove a source, modify here
+
+
 SET (SOURCE
 testConvertImage.cpp
+testvispUndistort.cpp
 
 )
 

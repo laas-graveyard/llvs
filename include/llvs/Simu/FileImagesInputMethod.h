@@ -17,6 +17,7 @@
 #include <fstream>
 #include <ImagesInputMethod.h>
 #include <vector> 
+#include <assert.h>
 
 #if (LLVS_HAVE_OPENCV>0)
 #include <cv.h>
@@ -105,6 +106,13 @@ namespace llvs {
        */
       virtual int Cleanup();
 
+      /*! \brief Return the link between the detected camera 
+       and its semantic. */
+      virtual int GetSemanticOfCamera(int CameraNumberOnWS)
+      { /* TODO */ 
+	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
+	assert(false); 
+	return -1;};
 
     protected:
 
