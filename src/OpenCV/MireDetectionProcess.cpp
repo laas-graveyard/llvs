@@ -82,13 +82,13 @@ void HRP2MireDetectionProcess::SetChessBoardSize(int NbCols, int NbRows)
     m_Corners[i] = new CvPoint2D32f[NbRows*NbCols];
 }
 
-int HRP2MireDetectionProcess::InitializeTheProcess()
+int HRP2MireDetectionProcess::pInitializeTheProcess()
 {
   
   return 0;
 }
 
-int HRP2MireDetectionProcess::RealizeTheProcess()
+int HRP2MireDetectionProcess::pRealizeTheProcess()
 {
 
   if (!m_Computing)
@@ -190,7 +190,7 @@ int HRP2MireDetectionProcess::DetectMireStereo()
   return(nb_corner);
 }
 
-int HRP2MireDetectionProcess::CleanUpTheProcess()
+int HRP2MireDetectionProcess::pCleanUpTheProcess()
 {
   return 0;
 }

@@ -67,13 +67,13 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
 
 
   /*! Initialize the process. */
-  int InitializeTheProcess();
+  int pInitializeTheProcess();
 
   /*! Realize the process */
-  int RealizeTheProcess();
+  int pRealizeTheProcess();
   
   /*! Cleanup the process */
-  int CleanUpTheProcess();
+  int pCleanUpTheProcess();
 
   /* Set the type of Stereo Vision algorithm to use */
   int setStereoAlgorithmType( StereoAlgoType stereoAlgo );

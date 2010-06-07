@@ -196,13 +196,17 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   homePath = getenv ("HOME");
   
   // set the model default path
-  string defaultPath ( "data/model/WoodenBox/WoodenBox");
-  ostringstream tmp_stream;
-  tmp_stream<< homePath << "/"<<defaultPath;
-  m_pathPose = tmp_stream.str(); 
+  //  string defaultPath ( "data/model/WoodenBox/WoodenBox");
+  //ostringstream tmp_stream;
+  //tmp_stream<< homePath << "/"<<defaultPath;
+  //m_pathPose = tmp_stream.str(); 
 
-  tmp_stream<<".wrl";
-  m_pathVrml = tmp_stream.str(); 
+  string defaultPath ( "./data/model/WoodenBox/WoodenBox");
+    m_pathPose =defaultPath;
+    m_pathVrml = defaultPath +".wrl";
+
+  //tmp_stream<<".wrl";
+  // m_pathVrml = tmp_stream.str(); 
 
   // load the model and set the flag model loaded to true
   LoadModel( m_pathVrml.c_str());
@@ -223,11 +227,13 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   //--------------------------------- 
 
   // init path to xml file
-  string camParamPath ("data/hrp2CamParam/hrp2.xml");
-  tmp_stream.str("");
-  tmp_stream<<homePath<< "/"<< camParamPath;
-  m_pathCam = tmp_stream.str();
-  
+  //string camParamPath ("./data/hrp2CamParam/hrp2.xml");
+  //tmp_stream.str("");
+  //tmp_stream<<homePath<< "/"<< camParamPath;
+  //  m_pathCam = tmp_stream.str();
+  string camParamPath ("./data/ViSP/hrp2CamParam/hrp2.xml");
+  m_pathCam =camParamPath;
+
   // init cam name
   m_nameCam = "cam1394_3_rectif";
 
@@ -336,7 +342,7 @@ void HRP2nmbtTrackingProcess::SetInputVispImages(vpImage<unsigned char> * _I)
  
   // if the dimension are different from the stored
   // one update the dimension and the calib param
-  if (m_imageWidth!=m_inputVispImage->getWidth())
+  if (m_imageWidth!=(int) m_inputVispImage->getWidth())
     {
       m_imageWidth  = m_inputVispImage->getWidth();
       m_imageHeight = m_inputVispImage->getWidth();
@@ -549,7 +555,7 @@ void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & _cMo)
 /*!------------------------------------- 
 Initialize the process. 
 -------------------------------------*/
-int HRP2nmbtTrackingProcess:: InitializeTheProcess()
+int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
@@ -566,7 +572,7 @@ some parameter for the tracking
 the object model
    
 -------------------------------------*/
-int HRP2nmbtTrackingProcess::RealizeTheProcess()
+int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
   m_trackerTrackSuccess = false;
  
@@ -613,7 +619,7 @@ int HRP2nmbtTrackingProcess::RealizeTheProcess()
 /*!-------------------------------------
  Cleanup the process 
 -------------------------------------*/
-int HRP2nmbtTrackingProcess::CleanUpTheProcess()
+int HRP2nmbtTrackingProcess::pCleanUpTheProcess()
 {
   m_tracker.resetTracker();
   return 0;

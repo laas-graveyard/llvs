@@ -72,6 +72,12 @@ extern "C"
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
+/*
+#if (LLVS_HAVE_VISP>0)
+#include "ViSP/vispImageConvertProcess.h"
+#include "ViSP/vispUndistordedProcess.h"
+#endif
+*/
 
 using namespace std; 
 
@@ -163,6 +169,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 #if (LLVS_HAVE_VVV>0)
   /* Initialize the epbm images */
+
   epbm_minitialize(m_epbm,4);
   epbm_minitialize(m_CorrectedImages,4);
   epbm_minitialize(m_epbm_distorted,4);
@@ -244,7 +251,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
   /* Resize all the associated vectors */
-  int lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
+  int lNbCams = 4;//m_ImagesInputMethod->GetNumberOfCameras();
   m_Width.resize(lNbCams);
   m_Height.resize(lNbCams);
   m_depth.resize(lNbCams);
@@ -389,10 +396,42 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_SingleCameraSLAM);
 #endif
   
+
+#if(LLVS_HAVE_VISP>0)
+  m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
+  m_Widecam_image_undistorded = new vpImage<unsigned char>;
+  m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
+  m_ParserCam.parse(m_Widecam_param,
+		    m_CamParamPath.c_str(),
+		    "cam1394_3",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[3],
+		    m_Height[3]);
+ 
+  m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess->InitializeTheProcess();
+ 
+  m_vispUndistordedProcess->StopProcess();
+  m_vispUndistordedProcess->SetImages(&(m_BinaryImages[0]),
+				      m_Widecam_image_undistorded);
+  m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
+
+#endif
+
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
- 
+
+
+  /* From unitesting*/
+  // m_ModelTrackerProcess->SetCameraParameters(m_Widecam_param);
+  m_ModelTrackerProcess->SetcMo(m_cMo);
+  m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
+  m_ModelTrackerProcess->InitializeTheProcess();
+  m_ModelTrackerProcess->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
+
   //
   // TODO il faut entrer une image dans le tracker avant
   // de pouvoir l'initialiser, il faut donc faire la conv
@@ -521,7 +560,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
   if (m_ImagesInputMethod==0)
     return -1;
 
-  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
+  for(unsigned int i=0;i<4;i++)
     {
       if ((m_Width[i]!=0) && (m_Height[i]!=0))
 	{
@@ -559,7 +598,9 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       
       unsigned char ** local_BinaryImages;
-      m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+      if (m_Cameras[i]!=0)
+	m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+
 #if (LLVS_HAVE_VVV>0)
       if (m_CorrectedImages[i].Image!=0)
 	{
@@ -1192,9 +1233,9 @@ CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG("Start process " << aProcessName << " " << i);
+	  ODEBUG3("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
-	  ODEBUG( aProcessName << " " << 
+	  ODEBUG3( aProcessName << " " << 
 		   m_ListOfProcesses[i]->GetStatus() << " " <<
 		   m_ListOfProcesses[i] );
 	}
@@ -1302,6 +1343,7 @@ LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, COR
   dec1 = aWidth*aHeight;
   dec2 = dec1 *2;
   for(int j=0;j<aHeight;j++)
+
     {
       int index = j*aWidth;
       
@@ -2099,7 +2141,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-
+  cout << "CameraID:" << CameraID << std::endl;
   if ((CameraID<0) || ((unsigned int) CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
     {
       an2Image->octetData.length(0);
@@ -2107,16 +2149,56 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
       return -1;
     }
   
+  cout << "Went through here" << std::endl;
   CheckImageFormat(Format);
-  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
 #if (LLVS_HAVE_VVV>0)
+  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
+
   for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
     an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[CameraID].Image)[j];
   //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[CameraID].Image)[j];
 #endif
 
+#if (LLVS_HAVE_VISP>0)
+  cout <<"  " << m_Height[CameraID]
+       <<" " << m_Width[CameraID]
+       << " " << m_depth[CameraID] 
+       << std::endl;
+ an2Image->octetData.length(320*240);
+ an2Image->width=320;
+ an2Image->height=240;
+ an2Image->longData.length(2);
+ an2Image->format=GRAY;
+ an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
+ an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
+
+
+ cout << "Went through here 2" << std::endl;
+ unsigned char *pt =m_Widecam_image_undistorded->bitmap;
+
+  for(j=0;j<(int)(320*240);j++)
+    an2Image->octetData[j] = *pt++;
+  
+  { ofstream aofstream;
+    aofstream.open("cp.pgm",ofstream::out);
+    aofstream << "P5" <<endl;
+    aofstream << an2Image->width << " " << an2Image->height << endl;
+    aofstream << "255" <<endl;
+    cout << an2Image->octetData.length() <<endl;
+    //      for(unsigned int l=0;l<anImage->width*anImage->height*ldepth;l++)
+    for(unsigned int l=0;l<an2Image->octetData.length();l++)
+      {
+	aofstream << an2Image->octetData[l];
+      }
+    
+    aofstream.close();
+  }
+#endif
+  cout << "Went through here 3" << std::endl;
   anImage = an2Image._retn();
-  return m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
+  cout << "Went through here 4" << std::endl;
+  CORBA::Long lr=320*240;
+  return lr;
 }
 
 /* Get the edge image */

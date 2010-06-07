@@ -61,7 +61,9 @@
    11/06/2004: Creation
 */
 
+#include <iostream>
 #include <string>
+#include <assert.h>
 using namespace std;
 
 #include "ImagesInputMethod.h"
@@ -117,6 +119,14 @@ namespace llvs
 	0 otherwise.
        */
       virtual int Cleanup();
+
+      /*! \brief Return the link between the detected camera 
+       and its semantic. */
+      virtual int GetSemanticOfCamera(int CameraNumberOnWS)
+      { /* TODO */ 
+	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
+	assert(false); 
+	return -1;};
 
     protected:
 
