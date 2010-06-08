@@ -80,7 +80,7 @@ class HRP2VisionBasicProcess
   virtual ~HRP2VisionBasicProcess();
 
   /* Stop the process */
-  virtual int StopProcess();
+  int StopProcess();
   
   /* Start the process */
   virtual int StartProcess();
@@ -122,16 +122,16 @@ class HRP2VisionBasicProcess
    * If this is valid the index parameter >=0 is returned,
    * -1 otherwise.
    */
-  virtual int SetParameter(string aParameter, string aValue);
+  int SetParameter(string aParameter, string aValue);
 
   /*! Get a parameter and its possible value according to its index */
-  virtual int GetParameter(string & aParameter, string & aValue, int anIndex);
+  int GetParameter(string & aParameter, string & aValue, int anIndex);
 
   /*! Get the value of a parameter if such parameter exist */
-  virtual int GetValueOfParameter(string aParameter, string &aValue);
+  int GetValueOfParameter(string aParameter, string &aValue);
 
   /*! Get the parameters and their values */
-  virtual int GetParametersAndValues(vector<string> & ListOfParameters, vector<string> & ListOfValues);
+  int GetParametersAndValues(vector<string> & ListOfParameters, vector<string> & ListOfValues);
 
 #if ((LLVS_HAVE_OPENCV>0) && (LLVS_HAVE_VVV>0))
   #warning "Here .."
@@ -160,13 +160,35 @@ class HRP2VisionBasicProcess
 #endif
 
  protected:
+  /*! Hooks on methods without the p 
+    To be redefined and called only by inherited classes */
 
-  /*! To redefined and called only by inherited classes */
+  /* Processes status */
   virtual int pInitializeTheProcess()=0;
 
   virtual int pRealizeTheProcess()=0;
   
   virtual int pCleanUpTheProcess()=0;
+
+  /* Methods related to parameters */
+  virtual int pGetParameter(string & aParameter, string & aValue, int anIndex)
+  { return 0;};
+
+  virtual int pSetParameter(string aParameter, string aValue)
+  { return 0;};
+  
+  virtual int pGetValueOfParameter(string aParameter, string &aValue)
+  { return 0;};
+
+  virtual int pGetParametersAndValues(vector<string> & ListOfParameters, vector<string> & ListOfValues)
+  { return 0;};
+
+  /* Start and stop the process */
+  virtual int pStartProcess()
+  {return 0;};
+
+  virtual int pStopProcess()
+  {return 0;};
 
   /*! Name of the process */
   string m_ProcessName;

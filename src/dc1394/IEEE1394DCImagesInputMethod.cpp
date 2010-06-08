@@ -312,9 +312,13 @@ int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 
 int HRP2IEEE1394DCImagesInputMethod::StopProcess()
 {
+  ODEBUG("StopProcess: Phase 1");
   HRP2VisionBasicProcess::StopProcess();
+  ODEBUG("StopProcess: Phase 2");
   StopContinuousShot();
+  ODEBUG("StopProcess: Phase 3");
   StopBoard();
+  ODEBUG("StopProcess: Phase 4");
   return 0;
 }
 

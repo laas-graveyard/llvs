@@ -165,6 +165,12 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* It is an interface to call the VVV scripts . */
   m_StereoVision_impl = new StereoVision_impl(m_orb,this);
 
+#if (LLVS_HAVE_NMBT>0)
+  /*! Is is an interface to call the NMBT tracker. */
+  m_ModelTrackerCorbaRequestProcess_impl = new 
+    ModelTrackerInterface_impl(this);
+#endif 
+
   ODEBUG("Step 1");
 
 #if (LLVS_HAVE_VVV>0)
@@ -401,6 +407,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
   m_Widecam_image_undistorded = new vpImage<unsigned char>;
   m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
+ 
+  vpXmlParserCamera       m_ParserCam;
   m_ParserCam.parse(m_Widecam_param,
 		    m_CamParamPath.c_str(),
 		    "cam1394_3",
@@ -426,9 +434,9 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   /* From unitesting*/
   // m_ModelTrackerProcess->SetCameraParameters(m_Widecam_param);
-  m_ModelTrackerProcess->SetcMo(m_cMo);
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
-  m_ModelTrackerProcess->InitializeTheProcess();
+  // m_ModelTrackerProcess->InitializeTheProcess();
+  // for the process not to start
   m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
@@ -840,6 +848,7 @@ LowLevelVisionServer::ApplyingProcess()
   static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
+  ODEBUG( __FILE__ << " " << __LINE__ );
   if ((!m_Computing) || (!m_EndOfConstructor)
       || (m_ImagesInputMethod==0))
     {
@@ -859,7 +868,9 @@ LowLevelVisionServer::ApplyingProcess()
   
   gettimeofday(&before,0);
   int NbOfWait=0;
-  ODEBUG("Start the process");
+  ODEBUG("RealizeTheProcess: Scheduling the Grabbing");
+  ODEBUG("RealizeTheProcess: My synchro is :" );
+  
   int ResFromGIFF;
   if (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_TRIGGER)
     {
@@ -879,7 +890,7 @@ LowLevelVisionServer::ApplyingProcess()
 	  //  cout << "Coucou 1" << endl;
 	}
       while((!m_SynchroTrigger) ||
-	    (ResFromGIFF==-1)); 
+	    (ResFromGIFF==-1) ); 
       m_SynchroTrigger = false;
     }
   else
@@ -899,11 +910,11 @@ LowLevelVisionServer::ApplyingProcess()
 	GoIn = true;
       if (TooFast)
 	GoIn = true;
-
       struct timeval current_wait;
       if ((m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_FLOW) &&
 	  GoIn)
 	{
+	  ODEBUG("RealizeTheProcess: really going in ");
 	  do
 	    {
 	      usleep(1000);
@@ -932,8 +943,6 @@ LowLevelVisionServer::ApplyingProcess()
       FirstTime = 0;
     }
 	  
-
-  ODEBUG("Start the processes.");
   gettimeofday(&before2,0);
   /* Get the image from the input method */
   if (ResFromGIFF==-1)
@@ -984,8 +993,15 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("Image grabbed");
 
   // Perform computation for each process.
+  unsigned int NbOfActiveProcesses = 0;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
-    m_ListOfProcesses[i]->RealizeTheProcess();
+    {
+      cout<< "RealizeTheProcess  :"<<i<<endl;
+
+      m_ListOfProcesses[i]->RealizeTheProcess();
+      if (m_ListOfProcesses[i]->GetStatus())
+	NbOfActiveProcesses++;
+    }
 
   ODEBUG("FFII realized");
   /* Applying Motion Evaluation */
@@ -1038,8 +1054,10 @@ LowLevelVisionServer::ApplyingProcess()
     }
 #endif
 
-  if (IndexBuffer==300)
-  //if (0)
+  cout <<"NbOfActiveProcesses"<<NbOfActiveProcesses<<endl;
+
+  if ((NbOfActiveProcesses>0)&&
+      (IndexBuffer==300)  )
     {
       cout << "Complete process time :" << CompleteProcessTime/(double)IndexBuffer << endl;
       cout << "Time consumption average with acquisition : " << BufferTime/(double)IndexBuffer<< endl;
@@ -1056,11 +1074,18 @@ LowLevelVisionServer::ApplyingProcess()
       Variance = 0;
       IndexBuffer=-1;      
     }
+  else if (IndexBuffer == 1000000)
+    IndexBuffer = -1;
+  
+  if ((NbOfActiveProcesses==0) && (IndexBuffer==-1))
+    {
+      cout << "No active process" << endl;
+    }
 
   m_ImageCounter++;
   IndexBuffer++;
 
-  ODEBUG("End");
+  ODEBUG("End Index buffer: "<< IndexBuffer);
   return 0;
 }
 
@@ -1323,6 +1348,14 @@ LowLevelVisionServer::SynchronizationMode()
 {
   cout << "LowLevelVisionServer::SynchronizationMode(): " <<m_TypeOfSynchro<<endl;
   return  m_TypeOfSynchro;
+}
+
+
+void 
+LowLevelVisionServer::SetSynchronizationMode(LowLevelVisionSystem::SynchroMode aSynchronizationMode)
+  throw(CORBA::SystemException)
+{
+  m_TypeOfSynchro = aSynchronizationMode;
 }
 
 CORBA::Long
@@ -2149,7 +2182,6 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
       return -1;
     }
   
-  cout << "Went through here" << std::endl;
   CheckImageFormat(Format);
 #if (LLVS_HAVE_VVV>0)
   an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
@@ -2160,10 +2192,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
 #endif
 
 #if (LLVS_HAVE_VISP>0)
-  cout <<"  " << m_Height[CameraID]
-       <<" " << m_Width[CameraID]
-       << " " << m_depth[CameraID] 
-       << std::endl;
+
  an2Image->octetData.length(320*240);
  an2Image->width=320;
  an2Image->height=240;
@@ -2173,19 +2202,13 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
  an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
 
 
- cout << "Went through here 2" << std::endl;
  unsigned char *pt =m_Widecam_image_undistorded->bitmap;
 
   for(j=0;j<(int)(320*240);j++)
     an2Image->octetData[j] = *pt++;
   
   { ofstream aofstream;
-    aofstream.open("cp.pgm",ofstream::out);
-    aofstream << "P5" <<endl;
-    aofstream << an2Image->width << " " << an2Image->height << endl;
-    aofstream << "255" <<endl;
-    cout << an2Image->octetData.length() <<endl;
-    //      for(unsigned int l=0;l<anImage->width*anImage->height*ldepth;l++)
+   
     for(unsigned int l=0;l<an2Image->octetData.length();l++)
       {
 	aofstream << an2Image->octetData[l];
@@ -2194,9 +2217,9 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
     aofstream.close();
   }
 #endif
-  cout << "Went through here 3" << std::endl;
+
   anImage = an2Image._retn();
-  cout << "Went through here 4" << std::endl;
+
   CORBA::Long lr=320*240;
   return lr;
 }
@@ -3319,6 +3342,15 @@ StereoVision_ptr LowLevelVisionServer::getStereoVision()
 
   tmp_StereoVision = m_StereoVision_impl->_this();
   return tmp_StereoVision._retn();
+}
+
+ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
+  throw(CORBA::SystemException)
+{
+  ModelTrackerInterface_var tmp_ModelTrackerInterface;
+
+  tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
+  return tmp_ModelTrackerInterface._retn();
 }
 
 void LowLevelVisionServer::SetTheSLAMImage(int anIndex)

@@ -81,6 +81,9 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Default Param*/
   int SetDefaultParam(); 
 
+  /*! Start the process. */
+  int pStartProcess();
+
   /*! Initialize the process. */
   int pInitializeTheProcess();
 

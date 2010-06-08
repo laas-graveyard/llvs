@@ -74,7 +74,6 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
   m_inputVispImage=0x0;
-  
   SetDefaultParam();
 }
 
@@ -165,6 +164,8 @@ void  HRP2nmbtTrackingProcess::GetInputcMo(vpHomogeneousMatrix & _inputcMo)
 void  HRP2nmbtTrackingProcess::GetOutputcMo(vpHomogeneousMatrix & _outputcMo)
 {
   _outputcMo=this->m_outputcMo;
+
+   cout<<m_outputcMo<<endl;
 } 
  
 /*! Get Image Height*/
@@ -202,8 +203,8 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   //m_pathPose = tmp_stream.str(); 
 
   string defaultPath ( "./data/model/WoodenBox/WoodenBox");
-    m_pathPose =defaultPath;
-    m_pathVrml = defaultPath +".wrl";
+  m_pathPose =defaultPath;
+  m_pathVrml = defaultPath +".wrl";
 
   //tmp_stream<<".wrl";
   // m_pathVrml = tmp_stream.str(); 
@@ -230,7 +231,7 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   //string camParamPath ("./data/hrp2CamParam/hrp2.xml");
   //tmp_stream.str("");
   //tmp_stream<<homePath<< "/"<< camParamPath;
-  //  m_pathCam = tmp_stream.str();
+  //m_pathCam = tmp_stream.str();
   string camParamPath ("./data/ViSP/hrp2CamParam/hrp2.xml");
   m_pathCam =camParamPath;
 
@@ -547,13 +548,27 @@ Set cMo
 void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & _cMo)
 {
   m_inputcMo=_cMo;   
+
+  cout<<_cMo<<endl;
   m_tracker.setcMo(m_inputcMo);
   m_initPoseLoaded = true;
 }  
 
 
 /*!------------------------------------- 
-Initialize the process. 
+Initialize the process : initialize the Tracker
+
+
+Using the current pointed image 
+and the pose m_inputcMo,
+ 
+The lines of the model are projected on the
+image plane and some points on the lines are then used to define 
+patches.
+
+This Patches will be used to track the line in the image.
+
+
 -------------------------------------*/
 int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
@@ -562,6 +577,21 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
   m_tracker.init(*m_inputVispImage,m_inputcMo );
   return 0;
 }
+
+
+/*!----------------------------------------
+Start the process
+The tracker is initialize in this process
+------------------------------------------*/
+int HRP2nmbtTrackingProcess::pStartProcess()
+{
+  cout << "Go through pStartProcess" << endl;
+  int r= pInitializeTheProcess();
+  cout << "Went through pStartProcess" << endl;
+  return r;
+
+}
+
 
 /*!------------------------------------- 
 Realize the process 
@@ -574,6 +604,7 @@ the object model
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
+  cout << "Fucking here... " << endl;
   m_trackerTrackSuccess = false;
  
   if(m_inputImagesLoaded)
@@ -600,6 +631,8 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  
 	}
     
+      cout << "track\n";
+
       // tracking succeed
       m_trackerTrackSuccess= true;
       

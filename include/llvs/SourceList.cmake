@@ -27,6 +27,6 @@ SET(LLVS_HEADERS_FILES_1
 
 
 FOREACH(src_filename ${LLVS_HEADERS_FILES_1})
-  SET(LLVS_HEDARS_FILES ${LLVS_HEADERS_FILES} ./src/${src_filename})
+  SET(LLVS_HEADERS_FILES ${LLVS_HEADERS_FILES} ./src/${src_filename})
 ENDFOREACH(src_filename)
 

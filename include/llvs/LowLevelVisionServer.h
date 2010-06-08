@@ -50,9 +50,11 @@
 
 #include <Corba/Camera_impl.h>
 #include <Corba/StereoVision_impl.h>
+#include <Corba/ModelTrackerInterface_impl.h>
 
 #include <VisionBasicProcess.h>
 #include <ConnectionToSot.h>
+
 
 
 /*! Inclusion specific to VVV */
@@ -207,9 +209,16 @@ namespace llvs
       LowLevelVisionSystem::InputMode GetInputMode()
 	throw(CORBA::SystemException) ;
  
-      /*! Internface : returns the synchronization mode */
+      /*! Interface : returns the synchronization mode */
       LowLevelVisionSystem::SynchroMode SynchronizationMode()
 	throw(CORBA::SystemException) ;
+      
+      /*! Interface : set the synchronization mode and allows to switch between
+	still images and data flow. */
+      void SetSynchronizationMode(LowLevelVisionSystem::SynchroMode aSynchronizationMode)
+	throw(CORBA::SystemException);
+
+      
       /*! Set the image */
       CORBA::Long SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, CORBA::Long aHeight)
 	throw(CORBA::SystemException) ;
@@ -404,6 +413,11 @@ namespace llvs
       StereoVision_ptr getStereoVision() 
 	throw (CORBA::SystemException);
 
+
+      /* ! Interface: Returns the reference of the stereo vision object */
+      ModelTrackerInterface_ptr getModelTracker() 
+	throw (CORBA::SystemException);
+
       /* ! Get Object reference */
       CORBA::Object_ptr getObjectReference(string ServerID, string ServerKind);
 
@@ -453,12 +467,19 @@ namespace llvs
 
 
 #if (LLVS_HAVE_NMBT>0)
+    public:
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
+      
+    private:
+      /*! Corba object handling Tracker requests.*/
+      ModelTrackerInterface_impl *  
+	m_ModelTrackerCorbaRequestProcess_impl;
+      
 #endif
 
       
-
+    protected:
 #if (LLVS_HAVE_VVV>0)
       /*! Initial image in the VVV formalism. */
       EPBM m_epbm[4];
@@ -536,7 +557,6 @@ namespace llvs
       HRP2vispUndistordedProcess* m_vispUndistordedProcess;
       
       std::string             m_CamParamPath;
-      vpXmlParserCamera       m_ParserCam;
       vpHomogeneousMatrix     m_cMo;
 
  
