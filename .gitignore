@@ -1,4 +1,4 @@
 *~
 *.hh
 *SK.cc
-./include/llvs/llvsConfig.h
+include/llvs/llvsConfig.h
