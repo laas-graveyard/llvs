@@ -38,6 +38,9 @@
 */
 
 #include <iostream>
+
+#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT && LLVS_HAVE_OPENCV
+
 #include <fstream>
 #include <vector>
 #include <sstream>
@@ -52,7 +55,6 @@
 
 
 using namespace std;
-
 
 
 #define ODEBUG2(x)
@@ -275,3 +277,12 @@ int main(void)
 
   return 0;
 }
+#else
+
+int main(void)
+{
+  std::cout << "Libraries not installed -> cannot do anything!\n";
+  return 0;
+}
+
+#endif
