@@ -49,7 +49,7 @@
 #the third party libraries we depend on
   SET(LLVS_EXTERN_LIBS "")
 #the third party libraries we depend on
-  SET(TRACKING_DEFS "")
+  SET(LLVS_DEFS "")
 #set the link to lib
   SET(LLVS_EXTERN_LINK_DIR "")
 #set intern lib dir
@@ -298,8 +298,8 @@ MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
   INCLUDE(${PROJECT_SOURCE_DIR}/src/SourceList.cmake)
   INCLUDE(${PROJECT_SOURCE_DIR}/include/llvs/SourceList.cmake)
 
-#  MESSAGE(STATUS "LLVS_SRC_FILES: ${LLVS_SRC_FILES}")
-#  MESSAGE(STATUS "LLVS_HEADER_FILES: ${LLVS_HEADER_FILES}")
+  MESSAGE(STATUS "LLVS_SRC_FILES: ${LLVS_SRC_FILES}")
+  MESSAGE(STATUS "LLVS_HEADER_FILES: ${LLVS_HEADER_FILES}")
 #----------------------------------------------------
 # Create the library. 
 #----------------------------------------------------
@@ -328,7 +328,8 @@ ADD_DEPENDENCIES(LLVS_server ${LLVS_INTERN_LIBS})
 #------------------------------------------------
   install(TARGETS LLVS_server DESTINATION bin)
   install(TARGETS ${LLVS_INTERN_LIBS} DESTINATION lib)
-  install(FILES ${LLVS_HEADER_FILES} DESTINATION include)
+  install(FILES ${LLVS_HEADER_FILES} DESTINATION include/llvs)
+  install(FILES ${IDL_FILES} DESTINATION share/idl/llvs) 
 
 
 #----------------------------------------------------------------------

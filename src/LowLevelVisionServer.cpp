@@ -72,6 +72,12 @@ extern "C"
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
+/*
+#if (LLVS_HAVE_VISP>0)
+#include "ViSP/vispImageConvertProcess.h"
+#include "ViSP/vispUndistordedProcess.h"
+#endif
+*/
 
 using namespace std; 
 
@@ -159,10 +165,17 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* It is an interface to call the VVV scripts . */
   m_StereoVision_impl = new StereoVision_impl(m_orb,this);
 
+#if (LLVS_HAVE_NMBT>0)
+  /*! Is is an interface to call the NMBT tracker. */
+  m_ModelTrackerCorbaRequestProcess_impl = new 
+    ModelTrackerInterface_impl(this);
+#endif 
+
   ODEBUG("Step 1");
 
 #if (LLVS_HAVE_VVV>0)
   /* Initialize the epbm images */
+
   epbm_minitialize(m_epbm,4);
   epbm_minitialize(m_CorrectedImages,4);
   epbm_minitialize(m_epbm_distorted,4);
@@ -244,7 +257,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
   /* Resize all the associated vectors */
-  int lNbCams = m_ImagesInputMethod->GetNumberOfCameras();
+  int lNbCams = 4;//m_ImagesInputMethod->GetNumberOfCameras();
   m_Width.resize(lNbCams);
   m_Height.resize(lNbCams);
   m_depth.resize(lNbCams);
@@ -389,10 +402,44 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_SingleCameraSLAM);
 #endif
   
+
+#if(LLVS_HAVE_VISP>0)
+  m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
+  m_Widecam_image_undistorded = new vpImage<unsigned char>;
+  m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
+ 
+  vpXmlParserCamera       m_ParserCam;
+  m_ParserCam.parse(m_Widecam_param,
+		    m_CamParamPath.c_str(),
+		    "cam1394_3",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[3],
+		    m_Height[3]);
+ 
+  m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess->InitializeTheProcess();
+ 
+  m_vispUndistordedProcess->StopProcess();
+  m_vispUndistordedProcess->SetImages(&(m_BinaryImages[0]),
+				      m_Widecam_image_undistorded);
+  m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
+
+#endif
+
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
- 
+
+
+  /* From unitesting*/
+  // m_ModelTrackerProcess->SetCameraParameters(m_Widecam_param);
+  m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
+  // m_ModelTrackerProcess->InitializeTheProcess();
+  // for the process not to start
+  m_ModelTrackerProcess->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
+
   //
   // TODO il faut entrer une image dans le tracker avant
   // de pouvoir l'initialiser, il faut donc faire la conv
@@ -521,7 +568,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
   if (m_ImagesInputMethod==0)
     return -1;
 
-  for(unsigned int i=0;i<m_ImagesInputMethod->GetNumberOfCameras();i++)
+  for(unsigned int i=0;i<4;i++)
     {
       if ((m_Width[i]!=0) && (m_Height[i]!=0))
 	{
@@ -559,7 +606,9 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       
       unsigned char ** local_BinaryImages;
-      m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+      if (m_Cameras[i]!=0)
+	m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+
 #if (LLVS_HAVE_VVV>0)
       if (m_CorrectedImages[i].Image!=0)
 	{
@@ -799,6 +848,7 @@ LowLevelVisionServer::ApplyingProcess()
   static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
+  ODEBUG( __FILE__ << " " << __LINE__ );
   if ((!m_Computing) || (!m_EndOfConstructor)
       || (m_ImagesInputMethod==0))
     {
@@ -818,7 +868,9 @@ LowLevelVisionServer::ApplyingProcess()
   
   gettimeofday(&before,0);
   int NbOfWait=0;
-  ODEBUG("Start the process");
+  ODEBUG("RealizeTheProcess: Scheduling the Grabbing");
+  ODEBUG("RealizeTheProcess: My synchro is :" );
+  
   int ResFromGIFF;
   if (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_TRIGGER)
     {
@@ -838,7 +890,7 @@ LowLevelVisionServer::ApplyingProcess()
 	  //  cout << "Coucou 1" << endl;
 	}
       while((!m_SynchroTrigger) ||
-	    (ResFromGIFF==-1)); 
+	    (ResFromGIFF==-1) ); 
       m_SynchroTrigger = false;
     }
   else
@@ -858,11 +910,11 @@ LowLevelVisionServer::ApplyingProcess()
 	GoIn = true;
       if (TooFast)
 	GoIn = true;
-
       struct timeval current_wait;
       if ((m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_FLOW) &&
 	  GoIn)
 	{
+	  ODEBUG("RealizeTheProcess: really going in ");
 	  do
 	    {
 	      usleep(1000);
@@ -891,8 +943,6 @@ LowLevelVisionServer::ApplyingProcess()
       FirstTime = 0;
     }
 	  
-
-  ODEBUG("Start the processes.");
   gettimeofday(&before2,0);
   /* Get the image from the input method */
   if (ResFromGIFF==-1)
@@ -943,8 +993,15 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("Image grabbed");
 
   // Perform computation for each process.
+  unsigned int NbOfActiveProcesses = 0;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
-    m_ListOfProcesses[i]->RealizeTheProcess();
+    {
+      cout<< "RealizeTheProcess  :"<<i<<endl;
+
+      m_ListOfProcesses[i]->RealizeTheProcess();
+      if (m_ListOfProcesses[i]->GetStatus())
+	NbOfActiveProcesses++;
+    }
 
   ODEBUG("FFII realized");
   /* Applying Motion Evaluation */
@@ -997,8 +1054,10 @@ LowLevelVisionServer::ApplyingProcess()
     }
 #endif
 
-  if (IndexBuffer==300)
-  //if (0)
+  cout <<"NbOfActiveProcesses"<<NbOfActiveProcesses<<endl;
+
+  if ((NbOfActiveProcesses>0)&&
+      (IndexBuffer==300)  )
     {
       cout << "Complete process time :" << CompleteProcessTime/(double)IndexBuffer << endl;
       cout << "Time consumption average with acquisition : " << BufferTime/(double)IndexBuffer<< endl;
@@ -1015,11 +1074,18 @@ LowLevelVisionServer::ApplyingProcess()
       Variance = 0;
       IndexBuffer=-1;      
     }
+  else if (IndexBuffer == 1000000)
+    IndexBuffer = -1;
+  
+  if ((NbOfActiveProcesses==0) && (IndexBuffer==-1))
+    {
+      cout << "No active process" << endl;
+    }
 
   m_ImageCounter++;
   IndexBuffer++;
 
-  ODEBUG("End");
+  ODEBUG("End Index buffer: "<< IndexBuffer);
   return 0;
 }
 
@@ -1192,9 +1258,9 @@ CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG("Start process " << aProcessName << " " << i);
+	  ODEBUG3("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
-	  ODEBUG( aProcessName << " " << 
+	  ODEBUG3( aProcessName << " " << 
 		   m_ListOfProcesses[i]->GetStatus() << " " <<
 		   m_ListOfProcesses[i] );
 	}
@@ -1284,6 +1350,14 @@ LowLevelVisionServer::SynchronizationMode()
   return  m_TypeOfSynchro;
 }
 
+
+void 
+LowLevelVisionServer::SetSynchronizationMode(LowLevelVisionSystem::SynchroMode aSynchronizationMode)
+  throw(CORBA::SystemException)
+{
+  m_TypeOfSynchro = aSynchronizationMode;
+}
+
 CORBA::Long
 LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, CORBA::Long aHeight)
   throw(CORBA::SystemException)
@@ -1302,6 +1376,7 @@ LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, COR
   dec1 = aWidth*aHeight;
   dec2 = dec1 *2;
   for(int j=0;j<aHeight;j++)
+
     {
       int index = j*aWidth;
       
@@ -2099,7 +2174,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-
+  cout << "CameraID:" << CameraID << std::endl;
   if ((CameraID<0) || ((unsigned int) CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
     {
       an2Image->octetData.length(0);
@@ -2108,15 +2183,45 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
     }
   
   CheckImageFormat(Format);
-  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
 #if (LLVS_HAVE_VVV>0)
+  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
+
   for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
     an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[CameraID].Image)[j];
   //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[CameraID].Image)[j];
 #endif
 
+#if (LLVS_HAVE_VISP>0)
+
+ an2Image->octetData.length(320*240);
+ an2Image->width=320;
+ an2Image->height=240;
+ an2Image->longData.length(2);
+ an2Image->format=GRAY;
+ an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
+ an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
+
+
+ unsigned char *pt =m_Widecam_image_undistorded->bitmap;
+
+  for(j=0;j<(int)(320*240);j++)
+    an2Image->octetData[j] = *pt++;
+  
+  { ofstream aofstream;
+   
+    for(unsigned int l=0;l<an2Image->octetData.length();l++)
+      {
+	aofstream << an2Image->octetData[l];
+      }
+    
+    aofstream.close();
+  }
+#endif
+
   anImage = an2Image._retn();
-  return m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
+
+  CORBA::Long lr=320*240;
+  return lr;
 }
 
 /* Get the edge image */
@@ -3237,6 +3342,15 @@ StereoVision_ptr LowLevelVisionServer::getStereoVision()
 
   tmp_StereoVision = m_StereoVision_impl->_this();
   return tmp_StereoVision._retn();
+}
+
+ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
+  throw(CORBA::SystemException)
+{
+  ModelTrackerInterface_var tmp_ModelTrackerInterface;
+
+  tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
+  return tmp_ModelTrackerInterface._retn();
 }
 
 void LowLevelVisionServer::SetTheSLAMImage(int anIndex)

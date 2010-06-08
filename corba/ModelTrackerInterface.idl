@@ -1,0 +1,20 @@
+#include "common.idl"
+
+
+interface ModelTrackerInterface{
+
+  /* Object position in the camera frame*/
+  struct HomogeneousMatrix
+  {
+    double cMo[4][4]; 
+  };
+ 
+
+
+  boolean SetcMo(in HomogeneousMatrix acMo);
+
+  boolean GetcMo(out HomogeneousMatrix acMo);
+
+
+
+};

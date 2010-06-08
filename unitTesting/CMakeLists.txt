@@ -11,6 +11,7 @@
 # If you add/remove a directory, modify here
 SET (SRC_SUBDIRS
   ModelTracker
+  ViSP
 )
 
 # Build process propagation in the sub directories

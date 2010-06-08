@@ -80,13 +80,13 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
 
   /*! HRP2 VISION BASIC PROCESS PART */
   /*! Initialize the process */
-  virtual int InitializeTheProcess();
+  virtual int pInitializeTheProcess();
 
   /*! Realize the process */
-  virtual int RealizeTheProcess();
+  virtual int pRealizeTheProcess();
 
   /*! Cleanup the process */
-  virtual int CleanUpTheProcess();
+  virtual int pCleanUpTheProcess();
 
   /*! Set Parameter */
   virtual int SetParameter(string aParameter, string aValue);

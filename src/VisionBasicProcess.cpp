@@ -53,33 +53,35 @@ HRP2VisionBasicProcess::~HRP2VisionBasicProcess()
 {
 }
 
-
-int HRP2VisionBasicProcess::InitializeTheProcess()
+/*
+int HRP2VisionBasicProcess::pInitializeTheProcess()
 {
   return 0;
 }
 
-int HRP2VisionBasicProcess::RealizeTheProcess()
+int HRP2VisionBasicProcess::pRealizeTheProcess()
 {
   return 0;
 }
 
-int HRP2VisionBasicProcess::CleanUpTheProcess()
+int HRP2VisionBasicProcess::pCleanUpTheProcess()
 {
   return 0;
 }
-
+*/
 int HRP2VisionBasicProcess::StopProcess()
 {
   m_Computing = 0;
+  pStopProcess();
   return 1;
-
-
 }
 
 int HRP2VisionBasicProcess::StartProcess()
 {
+  cout << "Go through StartProcess" << endl;
   m_Computing = 1;
+  pStartProcess();
+  cout << "Went through StartProcess" << endl;
   return 1;
 
 }
@@ -124,6 +126,9 @@ int HRP2VisionBasicProcess::SetParameter(string aParameter, string aValue)
 					   aValue);
       m_ParametersSize++;
     }
+
+  // Call Virtual method to be reimplemented by inherited class.
+  pSetParameter(aParameter,aValue);
   return m_ParametersSize-1;
 }
 
@@ -134,12 +139,15 @@ int HRP2VisionBasicProcess::GetParameter(string & aParameter, string &aValue, in
 
   aParameter = m_VectorOfParameters[anIndex];
   aValue = m_VectorOfValuesForParameters[anIndex];
+
+  pGetParameter(aParameter,aValue,anIndex);
   return 0;
 }
 
 int HRP2VisionBasicProcess::GetValueOfParameter(string aParameter, string &aValue)
 {
-  
+ 
+  pGetValueOfParameter(aParameter,aValue);
   for(int i=0;i<m_ParametersSize;i++)
     {
       if (m_VectorOfParameters[i]==aParameter)
@@ -148,7 +156,7 @@ int HRP2VisionBasicProcess::GetValueOfParameter(string aParameter, string &aValu
 	  return 0;
 	}
     }
-  
+ 
   return -1;
 }
 
@@ -156,7 +164,7 @@ int HRP2VisionBasicProcess::GetParametersAndValues(vector<string> &ListOfParamet
 {
   ListOfParameters = m_VectorOfParameters;
   ListOfValues = m_VectorOfValuesForParameters;
-  return 0;
+  return pGetParametersAndValues(ListOfParameters,ListOfValues);
 }
 
 #if ((LLVS_HAVE_OPENCV>0) && (LLVS_HAVE_VVV>0))
@@ -302,4 +310,23 @@ IplImage * HRP2VisionBasicProcess::FromEPBMToIPL(EPBM &anEPBM, int aMode, IplIma
 int HRP2VisionBasicProcess::GetInstance()
 {
   return m_Instance;
+}
+
+int HRP2VisionBasicProcess::InitializeTheProcess()
+{
+  return pInitializeTheProcess();
+}
+
+int HRP2VisionBasicProcess::RealizeTheProcess()
+{
+  cout  <<__FILE__<< " " << __LINE__ << " " <<  m_ProcessName << " Activated:" << (int)m_Computing<< endl;
+  if (m_Computing==1)
+    return pRealizeTheProcess();
+    
+  return 0;
+}
+
+int HRP2VisionBasicProcess::CleanUpTheProcess()
+{
+  return pCleanUpTheProcess();
 }

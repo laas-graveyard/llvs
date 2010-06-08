@@ -94,6 +94,10 @@ VisionSystemProfile::~VisionSystemProfile()
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
 {
 
+  m_MapFromSemanticToRealCamera.resize(4);
+  for(unsigned int i=0;i<4;i++)
+    m_MapFromSemanticToRealCamera[i] = -1;
+
   m_ModeRaw2RGB =  HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB;
 
   m_CurrentVisionSystemProfileID = -1;
@@ -135,13 +139,16 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
   dc1394feature_info_t lFeature;
 
   if (aCamera=="LEFT")
-    iCamera = 0;
+    iCamera = m_MapFromSemanticToRealCamera[0];
   else if (aCamera=="RIGHT")
-    iCamera = 1;
+    iCamera = m_MapFromSemanticToRealCamera[1];
   else if (aCamera=="CYCL")
-    iCamera = 2;
+    iCamera = m_MapFromSemanticToRealCamera[2];
   else if (aCamera=="WIDE")
-    iCamera = 3;
+    iCamera = m_MapFromSemanticToRealCamera[3];
+
+  if (iCamera==-1)
+    return;
 
   // Default value.
   lFeature.id = DC1394_FEATURE_BRIGHTNESS;
@@ -183,16 +190,19 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, stri
 {
   dc1394feature_info_t lFeature;
   bool Is1394Feature=true;
-  unsigned int iCamera=0;
+  int iCamera=0;
 
   if (aCamera=="LEFT")
-    iCamera = 0;
+    iCamera = m_MapFromSemanticToRealCamera[0];
   else if (aCamera=="RIGHT")
-    iCamera = 1;
+    iCamera = m_MapFromSemanticToRealCamera[1];
   else if (aCamera=="CYCL")
-    iCamera = 2;
+    iCamera = m_MapFromSemanticToRealCamera[2];
   else if (aCamera=="WIDE")
-    iCamera = 3;
+    iCamera = m_MapFromSemanticToRealCamera[3];
+
+  if (iCamera==-1)
+    return;
 
   // Default value.
   lFeature.id = DC1394_FEATURE_BRIGHTNESS;
@@ -302,9 +312,13 @@ int HRP2IEEE1394DCImagesInputMethod::StartProcess()
 
 int HRP2IEEE1394DCImagesInputMethod::StopProcess()
 {
+  ODEBUG("StopProcess: Phase 1");
   HRP2VisionBasicProcess::StopProcess();
+  ODEBUG("StopProcess: Phase 2");
   StopContinuousShot();
+  ODEBUG("StopProcess: Phase 3");
   StopBoard();
+  ODEBUG("StopProcess: Phase 4");
   return 0;
 }
 
@@ -749,9 +763,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, in
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int SemanticCameraNumber)
 {
     
+  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
+  
   if ((CameraNumber<0)|| ((unsigned int)CameraNumber>=m_DC1394Cameras.size()))
     return -1;
 
@@ -764,25 +780,33 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumb
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, int CameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, int SemanticCameraNumber)
 {
-  lw = m_ImagesWidth[CameraNumber];
-  lh = m_ImagesHeight[CameraNumber];
+  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
+  if (CameraNumber!=-1)
+    {
+      lw = m_ImagesWidth[CameraNumber];
+      lh = m_ImagesHeight[CameraNumber];
+    }
+  else 
+    { lw = lh = -1;}
   return 0;
 }
 
 
-string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int CameraNumber)
+string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int SemanticCameraNumber)
 {
-  if ((CameraNumber>=0) && (CameraNumber<m_Format.size()))
+  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
+  if ((CameraNumber>=0) && (CameraNumber<(int)m_Format.size()))
       return m_Format[CameraNumber];
   string ErrorMsg("Error Format : wrong camera id.");
   return ErrorMsg;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, unsigned int CameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, unsigned int SemanticCameraNumber)
 {
-  if ((CameraNumber<0) || (CameraNumber>=m_Format.size()))
+  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
+  if ((CameraNumber<0) || (CameraNumber>=(int)m_Format.size()))
     return -1;
 
   if (aFormat=="RGB")
@@ -842,7 +866,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
     {
       lpos=4;
       string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
-      ReadConfigurationFileVVVFormat(aValue,ProfileName);
+      ReadConfigurationFileVSPFormat(aValue,ProfileName);
     }
 
   if (IsACamera)
@@ -1392,6 +1416,8 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 	  else if (Semantic=="WIDE")
 	    iCamera = 3;
 
+	  m_MapFromSemanticToRealCamera[iCamera] = i;
+
 	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(iCamera);
 	  aVSP->m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
 	  
@@ -1479,6 +1505,18 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
       m_VisionSystemProfiles.insert(m_VisionSystemProfiles.end(),
 					    aVSP);
     }
+}
+
+int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(int lCameraIndexOnComputer)
+{
+  if ((lCameraIndexOnComputer>=0) &&
+      ((unsigned int )lCameraIndexOnComputer< m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->
+       m_CameraParameters.size()))
+    
+    return m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->
+      m_CameraParameters[lCameraIndexOnComputer]->GetCameraNumberInUserSemantic();
+
+  return -1;
 }
 
 bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
@@ -1629,3 +1667,4 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   ODEBUG("Current Vision System Profile:" << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
   return true;
 }
+

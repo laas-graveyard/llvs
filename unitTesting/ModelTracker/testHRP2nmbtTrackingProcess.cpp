@@ -164,7 +164,7 @@ int main(void)
 
 
   cout<< "Click on the image to exit" << endl;
-  vpDisplay::getClick(Isrc);
+  vpDisplay::getClick(Isrc);  
   cout << endl;  
   cout <<" -------------------------- " << endl; 
   cout << endl; 

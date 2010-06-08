@@ -62,13 +62,13 @@ class HRP2MireDetectionProcess : public HRP2VisionBasicProcess
 
 
   /*! Initialize the process. */
-  virtual int InitializeTheProcess();
+  virtual int pInitializeTheProcess();
 
   /*! Realize the process */
-  virtual int RealizeTheProcess();
+  virtual int pRealizeTheProcess();
   
   /*! Cleanup the process */
-  virtual int CleanUpTheProcess();
+  virtual int pCleanUpTheProcess();
 
   /* Detect the stereo mire */
   int DetectMireStereo();
