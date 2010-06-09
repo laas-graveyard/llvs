@@ -295,15 +295,15 @@ int main(int argc, char * argv[])
       
       ODEBUG("Flag 1.5");
       try
-			{
-				aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
-			}
-			catch( const char* msg )
-			{
-				std::cerr << "Exception caught:" << msg << std::endl;
-				std::cerr << "Stopping now..." << std::endl;
-				exit(-1);
-			}
+	{
+	  aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
+	}
+      catch( const char* msg )
+	{
+	  std::cerr << "Exception caught:" << msg << std::endl;
+	  std::cerr << "Stopping now..." << std::endl;
+	  exit(-1);
+	}
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
       GlobalVisionServerID = poa->activate_object(aVS);
@@ -418,7 +418,7 @@ int main(int argc, char * argv[])
 	  orb->run()
 #endif
 #ifdef OMNIORB4
-	  pthread_join(aThread,0);
+	    pthread_join(aThread,0);
 #endif
 	}
 
