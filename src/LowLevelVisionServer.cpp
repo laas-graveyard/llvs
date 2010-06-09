@@ -167,8 +167,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 #if (LLVS_HAVE_NMBT>0)
   /*! Is is an interface to call the NMBT tracker. */
-  m_ModelTrackerCorbaRequestProcess_impl = new 
-    ModelTrackerInterface_impl(this);
+  m_ModelTrackerCorbaRequestProcess_impl =
+    new ModelTrackerInterface_impl(this);
 #endif 
 
   ODEBUG("Step 1");
@@ -404,6 +404,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   
 
 #if(LLVS_HAVE_VISP>0)
+
+  /*!ViSP Undistort process. */
   m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
   m_Widecam_image_undistorded = new vpImage<unsigned char>;
   m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
@@ -430,29 +432,24 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
-
-
-  /* From unitesting*/
-  // m_ModelTrackerProcess->SetCameraParameters(m_Widecam_param);
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
-  // m_ModelTrackerProcess->InitializeTheProcess();
-  // for the process not to start
   m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
-  //
-  // TODO il faut entrer une image dans le tracker avant
-  // de pouvoir l'initialiser, il faut donc faire la conv
-  // des images acquises a des images ViSP
-  // 
-  // m_ModelTrackerProcess->SetInputVispImage(&(Isrc));
-  // m_ModelTrackerProcess->InitializeTheProcess();
- 
-  //
-  // rq : on pourrait peut etre utiliser aussi l'emplacement
-  // m_RobotVisionCalibrationDirectory="/home/hrpuser/hrp2/HRP2eyes/rbt_calib/hmat";
-  // pour stocker notre fichier xml ?
-  //m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
+
+  /* Circular Buffer for the tracker data*/
+  m_CBTrackerData= new CBTrackerData();
+  m_CBTrackerData->image=m_Widecam_image_undistorded;
+  m_CBTrackerData->timestamp=&m_timestamps[0];
+
+  m_CBonNMBT=new CircularModelTrackerData(2);
+  m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
+  m_CBonNMBT->SetDatum(m_CBTrackerData);
+  m_CBonNMBT->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
+  
+
+
 #endif
 
 
@@ -2207,7 +2204,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   for(j=0;j<(int)(320*240);j++)
     an2Image->octetData[j] = *pt++;
   
-  { ofstream aofstream;
+  /*  { ofstream aofstream;
    
     for(unsigned int l=0;l<an2Image->octetData.length();l++)
       {
@@ -2215,7 +2212,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
       }
     
     aofstream.close();
-  }
+    }*/
 #endif
 
   anImage = an2Image._retn();

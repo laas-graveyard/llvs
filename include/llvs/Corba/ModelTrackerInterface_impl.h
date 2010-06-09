@@ -46,7 +46,8 @@ namespace llvs
     virtual CORBA::Boolean SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo);
     
     virtual CORBA::Boolean GetcMo(ModelTrackerInterface::HomogeneousMatrix &acMo);
-    
+
+    virtual CORBA::Boolean GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO);
     
     
   };
