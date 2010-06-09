@@ -3346,7 +3346,9 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
 {
   ModelTrackerInterface_var tmp_ModelTrackerInterface;
 
+#if (LLVS_HAVE_VISP>0)
   tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
+#endif
   return tmp_ModelTrackerInterface._retn();
 }
 
