@@ -185,13 +185,12 @@ interface LowLevelVisionSystem
      This is used by the plugin visionforLLVS to fill in the images
      from OpenHRP.
   */
-  long SetImage(in ColorBuffer aColorBuffer, in long aWidth, in long aHeight);
+  long SetImage(in ColorBuffer aColorBuffer, in long CameraID,
+		in long aWidth, in long aHeight);
 
-  /*  Set the grabbed image size 
-   * Because of some algorithms used, right now this size is used for ALL the cameras
-   * of the system.
+  /*  Set the grabbed image size for CameraID
    */
-  long SetImagesGrabbedSize(in long NewWidth, in long NewHeight);
+  long SetImagesGrabbedSize(in long CameraID, in long NewWidth, in long NewHeight);
 
   /* Trigger an image grabbing, only if synchronization mode is SYNCHRO_TRIGGER.
    * The server performs the operation on the current image, and waits
