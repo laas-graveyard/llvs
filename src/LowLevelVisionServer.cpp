@@ -3364,7 +3364,6 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
   throw(CORBA::SystemException)
 {
   ModelTrackerInterface_var tmp_ModelTrackerInterface;
-
 #if (LLVS_HAVE_NMBT>0)
   tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
 #endif

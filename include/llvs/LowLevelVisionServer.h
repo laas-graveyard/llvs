@@ -419,8 +419,7 @@ namespace llvs
       StereoVision_ptr getStereoVision() 
 	throw (CORBA::SystemException);
 
-
-      /* ! Interface: Returns the reference of the stereo vision object */
+      /* ! Interface: Returns the reference of the Model Tracker object */
       ModelTrackerInterface_ptr getModelTracker() 
 	throw (CORBA::SystemException);
 

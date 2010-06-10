@@ -20,7 +20,7 @@ using namespace std;
 #include <Corba/ModelTrackerInterface_impl.h>
 
 
-#include"llvsConfig.h"
+#include "llvsConfig.h"
 
 #if   (LLVS_HAVE_VISP>0)
 #include <visp/vpHomogeneousMatrix.h>
@@ -33,12 +33,16 @@ using namespace llvs;
 ModelTrackerInterface_impl::ModelTrackerInterface_impl(LowLevelVisionServer * LLVS)
 {
   m_LLVS = LLVS;
+#if (LLVS_HAVE_NMBT>0)
   m_CBTD.image = new vpImage<unsigned char>(240,320);
+#endif  
 }
 
 ModelTrackerInterface_impl::~ModelTrackerInterface_impl()
 {
+#if (LLVS_HAVE_NMBT>0)
   delete m_CBTD.image;
+#endif  
 }
 
 
@@ -47,7 +51,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if(LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_NMBT>0)
 
 
   vpHomogeneousMatrix cMo;
@@ -112,7 +116,7 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 CORBA::Boolean
 ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO)
 {
-#if(LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_NMBT>0)
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
   
@@ -126,7 +130,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->anImgData.height=240;
   aDIOv->anImgData.longData.length(2);
   aDIOv->anImgData.format=GRAY;
-#if(LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_NMBT>0)
   aDIOv->anImgData.longData[0] =m_CBTD.timestamp.tv_sec;
   aDIOv->anImgData.longData[1] =m_CBTD.timestamp.tv_usec;
 
