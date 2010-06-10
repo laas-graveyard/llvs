@@ -67,8 +67,10 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
  protected:
   int pRealizeProcess()
   {
+    
+    
   
-    m_nmbt -> GetOutputcMo (m_CBTrackerData->cMo);
+    m_nmbt->GetOutputcMo(m_Datum->cMo);
     CircularBuffer<CBTrackerData>::pRealizeTheProcess();
 
     return 0;

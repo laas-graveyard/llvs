@@ -342,10 +342,16 @@ int HRP2IEEE1394DCImagesInputMethod::Cleanup()
 
 
 int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp)
-{
+{  
+
+  ODEBUG("--------------------"<<m_Format[camera].c_str()<<"---------------");
+
+
+
   if (m_Computing==0)
     return -1;
 
+  ODEBUG("m_Format["<<camera << "]=" << m_Format[camera]);
   int r=-1;
   if (m_Format[camera]=="PGM")
     r = GetImageSinglePGM(Image,camera,timestamp);
@@ -469,7 +475,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
 
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
-  //ODEBUG3( time2 - time1);
+  //ODEBUG( time2 - time1);
 
   m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
   return 0;
@@ -487,7 +493,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
   LOCAL_TYPE ImagesTab[1];
 
   pthread_mutex_lock(&m_mutex_device);  
-  ODEBUG("After mutex acquisition " );
+  ODEBUG("After mutex acquisition " << (int)(m_TmpImage[camera]!=0) );
   if (m_TmpImage[camera]==0)
     {
       ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
@@ -529,9 +535,10 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       ODEBUG("After converting");
 #if 0
+      static linc=0;
       ofstream aof;
       char Buffer[128];
-      sprintf(Buffer,"dump_Dst_%d.ppm",camera);
+      sprintf(Buffer,"dump_Dst_%d_%06d.ppm",camera,linc++);
       aof.open(Buffer,ofstream::out);
       aof << "P6\n"<< m_ImagesWidth[camera] << " " << m_ImagesHeight[camera] << endl;
       aof << "255\n";
@@ -628,14 +635,16 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	}
 
 #if 0
+      static unsigned int linc=0;
       ofstream aof;
       char Buffer[128];
-      sprintf(Buffer,"dump_Dst_%d.ppm",camera);
+      sprintf(Buffer,"dump_Dst_%d_%06d.ppm",camera,linc++);
+
       aof.open(Buffer,ofstream::out);
       aof << "P6\n"<< BWidth << " " << BHeight << endl;
       aof << "255\n";
       
-      for(int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
+      for(unsigned int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
 	aof << (unsigned char) ImgDst[j];
       aof.close();
 #endif
@@ -971,7 +980,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
     {
       if (m_ImagesWidth.size()!=m_DC1394Cameras.size())
 	{
-	  ODEBUG3("Please recall manually the size of the grabber !");
+	  ODEBUG("Please recall manually the size of the grabber !");
 	}
       reallocate=true;
     }
@@ -983,7 +992,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
   m_TmpImage.resize(m_DC1394Cameras.size());
   for(unsigned k=0;k<m_ImagesWidth.size();k++)
     {
-      ODEBUG3(" Size of m_TmpImage["<<k<<"]:" << 
+      ODEBUG(" Size of m_TmpImage["<<k<<"]:" << 
 	      m_BoardImagesWidth[k] << " * " <<
 	      m_BoardImagesHeight[k] << " * 4" );
       m_TmpImage[k] = new unsigned char[m_BoardImagesWidth[k] * 
@@ -1572,7 +1581,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 
   if (m_CurrentVisionSystemProfileID==-1)
     {
-      ODEBUG3("No profile found.");
+      ODEBUG("No profile found.");
       return false;
     }
 
@@ -1584,7 +1593,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	{
 	  // in such case, it is not possible to decide which
 	  // profile is best.
-	  ODEBUG3("Unable to find proper profile.");
+	  ODEBUG("Unable to find proper profile.");
 	  return false;
 	}
     }
@@ -1636,8 +1645,8 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	  }
       else
 	{
-	  ODEBUG3("The vision system profile elected did not find all the listed cameras ");
-	  ODEBUG3("among the connected ones. The system might work in a deprecated mode.");
+	  ODEBUG("The vision system profile elected did not find all the listed cameras ");
+	  ODEBUG("among the connected ones. The system might work in a deprecated mode.");
 	}
 	  
     }

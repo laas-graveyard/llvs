@@ -36,9 +36,7 @@ namespace llvs
     LowLevelVisionServer * m_LLVS;
     int m_ModelTrackerStatus;
     CBTrackerData m_CBTD;
-
-    
-    
+        
   public:
     
     //ModelTrackerInterface_impl(CORBA_ORB_ptr orb,

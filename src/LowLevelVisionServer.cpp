@@ -630,7 +630,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::
       
   delete [] m_BinaryImages[SemanticCameraID];
       
-  ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[SemanticCameraID]);
+  ODEBUG("lw: " << lw << "lh " << lh << "depth: " << m_depth[SemanticCameraID]);
   m_BinaryImages[SemanticCameraID] = new unsigned char[lw*lh*m_depth[SemanticCameraID]];
       
   /* NO NEED TO FREE corrected and undistorted
@@ -848,7 +848,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
   if (!m_ImagesInputMethod->CameraPresent())
     {
-      ODEBUG3("No camera available");
+      ODEBUG("No camera available");
       return -1;
     }
 
@@ -862,9 +862,10 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("RealizeTheProcess: Scheduling the Grabbing");
   ODEBUG("RealizeTheProcess: My synchro is :" );
   
-  int ResFromGIFF;
+  int ResFromGIFF=-1;
   if (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_TRIGGER)
     {
+      ODEBUG("TRIGGER");
       do
 	{
 	  usleep(1000);
@@ -886,6 +887,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
   else
     {
+      ODEBUG("FLOW");
       bool TooFast = false;
       bool GoIn=false;
       double lelapsed_time;
@@ -1087,7 +1089,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
     cout << "Before ImagesInput Method : " << m_ImagesInputMethod->GetNumberOfCameras() << endl;
 
   if (m_ImagesInputMethod!=0)
-    {
+    {/*
       string lFormat =     m_ImagesInputMethod->GetFormat(0);
       if ((lFormat=="PGM") && (m_depth[0]==3))
 	{
@@ -1104,12 +1106,13 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 
       if ((lFormat=="RGB") && (m_depth[0]==1))
 	{
+
 	  for(int unsigned j=0;j<4;j++)
 	    SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
 	}
+      ODEBUG(" lFormat: " << lFormat);
 
-       
-      
+     */
       struct timeval tv_current;
       double CurrentTime;
       gettimeofday(&tv_current,0);
@@ -2133,7 +2136,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
 						    m_BinaryImages.size());
   if ((CameraID<0) || ((unsigned int)CameraID>=m_BinaryImages.size()) )
     {
-      ODEBUG3("No image to transmit");
+      ODEBUG("No image to transmit");
       an2Image->format=GRAY;
       an2Image->width=0;
       an2Image->height=0;
@@ -2431,7 +2434,7 @@ CORBA::Long LowLevelVisionServer::getRangeMap(RangeMap_out aRangeMapOut, char *&
     }
   else if (!strcmp(Format,"PointsAndHZError"))
     {
-      ODEBUG3("getRangeMap: Through PointsAndHZError ");
+      ODEBUG("getRangeMap: Through PointsAndHZError ");
       int SubsampleHZ = m_DP->GetSubsampleHZ();
       float * BoundingBoxes=0;
       int l;
@@ -3035,7 +3038,7 @@ void LowLevelVisionServer::GetMatrixHeadTOrg(double *HeadTOrg)
   for(int i=0;i<16;i++)
     {
       HeadTOrg[i] = m_headTorg[i];
-      ODEBUG3(HeadTOrg[i] );
+      ODEBUG(HeadTOrg[i] );
     }
 
   return;

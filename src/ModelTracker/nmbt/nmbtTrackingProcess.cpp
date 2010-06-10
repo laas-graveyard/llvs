@@ -43,6 +43,7 @@
 
 #include <visp/vpConfig.h>
 #include <visp/vpXmlParserCamera.h>
+#include <visp/vpImageIo.h>
 
 #include <visp/vpDisplayX.h>
 
@@ -605,6 +606,13 @@ the object model
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
   m_trackerTrackSuccess = false;
+
+  	  std::string filename("/home/embarki/devel-src/LLVS/build/tracker.pgm");
+
+
+	  vpImageIo::writePGM(*m_inputVispImage,filename);
+	  
+
  
   if(m_inputImagesLoaded)
     {
@@ -628,6 +636,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  // return a negative value
 	  return -1;
 	  
+
 	}
     
       cout << "track\n";
