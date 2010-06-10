@@ -21,6 +21,7 @@ author Stephane Embarki & Claire Dune
 #include "ModelTrackerInterface.hh"
 #endif
 
+#include "ViSP/CircularBufferTrackerData.h"
 
 namespace llvs
 {
@@ -34,6 +35,9 @@ namespace llvs
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
     int m_ModelTrackerStatus;
+    CBTrackerData m_CBTD;
+
+    
     
   public:
     

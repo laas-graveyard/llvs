@@ -604,7 +604,6 @@ the object model
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
-  cout << "Fucking here... " << endl;
   m_trackerTrackSuccess = false;
  
   if(m_inputImagesLoaded)

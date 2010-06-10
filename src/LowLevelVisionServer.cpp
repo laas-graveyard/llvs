@@ -72,12 +72,6 @@ extern "C"
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
-/*
-#if (LLVS_HAVE_VISP>0)
-#include "ViSP/vispImageConvertProcess.h"
-#include "ViSP/vispUndistordedProcess.h"
-#endif
-*/
 
 using namespace std; 
 
@@ -411,21 +405,21 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /*!ViSP Undistort process. */
   m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
   m_Widecam_image_undistorded = new vpImage<unsigned char>;
-  m_Widecam_image_undistorded -> resize( m_Height[3],m_Width[3]);
+  m_Widecam_image_undistorded -> resize( m_Height[CAMERA_WIDE],m_Width[CAMERA_WIDE]);
  
   vpXmlParserCamera       m_ParserCam;
   m_ParserCam.parse(m_Widecam_param,
 		    m_CamParamPath.c_str(),
 		    "cam1394_3",
 		    vpCameraParameters::perspectiveProjWithDistortion,
-		    m_Width[3],
-		    m_Height[3]);
+		    m_Width[CAMERA_WIDE],
+		    m_Height[CAMERA_WIDE]);
  
   m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
   m_vispUndistordedProcess->InitializeTheProcess();
  
   m_vispUndistordedProcess->StopProcess();
-  m_vispUndistordedProcess->SetImages(&(m_BinaryImages[0]),
+  m_vispUndistordedProcess->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
 				      m_Widecam_image_undistorded);
   m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
@@ -443,10 +437,10 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
   m_CBTrackerData->image=m_Widecam_image_undistorded;
-  m_CBTrackerData->timestamp=&m_timestamps[0];
+  m_CBTrackerData->timestamp=m_timestamps[CAMERA_WIDE];
 
-#warning "Compiling with our beautiful Circular Buffer"
-  m_CBonNMBT=new CircularModelTrackerData(2);
+
+  m_CBonNMBT=new CircularModelTrackerData(5);
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_CBonNMBT->StopProcess();
@@ -993,8 +987,6 @@ LowLevelVisionServer::ApplyingProcess()
   unsigned int NbOfActiveProcesses = 0;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     {
-      cout<< "RealizeTheProcess  :"<<i<<endl;
-
       m_ListOfProcesses[i]->RealizeTheProcess();
       if (m_ListOfProcesses[i]->GetStatus())
 	NbOfActiveProcesses++;
@@ -1051,7 +1043,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
 #endif
 
-  cout <<"NbOfActiveProcesses"<<NbOfActiveProcesses<<endl;
+  ODEBUG("NbOfActiveProcesses"<<NbOfActiveProcesses);
 
   if ((NbOfActiveProcesses>0)&&
       (IndexBuffer==300)  )
@@ -2190,6 +2182,10 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   if ((CameraID<0) || ((unsigned int) CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
     {
       an2Image->octetData.length(0);
+      an2Image->longData.length(0);
+      an2Image->floatData.length(0);
+      an2Image->width=320;
+      an2Image->height=240;
       anImage = an2Image._retn();
       return -1;
     }
@@ -2206,10 +2202,11 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
 #if (LLVS_HAVE_VISP>0)
 
  an2Image->octetData.length(320*240);
+ an2Image->floatData.length(0);
  an2Image->width=320;
  an2Image->height=240;
  an2Image->longData.length(2);
- an2Image->format=GRAY;
+ an2Image->format=GRAY;//PixelFormat::GRAY;
  an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
  an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
 
@@ -2218,16 +2215,20 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
 
   for(j=0;j<(int)(320*240);j++)
     an2Image->octetData[j] = *pt++;
-  
-  /*  { ofstream aofstream;
-   
+
+#ifdef _DEBUG_MODE_ON_  
+  { 
+    ofstream aofstream;
+    
     for(unsigned int l=0;l<an2Image->octetData.length();l++)
       {
 	aofstream << an2Image->octetData[l];
       }
     
     aofstream.close();
-    }*/
+  }
+#endif
+
 #endif
 
   anImage = an2Image._retn();

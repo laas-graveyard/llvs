@@ -41,6 +41,8 @@
 #include <fstream>
 #include <math.h>
 
+#include "Debug.h"
+
 HRP2VisionBasicProcess::HRP2VisionBasicProcess(int Instance)
   : m_Instance(Instance)
 {
@@ -319,7 +321,7 @@ int HRP2VisionBasicProcess::InitializeTheProcess()
 
 int HRP2VisionBasicProcess::RealizeTheProcess()
 {
-  cout  <<__FILE__<< " " << __LINE__ << " " <<  m_ProcessName << " Activated:" << (int)m_Computing<< endl;
+  ODEBUG( m_ProcessName << " Activated:" << (int)m_Computing);
   if (m_Computing==1)
     return pRealizeTheProcess();
     
