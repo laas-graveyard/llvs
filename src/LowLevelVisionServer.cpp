@@ -442,14 +442,12 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBTrackerData->image=m_Widecam_image_undistorded;
   m_CBTrackerData->timestamp=&m_timestamps[0];
 
+#warning "Compiling with our beautiful Circular Buffer"
   m_CBonNMBT=new CircularModelTrackerData(2);
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_CBonNMBT->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
-  
-
-
 #endif
 
 
@@ -636,7 +634,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
       
       delete [] m_BinaryImages[i];
       
-      ODEBUG("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
+      ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
       m_BinaryImages[i] = new unsigned char[lw*lh*m_depth[i]];
       
       /* NO NEED TO FREE corrected and undistorted
@@ -1118,7 +1116,8 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	{
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
-	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[li],li,m_timestamps[li]);
+	      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
+	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],li,m_timestamps[li]);
 	      result=0;
 	      if ((m_CheckEntry) && (r==0) && (li!=2))
 		StoreImageOnStack(li);
@@ -1255,9 +1254,9 @@ CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG3("Start process " << aProcessName << " " << i);
+	  ODEBUG("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
-	  ODEBUG3( aProcessName << " " << 
+	  ODEBUG( aProcessName << " " << 
 		   m_ListOfProcesses[i]->GetStatus() << " " <<
 		   m_ListOfProcesses[i] );
 	}
@@ -3346,7 +3345,7 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
 {
   ModelTrackerInterface_var tmp_ModelTrackerInterface;
 
-#if (LLVS_HAVE_VISP>0)
+#if (LLVS_HAVE_NMBT>0)
   tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
 #endif
   return tmp_ModelTrackerInterface._retn();

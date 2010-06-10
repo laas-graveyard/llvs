@@ -16,7 +16,7 @@
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
-#endif
+
 
 struct CBTrackerData
 {
@@ -42,7 +42,7 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
     m_CBTrackerData(0)
       {
 	 m_Datum = m_CBTrackerData;
-	 m_ProcessName = " CircularModelTrackerData";
+	 m_ProcessName = "CircularModelTrackerData";
       }
   /* Give the tracker pointer. */
   void SetTrackerPointer(HRP2nmbtTrackingProcess * anmbt)
@@ -69,6 +69,6 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
   HRP2nmbtTrackingProcess * m_nmbt;
   CBTrackerData * m_CBTrackerData;
 };
-
+#endif
 
 #endif /* _CIRCULAR_BUFFER_MODEL_TRACKER_LLVS_H_ */

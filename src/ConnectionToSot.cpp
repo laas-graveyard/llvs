@@ -72,7 +72,7 @@ void ConnectionToSot::DumpCircularBuffer(string aFilename)
 
 ConnectionToSot::~ConnectionToSot()
 {
-  delete m_CircularBuffer;
+  delete [] m_CircularBuffer ;
 
 }
 

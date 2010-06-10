@@ -46,7 +46,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if(LLVS_HAVE_VISP>0)
+#if(LLVS_HAVE_NMBT>0)
 
 
   vpHomogeneousMatrix cMo;
@@ -79,7 +79,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if(LLVS_HAVE_VISP>0)
+#if(LLVS_HAVE_NMBT>0)
 
   vpHomogeneousMatrix cMo;
   
@@ -111,10 +111,13 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 CORBA::Boolean
 ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO)
 {
+#if(LLVS_HAVE_NMBT>0)
   CBTrackerData CBTD;
 
   m_LLVS->m_CBonNMBT->ReadData(CBTD);
   
+#endif
+
   ModelTrackerInterface::DebugInfoObject_var aDIOv = 
     new ModelTrackerInterface::DebugInfoObject;
 
@@ -123,6 +126,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->anImgData.height=240;
   aDIOv->anImgData.longData.length(2);
   aDIOv->anImgData.format=GRAY;
+#if(LLVS_HAVE_NMBT>0)
   aDIOv->anImgData.longData[0] =CBTD.timestamp->tv_sec;
   aDIOv->anImgData.longData[1] =CBTD.timestamp->tv_usec;
 
@@ -130,7 +134,6 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
 
   for(int j=0;j<(int)(320*240);j++)
     aDIOv->anImgData.octetData[j] = *pt++;
-
 
   aDIOv->aData.cMo[0][0]=CBTD.cMo[0][0];
   aDIOv->aData.cMo[0][1]=CBTD.cMo[0][1];
@@ -144,6 +147,11 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->aData.cMo[2][1]=CBTD.cMo[2][1];
   aDIOv->aData.cMo[2][2]=CBTD.cMo[2][2];
   aDIOv->aData.cMo[2][3]=CBTD.cMo[2][3];
+
+#else
+  aDIOv->anImgData.longData[0] = 0;
+  aDIOv->anImgData.longData[1] = 0;
+#endif
 
   aDIO = aDIOv._retn();
   return 0;

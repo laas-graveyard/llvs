@@ -10,3 +10,4 @@ void CBTrackerData::operator=(const CBTrackerData &a)
   timestamp = a.timestamp;
   cMo = a.cMo;
 }
+

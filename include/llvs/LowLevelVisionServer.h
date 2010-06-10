@@ -89,11 +89,12 @@
 /* Internal framework */
 #include "ViSP/vispConvertImageProcess.h"
 #include "ViSP/vispUndistordedProcess.h"
-#include "ViSP/CircularBufferTrackerData.h"
+
 #endif
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
+#include "ViSP/CircularBufferTrackerData.h"
 #endif
 
 
@@ -469,10 +470,12 @@ namespace llvs
 
     public:
 
-      /*! Circular Buffer */
-      CircularModelTrackerData * m_CBonNMBT;
 
 #if (LLVS_HAVE_NMBT>0)
+
+      /*! Circular Buffer */
+      CircularModelTrackerData * m_CBonNMBT;
+      
 
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
@@ -481,6 +484,9 @@ namespace llvs
       /*! Corba object handling Tracker requests.*/
       ModelTrackerInterface_impl *  
 	m_ModelTrackerCorbaRequestProcess_impl;
+    
+      /* struct save in Circular Buffer*/
+      CBTrackerData*           m_CBTrackerData;
       
 #endif
 
@@ -566,11 +572,6 @@ namespace llvs
       
       /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
-    
-      /* struct save in Circular Buffer*/
-      CBTrackerData*           m_CBTrackerData;
-      
-
  
 #endif
 
