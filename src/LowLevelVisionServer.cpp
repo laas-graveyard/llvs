@@ -193,7 +193,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_TypeOfSynchro = SynchroMethodForInputImages;
 
   ODEBUG("Step 2");
-  ODEBUG("Type of Input Method: " << m_TypeOfInputMethod << " " << LowLevelVisionSystem::FILES);
+  ODEBUG("Type of Input Method: " << m_TypeOfInputMethod << " (files:" << LowLevelVisionSystem::FILES <<", framegrabber:"<< LowLevelVisionSystem::FRAMEGRABBER);
   switch(m_TypeOfInputMethod)
     {
       
@@ -210,6 +210,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 #endif
 
 #if (LLVS_HAVE_DC1394_V2>0)
+  ODEBUG("FRAMEGRABBER, DC1394_V2 Images Input Method: " << m_ImagesInputMethod );
     if(m_ImagesInputMethod==0)
       {
 	HRP2IEEE1394DCImagesInputMethod *aIIIM=0;
@@ -3366,7 +3367,6 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
   throw(CORBA::SystemException)
 {
   ModelTrackerInterface_var tmp_ModelTrackerInterface;
-
 #if (LLVS_HAVE_NMBT>0)
   tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
 #endif

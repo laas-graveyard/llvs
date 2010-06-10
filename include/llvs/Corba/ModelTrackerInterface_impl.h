@@ -15,7 +15,7 @@ author Stephane Embarki & Claire Dune
 #define MODEL_TRACKER_INTERFACE_IMPL
 
 #include "llvsConfig.h"
- 
+
 #if (LLVS_HAVE_OMNIORB4>0)
 #include <omniORB4/CORBA.h>
 #include "ModelTrackerInterface.hh"
@@ -34,13 +34,16 @@ namespace llvs
     
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
-    int m_ModelTrackerStatus;
+
+#if (LLVS_HAVE_NMBT>0)
+
     CBTrackerData m_CBTD;
-        
+
+#endif
+    
+    
   public:
     
-    //ModelTrackerInterface_impl(CORBA_ORB_ptr orb,
-    //		LowLevelVisionServer * LLVS);
     ModelTrackerInterface_impl(LowLevelVisionServer * LLVS);
     
     ~ModelTrackerInterface_impl();
@@ -58,4 +61,5 @@ namespace llvs
 };
 
 #include "LowLevelVisionServer.h"
+
 #endif 

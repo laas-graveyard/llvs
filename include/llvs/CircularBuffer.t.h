@@ -12,6 +12,7 @@
 #include <vector>
 #include <pthread.h>
 #include <string.h>
+#include <iostream>
 
 #include "VisionBasicProcess.h"
 

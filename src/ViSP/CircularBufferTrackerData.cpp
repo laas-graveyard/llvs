@@ -1,8 +1,6 @@
 
 #include "ViSP/CircularBufferTrackerData.h"
 
-#include<visp/vpImage.h>
-
 
 void CBTrackerData::operator=(const CBTrackerData &a)
 {
