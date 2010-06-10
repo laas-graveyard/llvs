@@ -8,13 +8,26 @@ interface ModelTrackerInterface{
   {
     double cMo[4][4]; 
   };
- 
 
-
+  /*! Set estimation of the object position. */
   boolean SetcMo(in HomogeneousMatrix acMo);
 
+  /* Position of the object */
   boolean GetcMo(out HomogeneousMatrix acMo);
 
+  /*! Debug information for the object. */
+  struct DebugInfoObject
+  {
+    /*! Information of the image. */
+    ImageData anImgData;
+
+    /*! Homogeneous matrix. */
+    HomogeneousMatrix aData;
+
+  };
+
+  /* Position of the object */
+  boolean GetDebugInfoObject(out DebugInfoObject aDIO);
 
 
 };

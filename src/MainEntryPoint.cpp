@@ -394,12 +394,6 @@ int main(int argc, char * argv[])
 		}
 	    }
 
-	  if (((InputType==LowLevelVisionSystem::FRAMEGRABBER) ||
-	       (InputType==LowLevelVisionSystem::FILESINGLE) ||
-	       (InputType==LowLevelVisionSystem::FILES))
-	      && (bFGSize))
-	    aVS->SetImagesGrabbedSize(FGWidth,FGHeight);
-	  
 	  aVS->SetCheckEntry(CheckEntry);
 		  
 	  PortableServer::POAManager_var pman = poa->the_POAManager();

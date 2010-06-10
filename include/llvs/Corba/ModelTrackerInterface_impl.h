@@ -21,6 +21,7 @@ author Stephane Embarki & Claire Dune
 #include "ModelTrackerInterface.hh"
 #endif
 
+#include "ViSP/CircularBufferTrackerData.h"
 
 namespace llvs
 {
@@ -34,6 +35,9 @@ namespace llvs
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
     int m_ModelTrackerStatus;
+    CBTrackerData m_CBTD;
+
+    
     
   public:
     
@@ -46,7 +50,8 @@ namespace llvs
     virtual CORBA::Boolean SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo);
     
     virtual CORBA::Boolean GetcMo(ModelTrackerInterface::HomogeneousMatrix &acMo);
-    
+
+    virtual CORBA::Boolean GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO);
     
     
   };

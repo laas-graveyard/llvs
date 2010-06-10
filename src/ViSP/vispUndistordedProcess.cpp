@@ -155,22 +155,22 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
     {
 
       if(m_conversion == RGB_VISPU8 ) 
-	{	  
+	{
+	  
+	  vpImageConvert::RGBToGrey( *m_RawImages,
+				     m_tmpVispGreyImages.bitmap,
+				     m_ImgParam.width,
+				     m_ImgParam.height, m_flip);
 
-	  cout<< "address "<< (void*) m_RawImages<< endl;
+	  
+	  vpImageIo::writePPM(m_tmpVispGreyImages,"./test.ppm");
+	  
 
-	    vpImageConvert::RGBToGrey( *m_RawImages,
-					 m_tmpVispGreyImages.bitmap,
-					 m_ImgParam.width,
-					 m_ImgParam.height, m_flip);
+	  vpImageTools::undistort(m_tmpVispGreyImages,
+				  m_CamParam,
+				  *(m_VispGreyImages));
 
-
-	    vpImageIo::writePPM(m_tmpVispGreyImages,"./test.ppm");
-
-
-	      vpImageTools::undistort(m_tmpVispGreyImages,
-				      m_CamParam,
-				      *(m_VispGreyImages));
+	  //cout<< "adress m_VispGreyImages"<<&m_VispGreyImages->bitmap<<endl;
 	}
 
     }

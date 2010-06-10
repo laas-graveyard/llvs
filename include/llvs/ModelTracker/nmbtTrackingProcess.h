@@ -164,6 +164,7 @@ private:
   
 
 protected:
+
   // lagadic tracker
   nmbtTracking m_tracker;
    
