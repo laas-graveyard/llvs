@@ -545,7 +545,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
     }
   else
     {
-      ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage" );
+      ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage " );
+      ODEBUG("camera is "<< camera);
       ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[camera];
 
       ImagesDst = *Image;
@@ -599,6 +600,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       intervalh =  BHeight/ m_ImagesHeight[camera];
       ImgSrc =  ImagesTab[0];
  
+      ODEBUG3("intervalw: " << intervalw);
+      ODEBUG3("intervalh: " << intervalh);
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
 	{
 	  for(unsigned int i=0;i<m_ImagesWidth[camera];i++)
@@ -617,7 +620,10 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 		    }
 		}
 	      for(int n=0;n<3;n++)
-		ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
+		{
+		  ODEBUG("indedx : " << indexd << " n: " << n );
+		  ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
+		}
 	    }
 	}
 
@@ -977,6 +983,9 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
   m_TmpImage.resize(m_DC1394Cameras.size());
   for(unsigned k=0;k<m_ImagesWidth.size();k++)
     {
+      ODEBUG3(" Size of m_TmpImage["<<k<<"]:" << 
+	      m_BoardImagesWidth[k] << " * " <<
+	      m_BoardImagesHeight[k] << " * 4" );
       m_TmpImage[k] = new unsigned char[m_BoardImagesWidth[k] * 
 					m_BoardImagesHeight[k] * 4];
     }
@@ -1568,7 +1577,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
     }
 
   // Check if two profiles do not have the same score.
-  for(unsigned int k=0;k<lScoreCandidates[k];k++)
+  for(unsigned int k=0;k<lScoreCandidates.size();k++)
     {
       if ((lScoreCandidates[k]==(unsigned int)ScoreBestCandidate) &&
 	  (m_CurrentVisionSystemProfileID!=(int)k))

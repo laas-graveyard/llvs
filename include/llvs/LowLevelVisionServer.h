@@ -55,8 +55,6 @@
 #include <VisionBasicProcess.h>
 #include <ConnectionToSot.h>
 
-
-
 /*! Inclusion specific to VVV */
 #if (LLVS_HAVE_VVV>0)
 
@@ -84,14 +82,19 @@
 #include "ImagesInputMethod.h"
 
 #if (LLVS_HAVE_VISP>0)
-#include "ViSP/vispConvertImageProcess.h"
-#include "ViSP/vispUndistordedProcess.h"
+/* From the visp library */
 #include "visp/vpXmlParserCamera.h"
 #include "visp/vpHomogeneousMatrix.h"
+
+/* Internal framework */
+#include "ViSP/vispConvertImageProcess.h"
+#include "ViSP/vispUndistordedProcess.h"
+
 #endif
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
+#include "ViSP/CircularBufferTrackerData.h"
 #endif
 
 
@@ -465,9 +468,15 @@ namespace llvs
       /*! Image Size used during calibration */
       vector<CORBA::Long> m_CalibrationWidth, m_CalibrationHeight;
 
+    public:
+
 
 #if (LLVS_HAVE_NMBT>0)
-    public:
+
+      /*! Circular Buffer */
+      CircularModelTrackerData * m_CBonNMBT;
+      
+
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
       
@@ -475,6 +484,9 @@ namespace llvs
       /*! Corba object handling Tracker requests.*/
       ModelTrackerInterface_impl *  
 	m_ModelTrackerCorbaRequestProcess_impl;
+    
+      /* struct save in Circular Buffer*/
+      CBTrackerData*           m_CBTrackerData;
       
 #endif
 
@@ -550,15 +562,16 @@ namespace llvs
 #if (LLVS_HAVE_VISP>0)
      
       /*Visp grey undistorded image for wide cam*/
-
       vpImage<unsigned char>* m_Widecam_image_undistorded;
+
+      /* Visp Camera parameters*/
       vpCameraParameters      m_Widecam_param;
 
+      /* Vision Process to undistort images using ViSP*/
       HRP2vispUndistordedProcess* m_vispUndistordedProcess;
       
+      /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
-      vpHomogeneousMatrix     m_cMo;
-
  
 #endif
 
@@ -628,6 +641,7 @@ namespace llvs
 
       /*! Depth of the acquired image */
       vector<unsigned int> m_depth;
+
 
       /*! Local Image Format */
       string m_ImageFormat;
