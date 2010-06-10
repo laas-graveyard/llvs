@@ -177,7 +177,8 @@ namespace llvs
        * Because of some algorithms used, right now this size is used for ALL the cameras
        * of the system.
        */
-      CORBA::Long SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
+      CORBA::Long SetImagesGrabbedSize(CORBA::Long SemanticCameraID,
+				       CORBA::Long lw, CORBA::Long lh)
 	throw(CORBA::SystemException);
 
       /*! Get the image from the frame grabber. */
@@ -223,7 +224,7 @@ namespace llvs
 
       
       /*! Set the image */
-      CORBA::Long SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, CORBA::Long aHeight)
+      CORBA::Long SetImage(const ColorBuffer & cbuf, CORBA::Long CameraID, CORBA::Long aWidth, CORBA::Long aHeight)
 	throw(CORBA::SystemException) ;
 
       /*! Set the verbose mode */
@@ -304,7 +305,9 @@ namespace llvs
       /*! Interface: Set the acquisition size.
        * This will works only if the acquisition method is using the framegrabber.
        */
-      CORBA::Long SetAcquisitionSize(CORBA::Long aWidth, CORBA::Long aHeight);
+      CORBA::Long SetAcquisitionSize(CORBA::Long SemanticCameraID,
+				     CORBA::Long aWidth, CORBA::Long aHeight)
+	throw(CORBA::SystemException);
 
       /*! Destruction */  
       virtual void destroy() throw (CORBA::SystemException);

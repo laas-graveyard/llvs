@@ -1,7 +1,7 @@
 /** @doc This file implements the access to IEEE 1394 cameras
     through the dc library.
 
-   CVS Information:
+  CVS Information:
    $Id$
    $Author$
    $Date$
@@ -600,8 +600,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
       intervalh =  BHeight/ m_ImagesHeight[camera];
       ImgSrc =  ImagesTab[0];
  
-      ODEBUG3("intervalw: " << intervalw);
-      ODEBUG3("intervalh: " << intervalh);
+      ODEBUG("intervalw: " << intervalw);
+      ODEBUG("intervalh: " << intervalh);
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
 	{
 	  for(unsigned int i=0;i<m_ImagesWidth[camera];i++)

@@ -290,7 +290,10 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
   /* Fix the size of the image */
-  SetImagesGrabbedSize(320,240);
+  SetImagesGrabbedSize(CAMERA_LEFT,640,480);
+  SetImagesGrabbedSize(CAMERA_RIGHT,640,480);
+  SetImagesGrabbedSize(CAMERA_UP,640,480);
+  SetImagesGrabbedSize(CAMERA_WIDE,320,240);
 
   /* Set the calibration directory  */
   SetCalibrationDirectory(lCalibDir);
@@ -550,7 +553,7 @@ LowLevelVisionServer::FreeBinaryImages()
 }
 
 CORBA::Long 
-LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
+LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::Long lw, CORBA::Long lh)
   throw(CORBA::SystemException)
 {
   double RatioForFocal =1.0;
@@ -563,178 +566,177 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long lw, CORBA::Long lh)
   if (m_ImagesInputMethod==0)
     return -1;
 
-  for(unsigned int i=0;i<4;i++)
+  
+  if ((m_Width[SemanticCameraID]!=0) && (m_Height[SemanticCameraID]!=0))
     {
-      if ((m_Width[i]!=0) && (m_Height[i]!=0))
+      if (((double)lw/(double)lh)!=((double)m_Width[SemanticCameraID]/(double)m_Height[SemanticCameraID]))
 	{
-	  if (((double)lw/(double)lh)!=((double)m_Width[i]/(double)m_Height[i]))
-	    {
-	      res= -1;
-	    }
-	  
-	  RatioForFocal = (double)lw / m_Width[i];
+	  res= -1;
 	}
-      else 
-	{
+      
+      RatioForFocal = (double)lw / m_Width[SemanticCameraID];
+    }
+  else 
+    {
 	  
-	  /* This is the first size assignment */
-	  RatioForFocal = 1.0;
+      /* This is the first size assignment */
+      RatioForFocal = 1.0;
 	  first_assignment = 1;
-	}
-      
-      m_Width[i] = lw;
-      m_Height[i] = lh;
+    }
   
-      m_ImagesInputMethod->SetImageSize(m_Width[i], m_Height[i],i);      
-
+  m_Width[SemanticCameraID] = lw;
+  m_Height[SemanticCameraID] = lh;
+  
+  m_ImagesInputMethod->SetImageSize(m_Width[SemanticCameraID], m_Height[SemanticCameraID],SemanticCameraID);      
 
 #if (LLVS_HAVE_VVV>0)
-      m_VFGBforTheFrameGrabber._width = lw;
-      m_VFGBforTheFrameGrabber._height = lh;
+  m_VFGBforTheFrameGrabber._width = lw;
+  m_VFGBforTheFrameGrabber._height = lh;
 #endif
-      /*
-	ct3001_image_set_size((CT3001_SYSCONF*)(m_VFGBforTheFrameGrabber._sys),
-			m_VFGBforTheFrameGrabber._width,
-			m_VFGBforTheFrameGrabber._height);
-      */
-      //  FreeBinaryImages();
+  /*
+    ct3001_image_set_size((CT3001_SYSCONF*)(m_VFGBforTheFrameGrabber._sys),
+    m_VFGBforTheFrameGrabber._width,
+    m_VFGBforTheFrameGrabber._height);
+  */
+  //  FreeBinaryImages();
       
       
-      unsigned char ** local_BinaryImages;
-      if (m_Cameras[i]!=0)
-	m_Cameras[i]->SetAcquisitionSize(m_Width[i],m_Height[i]);
+  unsigned char ** local_BinaryImages;
+  if (m_Cameras[SemanticCameraID]!=0)
+    m_Cameras[SemanticCameraID]->SetAcquisitionSize(m_Width[SemanticCameraID],m_Height[SemanticCameraID]);
 
 #if (LLVS_HAVE_VVV>0)
-      if (m_CorrectedImages[i].Image!=0)
-	{
-	  delete (unsigned char *)m_CorrectedImages[i].Image;
-	}
+  if (m_CorrectedImages[SemanticCameraID].Image!=0)
+    {
+      delete (unsigned char *)m_CorrectedImages[SemanticCameraID].Image;
+    }
       
-      if (m_epbm_distorted[i].Image!=0)
-	{
-	  delete (unsigned char *)m_epbm_distorted[i].Image;
-	}
+  SemanticCameraIDf (m_epbm_distorted[SemanticCameraID].Image!=0)
+    {
+      delete (unsigned char *)m_epbm_distorted[SemanticCameraID].Image;
+    }
 #endif
 	  
-      m_ImageFormat = m_ImagesInputMethod->GetFormat(i);
-      ODEBUG("m_ImageFormat :" << m_ImageFormat);
-      if (m_ImageFormat=="PGM")
-	m_depth[i]=1;
-      else if (m_ImageFormat=="RAW")
-	m_depth[i]=1;
-      else if (m_ImageFormat=="RGB")
-	m_depth[i]=3;
+  m_ImageFormat = m_ImagesInputMethod->GetFormat(SemanticCameraID);
+
+  ODEBUG("m_ImageFormat :" << m_ImageFormat);
+  if (m_ImageFormat=="PGM")
+    m_depth[SemanticCameraID]=1;
+  else if (m_ImageFormat=="RAW")
+    m_depth[SemanticCameraID]=1;
+  else if (m_ImageFormat=="RGB")
+    m_depth[SemanticCameraID]=3;
       
-      /*
-	cout << "Depth" << endl;
-	for(int i=0;i<4;i++)
-	cout << m_depth[i] << " ";
-	cout << endl;
-      */
+  /*
+    cout << "Depth" << endl;
+    for(int i=0;i<4;i++)
+    cout << m_depth[i] << " ";
+    cout << endl;
+  */
       
-      delete [] m_BinaryImages[i];
+  delete [] m_BinaryImages[SemanticCameraID];
       
-      ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[i]);
-      m_BinaryImages[i] = new unsigned char[lw*lh*m_depth[i]];
+  ODEBUG3("lw: " << lw << "lh " << lh << "depth: " << m_depth[SemanticCameraID]);
+  m_BinaryImages[SemanticCameraID] = new unsigned char[lw*lh*m_depth[SemanticCameraID]];
       
-      /* NO NEED TO FREE corrected and undistorted
-	 as it is already done with m_CorrectedImages and m_epbm_distorted */
-      m_BinaryImages_corrected[i] = new unsigned char[lw*lh*m_depth[i]];
+  /* NO NEED TO FREE corrected and undistorted
+     as it is already done with m_CorrectedImages and m_epbm_distorted */
+  m_BinaryImages_corrected[SemanticCameraID] = new unsigned char[lw*lh*m_depth[SemanticCameraID]];
       
-      m_BinaryImages_undistorted[i] = new unsigned char [lw*lh*m_depth[i]];
+  m_BinaryImages_undistorted[SemanticCameraID] = new unsigned char [lw*lh*m_depth[SemanticCameraID]];
       
 	  
 #if (LLVS_HAVE_VVV>0)
-      epbm_set_default_value(&(m_epbm[i]),0);
-      if (m_depth[i]==1)
-	{
-	  m_epbm[i].Magic2 = EPBM_BINARY_GRAY;
-	  m_CorrectedImages[i].Magic2= EPBM_BINARY_GRAY;
-	  m_epbm_distorted[i].Magic2=EPBM_BINARY_GRAY;
-	}
-      else if (m_depth[i]==3)
-	{
-	  m_epbm[i].Magic2 = EPBM_BINARY_COLOR;
-	  m_CorrectedImages[i].Magic2= EPBM_BINARY_COLOR;
-	  m_epbm_distorted[i].Magic2=EPBM_BINARY_COLOR;
-	}
+  epbm_set_default_value(&(m_epbm[SemanticCameraID]),0);
+  if (m_depth[SemanticCameraID]==1)
+    {
+      m_epbm[SemanticCameraID].Magic2 = EPBM_BINARY_GRAY;
+      m_CorrectedImages[SemanticCameraID].Magic2= EPBM_BINARY_GRAY;
+      m_epbm_distorted[SemanticCameraID].Magic2=EPBM_BINARY_GRAY;
+    }
+  else if (m_depth[SemanticCameraID]==3)
+    {
+      m_epbm[SemanticCameraID].Magic2 = EPBM_BINARY_COLOR;
+      m_CorrectedImages[SemanticCameraID].Magic2= EPBM_BINARY_COLOR;
+      m_epbm_distorted[SemanticCameraID].Magic2=EPBM_BINARY_COLOR;
+    }
       
-      m_epbm[i].Image = m_BinaryImages[i];
-      m_CorrectedImages[i].Image = m_BinaryImages_corrected[i];
-      m_epbm_distorted[i].Image = m_BinaryImages_undistorted[i];
-      m_epbm[i].Width = m_CorrectedImages[i].Width = 
-	m_epbm_distorted[i].Width = lw;
-      m_epbm[i].Height = m_CorrectedImages[i].Height =
-	m_epbm_distorted[i].Height =  lh;
+  m_epbm[SemanticCameraID].Image = m_BinaryImages[SemanticCameraID];
+  m_CorrectedImages[SemanticCameraID].Image = m_BinaryImages_corrected[SemanticCameraID];
+  m_epbm_distorted[SemanticCameraID].Image = m_BinaryImages_undistorted[i];
+  m_epbm[SemanticCameraID].Width = m_CorrectedImages[SemanticCameraID].Width = 
+    m_epbm_distorted[SemanticCameraID].Width = lw;
+  m_epbm[SemanticCameraID].Height = m_CorrectedImages[SemanticCameraID].Height =
+    m_epbm_distorted[SemanticCameraID].Height =  lh;
       
-      if (m_ImagesInputMethod!=0)
+  if (m_ImagesInputMethod!=0)
 	
-	{
-	  m_ImagesInputMethod->GetImageSize(m_epbm[i].Width,m_epbm[i].Height,i);
-	}
-	  
-      m_epbm[i].Label |= EPBM_HAVE_PINHOLEPARAMETER_MASK;
-#endif
+    {
+      m_ImagesInputMethod->GetImageSize(m_epbm[SemanticCameraID].Width,m_epbm[SemanticCameraID].Height,SemanticCameraID);
     }
+	  
+  m_epbm[SemanticCameraID].Label |= EPBM_HAVE_PINHOLEPARAMETER_MASK;
+#endif
+
 
 #if (LLVS_HAVE_VVV>0)
-  if (m_Rectification!=0)
-    {
-      m_Rectification->SetInputImages(m_epbm);
-      //      m_Rectification->SetInputImages(m_epbm_distorted);
-      m_Rectification->SetOutputImages(m_CorrectedImages);
-    }
+if (m_Rectification!=0)
+  {
+    m_Rectification->SetInputImages(m_epbm);
+    //      m_Rectification->SetInputImages(m_epbm_distorted);
+    m_Rectification->SetOutputImages(m_CorrectedImages);
+  }
 
-  if (m_MireDetectionProcess!=0)
-    {
-      m_MireDetectionProcess->SetInputImages(m_epbm);
-    }
+if (m_MireDetectionProcess!=0)
+  {
+    m_MireDetectionProcess->SetInputImages(m_epbm);
+  }
 
-  if (m_DP!=0)
-    {
-      m_DP->SetInputImages(m_CorrectedImages);
-      m_DP->InitializeTheProcess(m_CalibrationWidth[0], m_CalibrationHeight[0]);
-    }
+if (m_DP!=0)
+  {
+    m_DP->SetInputImages(m_CorrectedImages);
+    m_DP->InitializeTheProcess(m_CalibrationWidth[0], m_CalibrationHeight[0]);
+  }
   
-  if (m_OP!=0)
-    {
-      m_OP->SetInputImages(m_CorrectedImages);
-      m_OP->InitializeTheProcess();
-    }
+if (m_OP!=0)
+  {
+    m_OP->SetInputImages(m_CorrectedImages);
+    m_OP->InitializeTheProcess();
+  }
     
 
-  if (m_MEP!=0)
-    {
-      m_MEP->InitializeTheProcess();
-    }
+if (m_MEP!=0)
+  {
+    m_MEP->InitializeTheProcess();
+  }
 
-  if (m_FFII!=0)
-    {
-      m_FFII->SetInputImages(m_epbm);
-      m_FFII->InitializeTheProcess(m_CalibrationDirectory);
-    }
-  if (m_ImgDiff!=0)
-    {
-      m_ImgDiff->SetInputImages(m_epbm);
-      m_ImgDiff->InitializeTheProcess();
-    }
+if (m_FFII!=0)
+  {
+    m_FFII->SetInputImages(m_epbm);
+    m_FFII->InitializeTheProcess(m_CalibrationDirectory);
+  }
+if (m_ImgDiff!=0)
+  {
+    m_ImgDiff->SetInputImages(m_epbm);
+    m_ImgDiff->InitializeTheProcess();
+  }
 
-  if (m_ColorDetection!=0)
-    {
-      m_ColorDetection->InitializeTheProcess();
-    }
+if (m_ColorDetection!=0)
+  {
+    m_ColorDetection->InitializeTheProcess();
+  }
 
 #endif
 
 #if (LLVS_HAVE_SLAM>0)
-  if (m_SingleCameraSLAM!=0)
-    {
-      m_FFII->SetInputImages(m_epbm+m_TheSLAMImage);
-      m_SingleCameraSLAM->SetFindFeaturesFromWideImage(m_FFII->GetFindFeaturesFromWideImage(),m_headTorg);
-    }
+if (m_SingleCameraSLAM!=0)
+  {
+    m_FFII->SetInputImages(m_epbm+m_TheSLAMImage);
+    m_SingleCameraSLAM->SetFindFeaturesFromWideImage(m_FFII->GetFindFeaturesFromWideImage(),m_headTorg);
+  }
 #endif
 
-  return res;
+return res;
 }
 
 LowLevelVisionSystem::InputMode
@@ -1096,13 +1098,24 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
     {
       string lFormat =     m_ImagesInputMethod->GetFormat(0);
       if ((lFormat=="PGM") && (m_depth[0]==3))
-	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
-      
+	{
+	  for(int unsigned j=0;j<4;j++)
+	    SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
+	}
+
       if ((lFormat=="RAW") && (m_depth[0]==3))
-	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
+	{
+	  for(int unsigned j=0;j<4;j++)
+	    SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
+	}
+
 
       if ((lFormat=="RGB") && (m_depth[0]==1))
-	SetImagesGrabbedSize(m_Width[0],m_Height[0]);
+	{
+	  for(int unsigned j=0;j<4;j++)
+	    SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
+	}
+
        
       
       struct timeval tv_current;
@@ -1123,6 +1136,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 		StoreImageOnStack(li);
 
 	    }
+
 	}
 
       /* Test if a reallocation has taking place 
@@ -1138,7 +1152,8 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	    cout << "Reallocation detected : " << lw << " " << lh << endl;
 
 	  /* Fix the size of the image */
-	  SetImagesGrabbedSize(lw,lh);
+	  //	  for(int li=0;li<lNbOfCameras;li++)
+	  ///	  SetImagesGrabbedSize(lw,lh);
 
 	}
     }
@@ -1355,7 +1370,8 @@ LowLevelVisionServer::SetSynchronizationMode(LowLevelVisionSystem::SynchroMode a
 }
 
 CORBA::Long
-LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, CORBA::Long aHeight)
+LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long SemanticCameraID,
+			       CORBA::Long aWidth, CORBA::Long aHeight)
   throw(CORBA::SystemException)
 {
   PixelEncode_t aPixelEncoding[4];
@@ -1364,8 +1380,8 @@ LowLevelVisionServer::SetImage(const ColorBuffer & cbuf, CORBA::Long aWidth, COR
   ODEBUG2( "LowLevelVisionServer::SetImage : beginning " << aWidth << " " << aHeight );
 
   /* Set the image, currently only used by the simulator */
-  if ((m_Width[0]!=aWidth) || (m_Height[0]!=aHeight))
-    SetImagesGrabbedSize(aWidth,aHeight);
+  if ((m_Width[SemanticCameraID]!=aWidth) || (m_Height[SemanticCameraID]!=aHeight))
+    SetImagesGrabbedSize(SemanticCameraID, aWidth,aHeight);
 
   ODEBUG("LowLevelVisionServer::SetImage : before copying the image " );
   
@@ -2855,7 +2871,9 @@ unsigned char LowLevelVisionServer::GetCheckEntry(void)
   return m_CheckEntry;
 }
 
-CORBA::Long LowLevelVisionServer::SetAcquisitionSize(CORBA::Long aWidth,CORBA::Long aHeight)
+CORBA::Long LowLevelVisionServer::SetAcquisitionSize(CORBA::Long SemanticCameraID,
+						     CORBA::Long aWidth,CORBA::Long aHeight)
+  throw(CORBA::SystemException)
 {
   if (m_TypeOfInputMethod!=LowLevelVisionSystem::FRAMEGRABBER) 
     return -1;
@@ -2866,7 +2884,7 @@ CORBA::Long LowLevelVisionServer::SetAcquisitionSize(CORBA::Long aWidth,CORBA::L
 	  (m_CalibrationHeight[i]<aHeight))
 	return -1;
     }
-  return SetImagesGrabbedSize(aWidth,aHeight);
+  return SetImagesGrabbedSize(SemanticCameraID, aWidth,aHeight);
 }
  
 
