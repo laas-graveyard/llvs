@@ -15,7 +15,7 @@
 
 #include <visp/vpImage.h>
 #include <visp/vpHomogeneousMatrix.h>
-
+#include <visp/vpImageIo.h>
 #include "ModelTracker/nmbtTrackingProcess.h"
 
 
@@ -60,18 +60,12 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
     m_nmbt = anmbt;
   }
   
-  /*  void setImageVisp(vpImage<unsigned char>* image)
-  {
-    m_CBTrackerData->image = image;
-    }*/
 
  protected:
-  int pRealizeProcess()
+  int pRealizeTheProcess()
   {
-    
-    
-  
     m_nmbt->GetOutputcMo(m_Datum->cMo);
+
     CircularBuffer<CBTrackerData>::pRealizeTheProcess();
 
     return 0;

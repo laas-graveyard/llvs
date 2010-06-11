@@ -94,7 +94,7 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   int pCleanUpTheProcess();
 
   /*! Set a parameter */
-  int SetParameter(string aParameter, string aValue);
+  int pSetParameter(string aParameter, string aValue);
     
   /*! Set tracker parameters : moving edge parameters*/
   void SetMovingEdge(vpMe &_me);

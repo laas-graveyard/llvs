@@ -151,6 +151,10 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->aData.cMo[2][1]=m_CBTD.cMo[2][1];
   aDIOv->aData.cMo[2][2]=m_CBTD.cMo[2][2];
   aDIOv->aData.cMo[2][3]=m_CBTD.cMo[2][3];
+  aDIOv->aData.cMo[3][0]=0;
+  aDIOv->aData.cMo[3][1]=0;
+  aDIOv->aData.cMo[3][2]=0;
+  aDIOv->aData.cMo[3][3]=1;
 
 #else
   aDIOv->anImgData.longData[0] = 0;

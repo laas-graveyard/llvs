@@ -165,8 +165,6 @@ void  HRP2nmbtTrackingProcess::GetInputcMo(vpHomogeneousMatrix & _inputcMo)
 void  HRP2nmbtTrackingProcess::GetOutputcMo(vpHomogeneousMatrix & _outputcMo)
 {
   _outputcMo=this->m_outputcMo;
-
-   cout<<m_outputcMo<<endl;
 } 
  
 /*! Get Image Height*/
@@ -279,7 +277,9 @@ int HRP2nmbtTrackingProcess::ParseCamParam()
 		m_projType,
 		m_imageWidth, 
 		m_imageHeight);
-  
+
+  ODEBUG("camera parameter:\n"<< m_cam);
+  ODEBUG("camera Path:\n"<< m_pathCam.c_str());
    m_cameraParamLoaded=true;
    return 0;
 #else
@@ -375,11 +375,11 @@ PATH_CAM              path name to the cam xml file
 TRAC_LAMBDA           lambda parameter gain of the 
                       virtual visual servoing
 
-CAME_PROJ_TYP         camera projection type
+CAME_PROJ_TYP         camera projection type : "withDistorsion" or "withoutDistorsion"
 CAME_NAME             camera name
 
 -------------------------------------*/
-int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aValue)
+int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
   // A parameter can be or cannot be associated with a value, 
@@ -387,7 +387,8 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
   // If the parameter already exist is value is overwritten. 
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
-  int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
+
+  //int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
   // get the 4 first parameter to find the parameter type
   // get 4 letters starting from the letter number 0
@@ -428,6 +429,7 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
 //--------VPME------------//
   if(isAVpMeParam)
     {
+      ODEBUG3(" ENTER VPME CASE");
       // create a moving edge parameter
       vpMe me;
 
@@ -440,6 +442,8 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
       if (paramId=="MAS")//"VPME_MASK_SIZE"
 	{ 
 	  me.setMaskSize(value);
+	  ODEBUG3(" ENTER setMaskSize CASE value : "<<value );
+
 	}
       else if (paramId=="RAN")//"VPME_RANGE"
 	{
@@ -540,7 +544,8 @@ int HRP2nmbtTrackingProcess::SetParameter(std::string aParameter, std::string aV
 
     }
  
-  return(outputVBPSetParameters);
+  //return(outputVBPSetParameters);
+  return 0;
 }
 
 /*!-------------------------------------
@@ -606,13 +611,6 @@ the object model
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
   m_trackerTrackSuccess = false;
-
-  	  std::string filename("/home/embarki/devel-src/LLVS/build/tracker.pgm");
-
-
-	  vpImageIo::writePGM(*m_inputVispImage,filename);
-	  
-
  
   if(m_inputImagesLoaded)
     {
@@ -639,13 +637,19 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 
 	}
     
-      cout << "track\n";
-
       // tracking succeed
       m_trackerTrackSuccess= true;
       
       // set the resulting transform between the object and the image
       m_tracker.getPose(m_outputcMo);  
+
+      ODEBUG3( "track");
+#if 0 
+      static vpDisplayX display(*m_inputVispImage,0,0,"Tracking Server");
+      vpDisplay::display(*m_inputVispImage);
+      
+      m_tracker.display(*m_inputVispImage,m_outputcMo,m_cam, vpColor::green,2);
+#endif
       
       return 0;
     }
@@ -656,6 +660,8 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
     }
  
 }
+
+
   
 /*!-------------------------------------
  Cleanup the process 

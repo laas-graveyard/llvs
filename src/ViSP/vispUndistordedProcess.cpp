@@ -162,15 +162,10 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 				     m_ImgParam.width,
 				     m_ImgParam.height, m_flip);
 
-	  
-	  vpImageIo::writePPM(m_tmpVispGreyImages,"./test.ppm");
-	  
-
 	  vpImageTools::undistort(m_tmpVispGreyImages,
 				  m_CamParam,
 				  *(m_VispGreyImages));
 
-	  //cout<< "adress m_VispGreyImages"<<&m_VispGreyImages->bitmap<<endl;
 	}
 
     }

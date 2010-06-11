@@ -105,20 +105,38 @@ int CircularBuffer<T>::pCleanUpTheProcess()
 template <class T>
 int CircularBuffer<T>::ReadData(T &aDatum)
 {
+  int r;
   if(m_IndexBuffer>0)
     {
-      pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer-1].amutex));
+     if ((r=pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer-1].amutex))<0))
+       {
+	 cerr << "Error while trying to lock the mutex in ReadData() " << m_IndexBuffer-1 << endl;
+	 cerr<< strerror(r)<<endl;
+       }
       aDatum=m_CircularBuffer[m_IndexBuffer-1].onedatum;
-      pthread_mutex_unlock(&(m_CircularBuffer[m_IndexBuffer-1].amutex));
-      return 0;
+     if ((r=pthread_mutex_unlock(&(m_CircularBuffer[m_IndexBuffer-1].amutex))<0));
+     {
+       cerr << "Error while trying to unlock the mutex in ReadData() " << m_IndexBuffer-1 << endl;
+       cerr<< strerror(r)<<endl;
+     }
+     return 0;
     }
   else
     {
 
       unsigned int lsize = m_CircularBuffer.size();
-      pthread_mutex_lock(&(m_CircularBuffer[lsize-1].amutex));
+     if ((r=pthread_mutex_lock(&(m_CircularBuffer[lsize-1].amutex))<0))
+       {
+	 cerr << "Error while trying to lock the mutex ReadData() " << lsize-1 << endl;
+	 cerr<< strerror(r)<<endl;
+       }
       aDatum=m_CircularBuffer[lsize-1].onedatum;
-      pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex));
+     if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex)))<0)   
+       {
+	 cerr << "Error while trying to unlock the mutex in ReadData() " << lsize-1 << endl;
+	 cerr<< strerror(r)<<endl;
+       }
+
     }
     return -1;
   
@@ -130,14 +148,14 @@ int CircularBuffer<T>::SaveData(T &aDatum)
   int r;
   if ((r=pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer].amutex)))<0)
     {
-      cerr << "Error while trying to lock the mutex" << m_IndexBuffer-1 << endl;
-      cerr<< strerror(r);
+      cerr << "Error while trying to lock the mutex in SaveData " << m_IndexBuffer << endl;
+      cerr<< strerror(r)<<endl;
     }
   m_CircularBuffer[m_IndexBuffer].onedatum=aDatum;
   if ((r=pthread_mutex_unlock(&(m_CircularBuffer[m_IndexBuffer].amutex)))<0)
     {
-      cerr << "Error while trying to unlock the mutex" << m_IndexBuffer-1 << endl;
-      cerr<< strerror(r);
+      cerr << "Error while trying to unlock the mutex in SaveData " << m_IndexBuffer << endl;
+      cerr<< strerror(r)<<endl;
     }
 
   m_IndexBuffer++;
