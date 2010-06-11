@@ -992,7 +992,10 @@ LowLevelVisionServer::ApplyingProcess()
     {
       m_ListOfProcesses[i]->RealizeTheProcess();
       if (m_ListOfProcesses[i]->GetStatus())
-	NbOfActiveProcesses++;
+	{
+	  ODEBUG(m_ListOfProcesses[i]->GetName());
+	  NbOfActiveProcesses++;
+	}
     }
 
   ODEBUG("FFII realized");

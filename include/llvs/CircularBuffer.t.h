@@ -1,8 +1,8 @@
 /** @doc This template implements a protected circular buffer
     for data structure.
 
-   Copyright (c) 2010,
-   @author O. Stasse
+    Copyright (c) 2010,
+    @author O. Stasse
 
 */
 
@@ -13,7 +13,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <iostream>
-
+#include "Debug.h"
 #include "VisionBasicProcess.h"
 
 template <class T>
@@ -28,17 +28,17 @@ class CircularBuffer: public HRP2VisionBasicProcess
  public:
 
   /*! Constructor 
-   \param SizeOfCircularBuffer*/
+    \param SizeOfCircularBuffer*/
   CircularBuffer(int SizeOfCircularBuffer);
   
   /*! Default destructor. */
   ~CircularBuffer();
 
- int SetDatum(T* aDatum);
+  int SetDatum(T* aDatum);
   
- int ReadData(T &aDatum);
+  int ReadData(T &aDatum);
 
- int SaveData(T &aDatum);
+  int SaveData(T &aDatum);
 
  protected:
   /*! Initialize the process. */
@@ -106,52 +106,63 @@ template <class T>
 int CircularBuffer<T>::ReadData(T &aDatum)
 {
   int r;
-  if(m_IndexBuffer>0)
+  int lIndexBuffer = m_IndexBuffer;
+
+  if(lIndexBuffer>0)
     {
-     if ((r=pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer-1].amutex))<0))
-       {
-	 cerr << "Error while trying to lock the mutex in ReadData() " << m_IndexBuffer-1 << endl;
-	 cerr<< strerror(r)<<endl;
-       }
-      aDatum=m_CircularBuffer[m_IndexBuffer-1].onedatum;
-     if ((r=pthread_mutex_unlock(&(m_CircularBuffer[m_IndexBuffer-1].amutex))<0));
-     {
-       cerr << "Error while trying to unlock the mutex in ReadData() " << m_IndexBuffer-1 << endl;
-       cerr<< strerror(r)<<endl;
-     }
-     return 0;
+      if ((r=pthread_mutex_lock(&(m_CircularBuffer[lIndexBuffer-1].amutex)))<0)
+	{
+	  cerr << "Error while trying to lock the mutex in ReadData() " << r << endl;
+	  cerr<< strerror(r)<<endl;
+	  
+	}
+      aDatum=m_CircularBuffer[lIndexBuffer-1].onedatum;
+      if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lIndexBuffer-1].amutex)))<0)
+      {
+	cerr << "Error while trying to unlock the mutex in ReadData() " << r << endl;
+	cerr<< strerror(r)<<endl;
+	
+      }
+      return 0;
     }
   else
     {
 
       unsigned int lsize = m_CircularBuffer.size();
-     if ((r=pthread_mutex_lock(&(m_CircularBuffer[lsize-1].amutex))<0))
-       {
-	 cerr << "Error while trying to lock the mutex ReadData() " << lsize-1 << endl;
-	 cerr<< strerror(r)<<endl;
-       }
+      if ((r=pthread_mutex_lock(&(m_CircularBuffer[lsize-1].amutex)))<0)
+	{
+	  cerr << "Error while trying to lock the mutex ReadData() " << r << endl;
+	  cerr<< strerror(r)<<endl;
+	  
+	}
       aDatum=m_CircularBuffer[lsize-1].onedatum;
-     if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex)))<0)   
-       {
-	 cerr << "Error while trying to unlock the mutex in ReadData() " << lsize-1 << endl;
-	 cerr<< strerror(r)<<endl;
-       }
-
+      if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex)))<0)   
+	{
+	  cerr << "Error while trying to unlock the mutex in ReadData() " << r << endl;
+	  cerr<< strerror(r)<<endl;
+	  
+	}
+      return 0;
     }
-    return -1;
+  return -1;
   
 }
 
 template <class T>
 int CircularBuffer<T>::SaveData(T &aDatum)
 {
+  ODEBUG("1 - Save data");
+
   int r;
   if ((r=pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer].amutex)))<0)
     {
       cerr << "Error while trying to lock the mutex in SaveData " << m_IndexBuffer << endl;
-      cerr<< strerror(r)<<endl;
+      cerr<< strerror(r)<<endl;      
     }
+  ODEBUG("1.25 - Save data");
   m_CircularBuffer[m_IndexBuffer].onedatum=aDatum;
+
+  ODEBUG("1.5 - Save data");
   if ((r=pthread_mutex_unlock(&(m_CircularBuffer[m_IndexBuffer].amutex)))<0)
     {
       cerr << "Error while trying to unlock the mutex in SaveData " << m_IndexBuffer << endl;
@@ -160,10 +171,12 @@ int CircularBuffer<T>::SaveData(T &aDatum)
 
   m_IndexBuffer++;
 
-  if (m_CircularBuffer.size()==
-      m_IndexBuffer)
+  if (m_CircularBuffer.size()== m_IndexBuffer)
     m_IndexBuffer = 0;
   
+
+  ODEBUG("1.75 - Save data");
+  ODEBUG("2 - Save data");
   return 0;
 }
 

@@ -621,9 +621,12 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	}
       catch(std::string a) // tracking got lost
 	{
+	  
+#if 0
 	  std::cerr << std::endl;
 	  std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
 	  std::cerr << std::endl;
+#endif
 	  
 	  // set the tracking flag
 	  m_trackerTrackSuccess= false;
@@ -643,7 +646,6 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
       // set the resulting transform between the object and the image
       m_tracker.getPose(m_outputcMo);  
 
-      ODEBUG3( "track");
 #if 0 
       static vpDisplayX display(*m_inputVispImage,0,0,"Tracking Server");
       vpDisplay::display(*m_inputVispImage);
