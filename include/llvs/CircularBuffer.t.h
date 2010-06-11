@@ -13,6 +13,9 @@
 #include <pthread.h>
 #include <string.h>
 #include <iostream>
+
+#include "errno.h"
+
 #include "Debug.h"
 #include "VisionBasicProcess.h"
 
@@ -154,11 +157,24 @@ int CircularBuffer<T>::SaveData(T &aDatum)
   ODEBUG("1 - Save data");
 
   int r;
-  if ((r=pthread_mutex_lock(&(m_CircularBuffer[m_IndexBuffer].amutex)))<0)
+  unsigned char lloop=1;
+  do
     {
-      cerr << "Error while trying to lock the mutex in SaveData " << m_IndexBuffer << endl;
-      cerr<< strerror(r)<<endl;      
+      r=pthread_mutex_trylock(&(m_CircularBuffer[m_IndexBuffer].amutex));
+      if (r<0)
+	{
+	  if (r!=EBUSY)
+	    {
+	      cerr << "Error while trying to lock the mutex in SaveData " << m_IndexBuffer << endl;
+	      cerr<< strerror(r)<<endl;      
+	      return -1;
+	    }
+	}
+      else
+	lloop=0;
     }
+  while(lloop);
+
   ODEBUG("1.25 - Save data");
   m_CircularBuffer[m_IndexBuffer].onedatum=aDatum;
 

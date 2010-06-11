@@ -92,14 +92,7 @@ using namespace std;
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "LowLevelVisionServer:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "LowLevelVisionServer:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+#include "Debug.h"
 
 using namespace llvs;
 
