@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include "LowLevelVisionServer.h"
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "ConnectionToSot:" << x << endl
+//#define ODEBUG2(x)
+//#define ODEBUG3(x) cerr << "ConnectionToSot:" << x << endl
 
 #if 0
 #define ODEBUG(x) cerr << "ConnectionToSot:" <<  x << endl

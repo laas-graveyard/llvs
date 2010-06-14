@@ -22,7 +22,7 @@
 struct CBTrackerData
 {
   vpImage<unsigned char> * image;
-  timeval timestamp;
+  timeval* timestamp;
   vpHomogeneousMatrix cMo;
 
   CBTrackerData(){};
@@ -43,15 +43,21 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
     m_CBTrackerData(0)
       {
 	for(unsigned int i=0;i<m_CircularBuffer.size();i++)
-	  m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
-
+	  {
+	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
+	    m_CircularBuffer[i].onedatum.timestamp= new timeval;
+	      }
+		
 	m_ProcessName = "CircularModelTrackerData";
       }
 
   ~CircularModelTrackerData()
     {
       for(unsigned int i=0;i<m_CircularBuffer.size();i++)
-	delete m_CircularBuffer[i].onedatum.image;
+	{
+	  delete m_CircularBuffer[i].onedatum.image;
+	  delete m_CircularBuffer[i].onedatum.timestamp;
+	}
     }
 
   /* Give the tracker pointer. */

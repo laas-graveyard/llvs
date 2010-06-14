@@ -431,7 +431,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
   m_CBTrackerData->image=m_Widecam_image_undistorded;
-  m_CBTrackerData->timestamp=m_timestamps[CAMERA_WIDE];
+  m_CBTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
   m_CBonNMBT=new CircularModelTrackerData(5);
@@ -1122,7 +1122,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
 	      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
-	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],li,m_timestamps[li]);
+	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],li,m_timestamps[SemanticCamera]);
 	      result=0;
 	      if ((m_CheckEntry) && (r==0) && (li!=2))
 		StoreImageOnStack(li);

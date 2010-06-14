@@ -6,7 +6,7 @@ void CBTrackerData::operator=(const CBTrackerData &a)
 {
  
   *image = *a.image;
-  timestamp = a.timestamp;
+  *timestamp = *a.timestamp;
   cMo = a.cMo;
  
 }

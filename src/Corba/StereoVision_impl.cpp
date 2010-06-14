@@ -20,7 +20,7 @@ using namespace std;
 #include "oocmap.h"
 
 #define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "StereoVision_impl:" << x << endl
+//#define ODEBUG3(x) cerr << "StereoVision_impl:" << x << endl
 
 #if 0
 #define ODEBUG(x) cerr << "StereoVision_impl:" <<  x << endl
