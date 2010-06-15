@@ -47,14 +47,8 @@ extern "C"
 #include <set>
 #include <TU/Vector++.h>
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2MotionEvaluationProcess:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2MotionEvaluationProcess:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 using namespace TU;
 

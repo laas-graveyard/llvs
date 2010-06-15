@@ -48,14 +48,8 @@
 
 #include "Simu/FileImagesInputMethod.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2FileImagesInputMethod:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2FileImagesInputMethod:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 using namespace std;
 using namespace llvs;

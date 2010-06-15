@@ -16,14 +16,8 @@
 #include <omniORB4/CORBA.h>
 #endif
 
-
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
-#if 0
-#define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 #include "LowLevelVisionServer.h"
 

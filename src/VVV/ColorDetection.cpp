@@ -44,15 +44,8 @@
 #include <fstream>
 #include <math.h>
 
-
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "ColorDetection:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "ColorDetection:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 HRP2ColorDetectionProcess::HRP2ColorDetectionProcess(CosNaming::NamingContext_var cxt,
 						     LowLevelVisionServer *lLLVS,

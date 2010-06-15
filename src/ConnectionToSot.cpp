@@ -1,17 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include "LowLevelVisionServer.h"
-//#define ODEBUG2(x)
-//#define ODEBUG3(x) cerr << "ConnectionToSot:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "ConnectionToSot:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
-
 #include "ConnectionToSot.h"
 
+// Debug macros
+#include "Debug.h"
 
 void * ConnectionToSotThread(void *arg)
 {

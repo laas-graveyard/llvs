@@ -13,18 +13,8 @@ extern "C"
 
 using std::showbase;
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2IEEE1304ImagesInputMethod:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2IEEE1304ImagesInputMethod:" <<  x << endl
-#define ODEBUG_CONT(x) cerr << "HPR2IEEE1304ImagesInputMethod:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
-
+// Debug macros
+#include "Debug.h"
 
 #ifndef VFGB_IEEE1394_CONFDIR
 #  define VFGB_IEEE1394_CONFDIR	"/usr/local/VVV/etc/ieee1394"

@@ -26,13 +26,11 @@
 #include <VNL/sample.h>
 #include "models_wpg_motion.h"
 
-#define ODEBUG(x) 
-#define ODEBUG3(x) 
 
-//#define ODEBUG3(x) cerr << "Model wpg motion" << x << endl
+// Debug macros
+#include "Debug.h"
+
 using namespace std;
-
-
 
 // Constructor
 WPG_ThreeD_Motion_Model::WPG_ThreeD_Motion_Model()
@@ -42,7 +40,7 @@ WPG_ThreeD_Motion_Model::WPG_ThreeD_Motion_Model()
    SD_q_component_filter(0.0001),  // dimensionless
     SD_q_component(0.0001) // for simulation
 {
-  cout << "Went there" << endl;
+  ODEBUG3("Went there");
 }
 
 WPG_ThreeD_Motion_Model::~WPG_ThreeD_Motion_Model()
@@ -98,9 +96,9 @@ void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
   compose_xv(rnew, qnew, vnew, omeganew, fvRES);
 
   // ODEBUG3("rold qold vold omegaold" << rold << qold 
-  //      << vold << omegaold;
-  // cout << "rnew qnew vnew omeganew" << rnew << qnew 
-  //      << vnew << omeganew;
+  //      << vold << omegaold);
+  // ODEBUG3( "rnew qnew vnew omeganew" << rnew << qnew 
+  //      << vnew << omeganew);
 
   // Now on to the Jacobian...
   // Identity is a good place to start since overall structure is like this
@@ -121,7 +119,7 @@ void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
 
   dfv_by_dxvRES.Update(Temp44A, 3, 3);
 
-  // cout << "dfv_by_dxvRES" << dfv_by_dxvRES;
+  // ODEBUG3( "dfv_by_dxvRES" << dfv_by_dxvRES );
 }
 
 void WPG_ThreeD_Motion_Model::func_Q(const VNL::Vector<double> &xv, 
@@ -147,7 +145,7 @@ void WPG_ThreeD_Motion_Model::func_Q(const VNL::Vector<double> &xv,
   QxRES.Put(6, 6, q_component_noise_variance);
 
   ODEBUG3("func_Q end ");
-  //  cout << "QxRES" << QxRES;
+  //  ODEBUG3( "QxRES" << QxRES );
 }
 
 // 
@@ -188,8 +186,7 @@ void WPG_ThreeD_Motion_Model::
 func_fv_noisy(const VNL::Vector<double> &xv_true, 
 	      const VNL::Vector<double> &u_true, const double delta_t)
 {
-  cout << "Hello from func_fv_noisy... what are you doing in here???" 
-       << endl;
+  ODEBUG3("Hello from func_fv_noisy... what are you doing in here???");
 }
 
 void WPG_ThreeD_Motion_Model::
@@ -213,10 +210,9 @@ const VNL::Vector<double> &xv, const VNL::Vector<double> &xpdef)
 
   func_xpredef_and_dxpredef_by_dxp_and_dxpredef_by_dxpdef(local_xp, xpdef);
 
-  cerr << "func_xvredef... not yet implemented for WPG_ThreeD_Motion_Model"
-       << "... though surely it's not too hard?"
-       << endl;
-  assert(0);
+  ODEBUG3("func_xvredef... not yet implemented for WPG_ThreeD_Motion_Model"
+       << "... though surely it's not too hard?");
+  assert(false);
 }
 
 void WPG_ThreeD_Motion_Model::

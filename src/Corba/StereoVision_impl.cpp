@@ -19,14 +19,8 @@ using namespace std;
 
 #include "oocmap.h"
 
-#define ODEBUG2(x)
-//#define ODEBUG3(x) cerr << "StereoVision_impl:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "StereoVision_impl:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 //#define StereoVISION_DEBUG
 // **********************************************************************
