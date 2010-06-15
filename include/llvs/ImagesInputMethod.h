@@ -104,16 +104,14 @@ namespace llvs
       virtual bool CameraPresent()=0;
 
       /*! \brief Initialize the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
+          @return: True if initialization was successful.
+          False otherwise.
        */
-      virtual int Initialize()=0;
+      virtual bool Initialize()=0;
 
       /*! \brief Cleanup the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
        */
-      virtual int Cleanup()=0;
+      virtual void Cleanup()=0;
 
       /*! \brief Get semantic image.
 	More precisely, this link any camera to a specific

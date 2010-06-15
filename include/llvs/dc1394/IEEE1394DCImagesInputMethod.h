@@ -86,7 +86,7 @@ namespace llvs
       static const int YUV422_TO_RGB = 0;
       static const int BAYER_TO_RGB = 1;
       /*! Constructor */
-      HRP2IEEE1394DCImagesInputMethod(void);
+      HRP2IEEE1394DCImagesInputMethod(void) throw(const char*);
   
       /*! Destructor */
       virtual ~HRP2IEEE1394DCImagesInputMethod();
@@ -141,7 +141,7 @@ namespace llvs
 				      unsigned int InternalCameraNumber);
 
       /*! Initialize the board */
-      void InitializeBoard();
+      void InitializeBoard() throw(const char*);
   
       /*! Stop the the board */
       void StopBoard();
@@ -150,7 +150,7 @@ namespace llvs
       virtual int SetParameter(string aParameter, string aValue);
   
       /*! Override Start Process */
-      virtual int StartProcess();
+      virtual int StartProcess() throw(const char*);
   
       /*! Override Stop Process */
       virtual int StopProcess();
@@ -171,16 +171,14 @@ namespace llvs
       bool CameraPresent();
       
       /*! \brief Initialize the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
+          @return: True if initialization was successful.
+          False otherwise.
        */
-      virtual int Initialize();
+      virtual bool Initialize();
 
       /*! \brief Cleanup the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
        */
-      virtual int Cleanup();
+      virtual void Cleanup();
 
       /*! @} */
 

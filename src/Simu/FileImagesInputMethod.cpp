@@ -713,11 +713,10 @@ bool HRP2FileImagesInputMethod::CameraPresent()
   return false;
 }
 
-int HRP2FileImagesInputMethod::Initialize()
+bool HRP2FileImagesInputMethod::Initialize()
 {
-  return 0;
+  return true;
 }
-int HRP2FileImagesInputMethod::Cleanup()
+void HRP2FileImagesInputMethod::Cleanup()
 {
-  return 0;
 }

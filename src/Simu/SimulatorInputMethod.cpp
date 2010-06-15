@@ -142,19 +142,16 @@ bool HRP2SimulatorInputMethod::CameraPresent()
   return true;
 }
 /*! \brief Initialize the grabbing system. 
-  @return: a negative value in case of an error,
-  0 otherwise.
 */
-int HRP2SimulatorInputMethod::Initialize()
+bool HRP2SimulatorInputMethod::Initialize()
 {
-  return 0;
+  return true;
 }
 
 /*! \brief Cleanup the grabbing system. 
   @return: a negative value in case of an error,
   0 otherwise.
 */
-int HRP2SimulatorInputMethod::Cleanup()
+void HRP2SimulatorInputMethod::Cleanup()
 {
-  return 0;
 }

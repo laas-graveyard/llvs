@@ -95,16 +95,14 @@ namespace llvs {
 
 
       /*! \brief Initialize the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
+	@return: True if initialization was successful.
+	False otherwise.
        */
-      virtual int Initialize();
+      virtual bool Initialize();
 
       /*! \brief Cleanup the grabbing system. 
-	@return: a negative value in case of an error,
-	0 otherwise.
        */
-      virtual int Cleanup();
+      virtual void Cleanup();
 
       /*! \brief Return the link between the detected camera 
        and its semantic. */
