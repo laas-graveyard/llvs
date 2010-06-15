@@ -486,7 +486,7 @@ HRP2IEEE1394ImagesInputMethod::~HRP2IEEE1394ImagesInputMethod()
     }
 }
 
-int HRP2IEEE1394ImagesInputMethod::StartProcess()
+int HRP2IEEE1394ImagesInputMethod::StartProcess() throw(std::exception)
 {
   ODEBUG("StartProcess: Phase 1");
   HRP2VisionBasicProcess::StartProcess();

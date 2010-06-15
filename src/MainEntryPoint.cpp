@@ -295,12 +295,24 @@ int main(int argc, char * argv[])
 	{
 	  aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
 	}
-      catch( const char* msg )
+ 	//FIXME: We may choose an uniform way to throw exception to
+	//       avoid this kind of copy/paste
+			catch( const char* msg )
 	{
-	  std::cerr << "Exception caught:" << msg << std::endl;
-	  std::cerr << "Stopping now..." << std::endl;
+		ODEBUG("LowLevelVisionServer could not be instantiated");
+	  ODEBUG3("Reason:" << msg);
+	  ODEBUG3("Stopping now...");
 	  exit(-1);
 	}
+#if (LLVS_HAVE_VVV>0)
+			catch( std::exception )
+	{
+		ODEBUG("LowLevelVisionServer could not be instantiated");
+	  ODEBUG3("Reason:" << msg);
+	  ODEBUG3("Stopping now...");
+	  exit(-1);
+	}
+#endif
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
       GlobalVisionServerID = poa->activate_object(aVS);
