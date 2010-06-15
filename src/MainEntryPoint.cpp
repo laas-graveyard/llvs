@@ -23,7 +23,7 @@
 
 using namespace llvs;
 pthread_t MainThread;
-LowLevelVisionServer *GlobalVisionServer=0;
+LowLevelVisionServer *GlobalVisionServer = NULL;
 PortableServer::POA_var poa;
 PortableServer::ObjectId_var GlobalVisionServerID;
 pthread_t aThread;
@@ -67,30 +67,33 @@ void * LLVSThread(void *arg)
 
 void SIGINT_handler(int asig)
 {
-  ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
-  if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
-    {
-      /* Stop the processes */
-      GlobalVisionServer->StopMainProcess();
-      EndOfMainLoop = true;
-      ODEBUG("Stopped the processes ");
-      sleep(1);
+	ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
+	if(GlobalVisionServer != NULL)
+	{
+		if(pthread_self() == MainThread)
+		{
+			/* Stop the processes */
+			GlobalVisionServer->StopMainProcess();
+			EndOfMainLoop = true;
+			ODEBUG("Stopped the processes ");
+			sleep(1);
 
-      pthread_kill(aThread,asig);
+			pthread_kill(aThread,asig);
 
-      /* Stop the processes */
-      ODEBUG("Just before cleaning up the frame grabbing ");
-      GlobalVisionServer->CleanUpGrabbing();
-      ODEBUG("Just after cleaning up the frame grabbing ");
-      GlobalVisionServer->RecordImagesOnDisk(0);
-      ODEBUG("Just after recording images on disk " );
-    }
-  else
-    {
-      ODEBUG("Go out from "<< pthread_self());
-      pthread_exit(0);
-    }
-  delete GlobalVisionServer;
+			/* Stop the processes */
+			ODEBUG("Just before cleaning up the frame grabbing ");
+			GlobalVisionServer->CleanUpGrabbing();
+			ODEBUG("Just after cleaning up the frame grabbing ");
+			GlobalVisionServer->RecordImagesOnDisk(0);
+			ODEBUG("Just after recording images on disk " );
+		}
+		else
+		{
+			ODEBUG("Go out from "<< pthread_self());
+			pthread_exit(0);
+		}
+		delete GlobalVisionServer;
+	}
 }
 
 int main(int argc, char * argv[])
