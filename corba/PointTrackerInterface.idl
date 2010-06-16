@@ -1,0 +1,52 @@
+/** @doc This object implements a visual process to get a disparity map.
+
+    Copyright (c) 2010, 
+    @author Stephane Embarki
+   
+    JRL-Japan, CNRS/AIST
+    
+    See license file for information on license.
+*/
+
+
+#include "common.idl"
+
+
+interface PointTrackerInterface{
+
+  /* Object position in the camera frame*/
+  struct HomogeneousMatrix
+  {
+    double cMo[4][4]; 
+  };
+
+  
+  /* Define the target and the point position in the image */
+  struct DataTarget
+  {
+    sequence<float> Target;
+    sequence<float> UV;
+    short nbPoint; 
+  };
+
+  /*! Set estimation of the object position. */
+  boolean Init(in DataTarget aData);
+
+  /* Position of the object */
+  boolean GetcMo(out HomogeneousMatrix anObject);
+
+  /*! Debug information for the object. */
+  struct DebugInfoObject
+  {
+    /*! Information of the image. */
+    ImageData anImgData;
+
+    /*! Homogeneous matrix. */
+    Object aData;
+  };
+
+  /* Position of the object */
+  boolean GetDebugInfoObject(out DebugInfoObject aDIO);
+
+
+};

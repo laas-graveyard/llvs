@@ -33,12 +33,14 @@ IF (OMNIORB4_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
 	./Corba/Camera_impl.cpp 
 	./Corba/StereoVision_impl.cpp 
-	./Corba/ModelTrackerInterface_impl.cpp)
+	./Corba/ModelTrackerInterface_impl.cpp
+	./Corba/PointTrackerInterface_impl.cpp)
 
      SET (LLVS_HEARDER_FILES_1 ${LLVS_HEADER_FILES_1}
        ./Corba/Camera_impl.hh
        ./Corba/StereoVision_impl.hh
-       ./Corba/ModelTrackerInterface_impl.h)
+       ./Corba/ModelTrackerInterface_impl.h
+       ./Corba/PointTrackerInterface_impl.h)
 ENDIF(OMNIORB4_FOUND)
 
 IF (VVV_FOUND)
@@ -101,10 +103,12 @@ ENDIF (VISP_FOUND AND OPENCV_FOUND)
 # Visp image convertion need OpenCV
 IF (VISP_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
-	./ViSP/vispUndistordedProcess.cpp )
+	./ViSP/vispUndistordedProcess.cpp 
+	./PointTracker/PointTrackingProcess.cpp)
 
   SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
-  	./ViSP/vispUndistordedProcess.h )
+  	./ViSP/vispUndistordedProcess.h
+	./PointTracker/PointTrackingProcess.h )
 ENDIF (VISP_FOUND)
 
 

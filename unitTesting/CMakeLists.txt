@@ -12,6 +12,7 @@
 SET (SRC_SUBDIRS
   ModelTracker
   ViSP
+  PointTracker
 )
 
 # Build process propagation in the sub directories

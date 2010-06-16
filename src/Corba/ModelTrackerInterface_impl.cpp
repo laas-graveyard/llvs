@@ -85,30 +85,32 @@ CORBA::Boolean
 ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if(LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_NMBT>0)
 
-  vpHomogeneousMatrix cMo;
+  m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
   
-  m_LLVS->m_ModelTrackerProcess->GetOutputcMo(cMo);
 
-  acMo.cMo[0][0]=cMo[0][0];
-  acMo.cMo[0][1]=cMo[0][1];
-  acMo.cMo[0][2]=cMo[0][2];
-  acMo.cMo[0][3]=cMo[0][3];
-  acMo.cMo[1][0]=cMo[1][0];
-  acMo.cMo[1][1]=cMo[1][1];
-  acMo.cMo[1][2]=cMo[1][2];
-  acMo.cMo[1][3]=cMo[1][3];
-  acMo.cMo[2][0]=cMo[2][0];
-  acMo.cMo[2][1]=cMo[2][1];
-  acMo.cMo[2][2]=cMo[2][2];
-  acMo.cMo[2][3]=cMo[2][3];
-  
+  acMo.cMo[0][0]=m_CBTD.cMo[0][0];
+  acMo.cMo[0][1]=m_CBTD.cMo[0][1];
+  acMo.cMo[0][2]=m_CBTD.cMo[0][2];
+  acMo.cMo[0][3]=m_CBTD.cMo[0][3];
+  acMo.cMo[1][0]=m_CBTD.cMo[1][0];
+  acMo.cMo[1][1]=m_CBTD.cMo[1][1];
+  acMo.cMo[1][2]=m_CBTD.cMo[1][2];
+  acMo.cMo[1][3]=m_CBTD.cMo[1][3];
+  acMo.cMo[2][0]=m_CBTD.cMo[2][0];
+  acMo.cMo[2][1]=m_CBTD.cMo[2][1];
+  acMo.cMo[2][2]=m_CBTD.cMo[2][2];
+  acMo.cMo[2][3]=m_CBTD.cMo[2][3];
+  acMo.cMo[3][0]=0;
+  acMo.cMo[3][1]=0;
+  acMo.cMo[3][2]=0;
+  acMo.cMo[3][3]=1;
   return true;
 
 #else
 
-    cout<< " Need ViSP to use GetcMo function"<< endl;
+    cout<< " Need NMBT to use GetcMo function"<< endl;
     return false;
 #endif
 

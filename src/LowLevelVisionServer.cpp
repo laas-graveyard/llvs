@@ -158,6 +158,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     new ModelTrackerInterface_impl(this);
 #endif 
 
+#if (LLVS_HAVE_VISP>0)
+  /*! Is is an interface to call the Point tracker. */
+  m_PointTrackerCorbaRequestProcess_impl =
+    new PointTrackerInterface_impl(this);
+#endif 
+
+
   ODEBUG("Step 1");
 
 #if (LLVS_HAVE_VVV>0)
@@ -417,6 +424,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 				      m_Widecam_image_undistorded);
   m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
+
+
+  /*! Point Tracker process. */
+  m_PointTrackerProcess = new HRP2PointTrackingProcess();
+  m_PointTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
+  m_PointTrackerProcess->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_PointTrackerProcess);
 
 #endif
 

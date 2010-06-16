@@ -16,7 +16,10 @@
 #include <omniORB4/CORBA.h>
 #endif
 
+<<<<<<< Updated upstream:src/MainEntryPoint.cpp
 // Debug macros
+=======
+>>>>>>> Stashed changes:src/MainEntryPoint.cpp
 #include "Debug.h"
 
 #include "LowLevelVisionServer.h"

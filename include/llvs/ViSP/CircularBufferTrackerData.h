@@ -46,7 +46,7 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
 	  {
 	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
 	    m_CircularBuffer[i].onedatum.timestamp= new timeval;
-	      }
+	  }
 		
 	m_ProcessName = "CircularModelTrackerData";
       }

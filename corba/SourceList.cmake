@@ -166,7 +166,26 @@ IF(OMNIORB4_FOUND)
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/ModelTrackerInterface.idl")
+
+
+  #--------------------------------------------------------
+  #  POINT TRACKER 
+  #--------------------------------------------------------
+
+  SET(PointTrackerInterface_CPP  "${LLVS_SOURCE_DIR}/src/PointTrackerInterfaceSK.cc")
+  SET(PointTrackerInterface_Header "${LLVS_SOURCE_DIR}/src/PointTrackerInterface.hh")
  
+
+  IDLFILERULE(${LLVS_SOURCE_DIR}/corba/PointTrackerInterface.idl
+              ${PointTrackerInterface_CPP}
+              ${PointTrackerInterface_Header}
+              ${LLVS_SOURCE_DIR}/src ${IDL_INCLUDE_DIR})
+
+  SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${PointTrackerInterface_CPP})
+  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${PointTrackerInterface_Header})
+
+
+  LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/PointTrackerInterface.idl")
 
   #--------------------------------------------------------
   #  Gather everything

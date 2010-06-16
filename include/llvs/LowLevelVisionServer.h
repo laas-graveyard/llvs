@@ -51,7 +51,7 @@
 #include <Corba/Camera_impl.h>
 #include <Corba/StereoVision_impl.h>
 #include <Corba/ModelTrackerInterface_impl.h>
-
+#include <Corba/PointTrackerInterface_impl.h>
 #include <VisionBasicProcess.h>
 #include <ConnectionToSot.h>
 
@@ -91,6 +91,9 @@
 #include "ViSP/vispUndistordedProcess.h"
 
 #endif
+
+
+#include "PointTracker/PointTrackingProcess.h"
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
@@ -423,6 +426,11 @@ namespace llvs
       ModelTrackerInterface_ptr getModelTracker() 
 	throw (CORBA::SystemException);
 
+
+      /* ! Interface: Returns the reference of the Point Tracker object */
+      PointTrackerInterface_ptr getPointTracker() 
+	throw (CORBA::SystemException);
+
       /* ! Get Object reference */
       CORBA::Object_ptr getObjectReference(string ServerID, string ServerKind);
 
@@ -562,7 +570,18 @@ namespace llvs
 
 
 #if (LLVS_HAVE_VISP>0)
-     
+    public:
+
+      /*! Model Tracker process. */
+      HRP2PointTrackingProcess *m_PointTrackerProcess;
+      
+    private:
+      /*! Corba object handling Point Tracker requests.*/
+      PointTrackerInterface_impl * 
+	m_PointTrackerCorbaRequestProcess_impl;
+   
+
+    protected:
       /*Visp grey undistorded image for wide cam*/
       vpImage<unsigned char>* m_Widecam_image_undistorded;
 
