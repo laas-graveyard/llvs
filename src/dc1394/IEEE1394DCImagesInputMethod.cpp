@@ -535,7 +535,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       ODEBUG("After converting");
 #if 0
-      static linc=0;
+      static unsigned int linc=0;
       ofstream aof;
       char Buffer[128];
       sprintf(Buffer,"dump_Dst_%d_%06d.ppm",camera,linc++);
@@ -558,6 +558,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 
       ImagesDst = *Image;
 
+      ODEBUG("ImagesDst");
       try
 	{
 	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
@@ -569,10 +570,11 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 	{
 	  ODEBUG("Exception during snap: " << except.what() );
 	}
-
+      ODEBUG("dequeue finished");
       switch(m_ModeRaw2RGB)
 	{
 	case YUV422_TO_RGB:
+	  ODEBUG("YUV422_TO_RGB");
 	  dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
 				 ImagesTab[0],
 				 m_BoardImagesWidth[camera],
@@ -581,6 +583,7 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
 				 DC1394_COLOR_CODING_YUV422,1);
 	  break;
 	case BAYER_TO_RGB:
+	  ODEBUG("BAYER_TO_RGB");
 	  dc1394_bayer_decoding_8bit(m_VideoFrames[camera]->image,
 				     ImagesTab[0],
 				     m_BoardImagesWidth[camera],

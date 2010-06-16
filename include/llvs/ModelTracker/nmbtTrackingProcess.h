@@ -148,6 +148,9 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
  
 private:
   
+  // Keep internal track of the tracking parameters.
+  vpMe m_me;
+
   // TODO : uniformiser les 3.
 
   /*! Parse camera parameters*/

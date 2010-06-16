@@ -387,7 +387,8 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   // If the parameter already exist is value is overwritten. 
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
-
+  
+  
   //int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
   // get the 4 first parameter to find the parameter type
@@ -403,6 +404,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   bool isAVpMeParam(false);
   bool isATrackerParam(false);
   bool isACameraParam(false);
+
 
   if (paramType=="VPME")
     {
@@ -429,9 +431,13 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
 //--------VPME------------//
   if(isAVpMeParam)
     {
-      ODEBUG3(" ENTER VPME CASE");
+      static unsigned int paramnb=0;
+      ODEBUG3(" ENTER VPME CASE " << paramnb++);
       // create a moving edge parameter
-      vpMe me;
+      {
+	vpMe *me = m_tracker.getMovingEdge();
+	me->print();
+      }
 
       // convert the string aValue into a double
       std::istringstream i(aValue);
@@ -441,36 +447,38 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
       //fill the appropriate vpMe field
       if (paramId=="MAS")//"VPME_MASK_SIZE"
 	{ 
-	  me.setMaskSize(value);
+	  m_me.setMaskSize(value);
 	  ODEBUG3(" ENTER setMaskSize CASE value : "<<value );
 
 	}
       else if (paramId=="RAN")//"VPME_RANGE"
 	{
-	  me.setRange(value);
+	  m_me.setRange(value);
 	}
       else if (paramId=="THR")//"VPME_THRESHOLD"
 	{
-	  me.setThreshold(value);
+	  m_me.setThreshold(value);
 	}
       else if (paramId=="SAM")//"VPME_SAMPLE_STEP"
 	{
-	  me.setSampleStep(value);
+	  m_me.setSampleStep(value);
 	}
       else if (paramId=="MU1")//"VPME_MU1 "
 	{
-	  me.setMu1(value);
+	  m_me.setMu1(value);
 	}
       else if (paramId=="MU2")//"VPME_MU2 "
 	{
-	  me.setMu2(value);
+	  m_me.setMu2(value);
 	}
       else 
 	{
 	  cout << "Warning : unknown vpme parameter :"<< paramId << endl; 
 	  return -1;
 	}
-      m_tracker.setMovingEdge(me);
+      ODEBUG3("setMovingEdge");
+      m_tracker.setMovingEdge(m_me);
+      ODEBUG3("setMovingEdge");
     }
   
 //-------- PATH ------------//
@@ -531,7 +539,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
            }
 
        }
-      else if(paramId=="NAME")//"CAME_NAME"
+      else if(paramId=="NAM")//"CAME_NAME"
        {
 	 m_nameCam = aValue;
 	 ParseCamParam();
