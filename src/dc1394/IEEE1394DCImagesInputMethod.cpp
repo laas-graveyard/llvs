@@ -52,18 +52,9 @@ using namespace std;
 
 using std::showbase;
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
 
-#if 0
-#define ODEBUG(x) cerr << "HPR2IEEE1394DCImagesInputMethod:" <<  x << endl
-#define ODEBUG_CONT(x) cerr << "HPR2IEEE1394ImagesInputMethod:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
-
+// Debug macros
+#include "Debug.h"
 
 
 #include <dc1394/IEEE1394DCImagesInputMethod.h>
@@ -91,7 +82,8 @@ VisionSystemProfile::~VisionSystemProfile()
 /**************************************************************
  * class Images Input                                         *
  **************************************************************/
-HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() : HRP2ImagesInputMethod()
+HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const char*)
+: HRP2ImagesInputMethod()
 {
 
   m_MapFromSemanticToRealCamera.resize(4);
@@ -294,7 +286,7 @@ void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
   m_HandleDC1394 = 0;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::StartProcess()
+int HRP2IEEE1394DCImagesInputMethod::StartProcess() throw(const char*)
 {
   if (!m_Computing)
     {
@@ -322,14 +314,24 @@ int HRP2IEEE1394DCImagesInputMethod::StopProcess()
   return 0;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::Initialize()
+bool HRP2IEEE1394DCImagesInputMethod::Initialize()
 {
   if (m_DC1394Cameras.size()==0)
-    InitializeBoard();
-  return 0;
+	{
+		try
+		{
+			InitializeBoard();
+		}
+		catch(const char* msg)
+		{
+			ODEBUG("Exception occured: " << msg);
+			return false;
+		}
+	}
+	return true;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::Cleanup()
+void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 {
   HRP2VisionBasicProcess::StopProcess();
   if (m_DC1394Cameras.size()!=0)
@@ -337,7 +339,6 @@ int HRP2IEEE1394DCImagesInputMethod::Cleanup()
       StopContinuousShot();
       StopBoard();
     }
-  return 0;
 }
 
 
@@ -922,7 +923,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
   return 0;
 }
 
-void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
+void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
 {
   ODEBUG("Start InitializeBoard");
   try 
@@ -954,10 +955,12 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard()
     }
   catch(...)
     {
-      ODEBUG("Unable to initialize the board correctly\n");
-      return;
+      throw("InitializeBoad(): Unable to access firewire cameras");
     }
-  DetectTheBestVisionSystemProfile();
+  if( !DetectTheBestVisionSystemProfile() )
+	{
+    throw("InitializeBoad(): No profile available for the connected cameras");
+	}
 
   if (m_DC1394Cameras.size()==0)
     m_AtLeastOneCameraPresent = false;

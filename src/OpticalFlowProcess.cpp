@@ -40,14 +40,8 @@
 #include "OpticalFlowProcess.h"
 #include "LowLevelVisionServer.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2OpticalFlowProcess:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2OpticalFlowProcess:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 using namespace std;
 

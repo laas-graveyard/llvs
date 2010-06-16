@@ -101,7 +101,7 @@ class IEEE1394Boardv2
     };
     
   public:
-    IEEE1394Boardv2(int board_id)						;
+    IEEE1394Boardv2(int board_id) throw(std::exception)						;
     ~IEEE1394Boardv2()							;
 
     u_int	nchildren()		const	{return _cameras.size();}
@@ -253,7 +253,7 @@ class HRP2IEEE1394ImagesInputMethod : public HRP2ImagesInputMethod, public HRP2V
   static const int CAMERA_UP = 2;
 
   /*! Constructor */
-  HRP2IEEE1394ImagesInputMethod(void);
+  HRP2IEEE1394ImagesInputMethod(void) throw(std::exception);
   
   /*! Destructor */
   virtual ~HRP2IEEE1394ImagesInputMethod();
@@ -316,7 +316,7 @@ class HRP2IEEE1394ImagesInputMethod : public HRP2ImagesInputMethod, public HRP2V
   virtual int SetParameter(string aParameter, string aValue);
   
   /*! Override Start Process */
-  virtual int StartProcess();
+  virtual int StartProcess() throw(std::exception);
   
   /*! Override Stop Process */
   virtual int StopProcess();

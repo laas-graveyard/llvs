@@ -40,19 +40,8 @@
 #include <fstream>
 #include <math.h>
 
-// have to check if the line number is correct! 
-// ..may end up with the macro definition line number.
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << __FILE__ << ": l" << __LINE__ << ": " << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
-
-#if 0
-#define ODEBUG(x) cerr << __FILE__ << ": l" << __LINE__ << ": " << x << endl
-#define ODEBUG_CONT(x) cerr << __FILE__ << ": l" << __LINE__ << ": " << x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 #if LLVS_HAVE_OPENCV
 

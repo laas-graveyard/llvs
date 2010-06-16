@@ -16,20 +16,14 @@
 #include <omniORB4/CORBA.h>
 #endif
 
-
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "LLVS::MainEntryPoint:" << x << endl
-#if 0
-#define ODEBUG(x) cerr << "LLVS::MainEntryPoint:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 #include "LowLevelVisionServer.h"
 
 using namespace llvs;
 pthread_t MainThread;
-LowLevelVisionServer *GlobalVisionServer=0;
+LowLevelVisionServer *GlobalVisionServer = NULL;
 PortableServer::POA_var poa;
 PortableServer::ObjectId_var GlobalVisionServerID;
 pthread_t aThread;
@@ -73,30 +67,33 @@ void * LLVSThread(void *arg)
 
 void SIGINT_handler(int asig)
 {
-  ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
-  if((GlobalVisionServer!=0) && (pthread_self()==MainThread))
-    {
-      /* Stop the processes */
-      GlobalVisionServer->StopMainProcess();
-      EndOfMainLoop = true;
-      ODEBUG("Stopped the processes ");
-      sleep(1);
+	ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
+	if(GlobalVisionServer != NULL)
+	{
+		if(pthread_self() == MainThread)
+		{
+			/* Stop the processes */
+			GlobalVisionServer->StopMainProcess();
+			EndOfMainLoop = true;
+			ODEBUG("Stopped the processes ");
+			sleep(1);
 
-      pthread_kill(aThread,asig);
+			pthread_kill(aThread,asig);
 
-      /* Stop the processes */
-      ODEBUG("Just before cleaning up the frame grabbing ");
-      GlobalVisionServer->CleanUpGrabbing();
-      ODEBUG("Just after cleaning up the frame grabbing ");
-      GlobalVisionServer->RecordImagesOnDisk(0);
-      ODEBUG("Just after recording images on disk " );
-    }
-  else
-    {
-      ODEBUG("Go out from "<< pthread_self());
-      pthread_exit(0);
-    }
-  delete GlobalVisionServer;
+			/* Stop the processes */
+			ODEBUG("Just before cleaning up the frame grabbing ");
+			GlobalVisionServer->CleanUpGrabbing();
+			ODEBUG("Just after cleaning up the frame grabbing ");
+			GlobalVisionServer->RecordImagesOnDisk(0);
+			ODEBUG("Just after recording images on disk " );
+		}
+		else
+		{
+			ODEBUG("Go out from "<< pthread_self());
+			pthread_exit(0);
+		}
+		delete GlobalVisionServer;
+	}
 }
 
 int main(int argc, char * argv[])
@@ -298,12 +295,24 @@ int main(int argc, char * argv[])
 	{
 	  aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
 	}
-      catch( const char* msg )
+ 	//FIXME: We may choose an uniform way to throw exception to
+	//       avoid this kind of copy/paste
+			catch( const char* msg )
 	{
-	  std::cerr << "Exception caught:" << msg << std::endl;
-	  std::cerr << "Stopping now..." << std::endl;
+		ODEBUG("LowLevelVisionServer could not be instantiated");
+	  ODEBUG3("Reason:" << msg);
+	  ODEBUG3("Stopping now...");
 	  exit(-1);
 	}
+#if (LLVS_HAVE_VVV>0)
+			catch( std::exception )
+	{
+		ODEBUG("LowLevelVisionServer could not be instantiated");
+	  ODEBUG3("Reason:" << msg);
+	  ODEBUG3("Stopping now...");
+	  exit(-1);
+	}
+#endif
       ODEBUG("Flag 1.7");
       aVS->SetRobotVisionCalibrationDirectory(rbtvisiondir);
       GlobalVisionServerID = poa->activate_object(aVS);

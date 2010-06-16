@@ -40,17 +40,8 @@
 
 #include "EdgeDetectionProcess.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2EdgeDetectionProcess:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2EdgeDetectionProcess:" <<  x << endl
-#define ODEBUG_CONT(x) cerr << "HPR2EdgeDetectionProcess:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 extern "C" {
 #include "epbmstep1.h"

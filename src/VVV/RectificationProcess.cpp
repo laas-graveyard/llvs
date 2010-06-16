@@ -18,17 +18,8 @@ extern "C"
 
 #include "RectificationProcess.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2RectificationProcess:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2RectificationProcess:" <<  x << endl
-#define ODEBUG_CONT(x) cerr << "HPR2RectificationProcess:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 HRP2RectificationProcess::HRP2RectificationProcess()
 {

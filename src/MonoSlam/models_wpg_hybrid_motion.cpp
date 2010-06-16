@@ -26,10 +26,9 @@
 #include <VNL/sample.h>
 #include "models_wpg_hybrid_motion.h"
 
-#define ODEBUG(x) 
-#define ODEBUG3(x) 
+// Debug macros
+#include "Debug.h"
 
-//#define ODEBUG3(x) cerr << "Model wpg motion" << x << endl
 using namespace std;
 
 

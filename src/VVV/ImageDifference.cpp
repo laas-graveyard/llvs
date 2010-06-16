@@ -3,18 +3,8 @@
 
 #include "ImageDifference.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2ImageDifferenceProcess:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2ImageDifferenceProcess:" <<  x << endl
-#define ODEBUG_CONT(x) cerr << "HPR2ImageDifferenceProcess:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
-#endif
-
+// Debug macros
+#include "Debug.h"
 
 HRP2ImageDifferenceProcess::HRP2ImageDifferenceProcess()
   : HRP2VisionBasicProcess()

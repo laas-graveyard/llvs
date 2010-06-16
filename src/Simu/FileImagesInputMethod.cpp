@@ -48,14 +48,8 @@
 
 #include "Simu/FileImagesInputMethod.h"
 
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "HPR2FileImagesInputMethod:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "HPR2FileImagesInputMethod:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
+// Debug macros
+#include "Debug.h"
 
 using namespace std;
 using namespace llvs;
@@ -713,11 +707,10 @@ bool HRP2FileImagesInputMethod::CameraPresent()
   return false;
 }
 
-int HRP2FileImagesInputMethod::Initialize()
+bool HRP2FileImagesInputMethod::Initialize()
 {
-  return 0;
+  return true;
 }
-int HRP2FileImagesInputMethod::Cleanup()
+void HRP2FileImagesInputMethod::Cleanup()
 {
-  return 0;
 }

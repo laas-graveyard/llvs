@@ -8,16 +8,8 @@
 
 #include <VNL/sample.h>
 
-
-#define ODEBUG2(x)
-#define ODEBUG3(x) cerr << "MonoSLAMHRP:" << x << endl
-
-#if 0
-#define ODEBUG(x) cerr << "MonoSLAMHRP:" <<  x << endl
-#else
-#define ODEBUG(x) 
-#endif
-
+// Debug macros
+#include "Debug.h"
 
 MonoSLAMHRP::MonoSLAMHRP(const std::string& initialisation_file,
 			 Motion_Model_Creator *mm_creator,
