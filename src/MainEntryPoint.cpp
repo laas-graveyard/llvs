@@ -93,6 +93,7 @@ void SIGINT_handler(int asig)
 			pthread_exit(0);
 		}
 		delete GlobalVisionServer;
+		GlobalVisionServer = NULL;
 	}
 }
 
