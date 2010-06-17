@@ -95,13 +95,24 @@ void HRP2PointTrackingProcess::GetvpDot2( vector<vpDot2*> &DotList)
 /*! Get the vpImagePoint*/
 void HRP2PointTrackingProcess::GetvpImagePoint(vector<vpImagePoint*> &IPList)
 {
+  if(IPList.size()!=m_vpIPList.size())
+    {
+       for(unsigned int i=0;i<IPList.size();i++)
+	 {
+	   delete IPList[i];
+	 }
+       IPList.clear();
+       IPList.resize(m_NbPoint);
+       for(unsigned int i=0;i<IPList.size();i++)
+	 {
+	   IPList[i]= new vpImagePoint;
+	 }
+    }
 
-  IPList.resize(m_NbPoint);
-  for(unsigned int i=0; i<m_NbPoint;++i)
+  for(unsigned int i=0;i<m_NbPoint;i++)
     {
       *IPList[i]=*m_vpIPList[i];
     }
-
 }
 
 
@@ -302,7 +313,7 @@ int HRP2PointTrackingProcess::pSetParameter(std::string aParameter, std::string 
            }
 
        }
-      else if(paramId=="NAME")//"CAME_NAME"
+      else if(paramId=="NAM")//"CAME_NAME"
        {
 	 m_nameCam = aValue;
 	 ParseCamParam();

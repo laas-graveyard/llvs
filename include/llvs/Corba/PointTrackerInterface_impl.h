@@ -20,6 +20,11 @@
 #include "PointTrackerInterface.hh"
 #endif
 
+#if (LLVS_HAVE_VISP>0)
+
+#include "PointTracker/CircularBufferPointTrackerData.h" 
+
+#endif
 
 namespace llvs
 {
@@ -32,7 +37,12 @@ namespace llvs
     
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
-    
+
+#if (LLVS_HAVE_VISP>0)
+
+    CBPointTrackerData m_CBPTD;
+
+#endif
  
   public:
     

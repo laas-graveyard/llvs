@@ -3396,6 +3396,17 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
   return tmp_ModelTrackerInterface._retn();
 }
 
+PointTrackerInterface_ptr LowLevelVisionServer::getPointTracker()
+  throw(CORBA::SystemException)
+{
+  PointTrackerInterface_var tmp_PointTrackerInterface;
+#if (LLVS_HAVE_VISP>0)
+  tmp_PointTrackerInterface = m_PointTrackerCorbaRequestProcess_impl->_this();
+#endif
+  return tmp_PointTrackerInterface._retn();
+}
+
+
 void LowLevelVisionServer::SetTheSLAMImage(int anIndex)
 {
   m_TheSLAMImage = (unsigned long int) anIndex;

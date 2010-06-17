@@ -95,6 +95,8 @@ void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_
 
   The parameter names can be :
 
+  FLIP = ON or OFF
+  TYPE_CONV = RGB_VISPU8 or RGB_VISPU8_NONE
   -------------------------------------*/
 int HRP2vispUndistordedProcess::SetParameter(std::string aParameter, 
 					      std::string aValue)
@@ -124,7 +126,19 @@ int HRP2vispUndistordedProcess::SetParameter(std::string aParameter,
 	  return -1;
 	}
     }
- 
+  else  if (aParameter=="TYPE_CONV")
+    {
+      if (aValue=="RGB_VISPU8")
+	{
+	  m_conversion = RGB_VISPU8;
+	}
+      else if (aValue=="RGB_VISPU8_NONE")
+	{
+	  m_conversion = RGB_VISPU8_NONE;
+	}
+    }
+
+
   return(outputVBPSetParameters);
 }
 
@@ -166,6 +180,15 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 				  m_CamParam,
 				  *(m_VispGreyImages));
 
+	}
+
+      if(m_conversion == RGB_VISPU8_NONE) 
+	{
+	  
+	  vpImageConvert::RGBToGrey( *m_RawImages,
+				     m_VispGreyImages->bitmap,
+				     m_ImgParam.width,
+				     m_ImgParam.height, m_flip);
 	}
 
     }

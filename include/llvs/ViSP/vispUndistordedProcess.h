@@ -36,7 +36,8 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
   typedef enum
     {  
 	RGB_VISPRGB,
-	RGB_VISPU8
+	RGB_VISPU8,
+	RGB_VISPU8_NONE
 
     } typeConversion ;	
  

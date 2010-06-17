@@ -40,9 +40,12 @@ interface PointTrackerInterface{
   {
     /*! Information of the image. */
     ImageData anImgData;
+    
+    HomogeneousMatrix aHM;
 
     /*! Homogeneous matrix. */
-    Object aData;
+    sequence<float> UV;
+
   };
 
   /* Position of the object */
