@@ -8,21 +8,15 @@
     See license file for information on license.
 */
 
+#include "llvsConfig.h"
+
+#if (LLVS_HAVE_VISP>0)
+
 #include <visp/vpConfig.h>
 #include <visp/vpDebug.h>
 #include <visp/vpParseArgv.h>
 
 #include <iostream>
-
-//#include <windows.h>
-//#include <winbase.h>
-
-
-//#if defined (VISP_HAVE_DIRECTSHOW) 
-#if (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GTK) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_D3D9))
-
-
-
 
 #include <visp/vpImage.h>
 #include <visp/vpImageIo.h>
@@ -362,11 +356,11 @@ int main()
   return(0);
 }
 
+#else
 
-#endif // (defined (VISP_HAVE_GTK) || defined(VISP_HAVE_GDI)...)
-//#endif 
-/*
- * Local variables:
- * c-basic-offset: 2
- * End:
- */
+int
+main()
+{
+}
+
+#endif // (defined LLVS_HAVE_VISP)
