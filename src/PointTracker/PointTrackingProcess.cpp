@@ -452,7 +452,6 @@ int HRP2PointTrackingProcess::Tracking()
 {
   for (unsigned int i = 0 ; i < m_NbPoint; i++)
     {
-      cout<<*m_Dot2List[i]<<endl;
       m_Dot2List[i]->track( *m_inputVispImage, *m_vpIPList[i] ) ;
     }
   return 0;
