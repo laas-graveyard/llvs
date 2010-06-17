@@ -83,11 +83,14 @@ ENDIF (OPENCV_FOUND)
 IF (VISP_FOUND AND NMBT_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
 	./ModelTracker/nmbt/nmbtTrackingProcess.cpp
-	./ViSP/CircularBufferTrackerData.cpp )
+	./ViSP/CircularBufferTrackerData.cpp 
+	./ViSP/ComputeControlLawProcess.cpp)
 
   SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
   	./ModelTracker/nmbtTrackingProcess.h 
-	./ViSP/CircularBufferTrackerData.h)
+	./ViSP/CircularBufferTrackerData.h
+	./ViSP/ComputeControlLawProcess.h)
+
 ENDIF (VISP_FOUND AND NMBT_FOUND)
 
 # Visp image convertion need OpenCV
@@ -105,7 +108,7 @@ IF (VISP_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
 	./ViSP/vispUndistordedProcess.cpp 
 	./PointTracker/PointTrackingProcess.cpp	
-	./PointTracker/CircularBufferPointTrackerData.cpp)
+	./PointTracker/CircularBufferPointTrackerData.cpp )
 
     SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
   	./ViSP/vispUndistordedProcess.h

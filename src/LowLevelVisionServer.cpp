@@ -68,10 +68,6 @@ extern "C"
 }
 #endif
 
-//#if (LLVS_HAVE_NMBT>0)
-//#include "ModelTracker/nmbtTrackingProcess.h"
-//#endif
-
 
 using namespace std; 
 
@@ -88,9 +84,6 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
-//#if (LLVS_HAVE_NMBT>0)
-//#include "ModelTracker/nmbtTrackingProcess.h"
-//#endif
 
 #include "Debug.h"
 
@@ -432,18 +425,20 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_PointTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_PointTrackerProcess);
   
-  /* Circular Buffer for the point tracker data*/
+
+ /* Circular Buffer for the point tracker data*/
   m_CBPointTrackerData= new CBPointTrackerData();
   m_CBPointTrackerData->image=m_Widecam_image_undistorded;
   m_CBPointTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
 
-  m_CBonPointTracker=new CircularPointTrackerData(5);
+  m_CBonPointTracker=new CircularPointTrackerData(3);
   m_CBonPointTracker->SetPointTrackerPointer(m_PointTrackerProcess);
   m_CBonPointTracker->SetDatum(m_CBPointTrackerData);
   m_CBonPointTracker->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonPointTracker);
+ 
 
 #endif
 
@@ -454,6 +449,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
+ 
+  /*! Compute Control Law process. */
+  m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();
+  m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
+  m_ComputeControlLawProcess->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
+
 
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
@@ -461,7 +463,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
-  m_CBonNMBT=new CircularModelTrackerData(5);
+  m_CBonNMBT=new CircularModelTrackerData(3);
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_CBonNMBT->StopProcess();

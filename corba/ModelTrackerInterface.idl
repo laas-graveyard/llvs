@@ -12,6 +12,8 @@ interface ModelTrackerInterface{
   /*! Set estimation of the object position. */
   boolean SetcMo(in HomogeneousMatrix acMo);
 
+  boolean SetcdMo(in HomogeneousMatrix aHM);
+
   /* Position of the object */
   boolean GetcMo(out HomogeneousMatrix acMo);
 

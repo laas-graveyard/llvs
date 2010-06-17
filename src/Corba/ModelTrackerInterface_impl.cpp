@@ -81,6 +81,43 @@ ModelTrackerInterface_impl::SetcMo(const ModelTrackerInterface::HomogeneousMatri
 
 
 }
+
+CORBA::Boolean
+ModelTrackerInterface_impl::SetcdMo(const ModelTrackerInterface::HomogeneousMatrix& aHM)
+{
+
+#if (LLVS_HAVE_NMBT>0)
+
+
+  vpHomogeneousMatrix cdMo;
+  
+  cdMo[0][0]=aHM.cMo[0][0];
+  cdMo[0][1]=aHM.cMo[0][1];
+  cdMo[0][2]=aHM.cMo[0][2];
+  cdMo[0][3]=aHM.cMo[0][3];
+  cdMo[1][0]=aHM.cMo[1][0];
+  cdMo[1][1]=aHM.cMo[1][1];
+  cdMo[1][2]=aHM.cMo[1][2];
+  cdMo[1][3]=aHM.cMo[1][3];
+  cdMo[2][0]=aHM.cMo[2][0];
+  cdMo[2][1]=aHM.cMo[2][1];
+  cdMo[2][2]=aHM.cMo[2][2];
+  cdMo[2][3]=aHM.cMo[2][3];
+
+  m_LLVS->m_ComputeControlLawProcess->SetcdMo(cdMo);
+   return true;
+#else
+
+    cout<< " Need ViSP to use SetcdMo function"<< endl;
+   return false;
+#endif
+
+}
+
+
+
+
+
 CORBA::Boolean
 ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
@@ -89,7 +126,6 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
   
-
   acMo.cMo[0][0]=m_CBTD.cMo[0][0];
   acMo.cMo[0][1]=m_CBTD.cMo[0][1];
   acMo.cMo[0][2]=m_CBTD.cMo[0][2];

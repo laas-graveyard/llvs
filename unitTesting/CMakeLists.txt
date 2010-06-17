@@ -13,6 +13,7 @@ SET (SRC_SUBDIRS
   ModelTracker
   ViSP
   PointTracker
+  Asser3D
 )
 
 # Build process propagation in the sub directories
