@@ -104,11 +104,13 @@ ENDIF (VISP_FOUND AND OPENCV_FOUND)
 IF (VISP_FOUND)
     SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
 	./ViSP/vispUndistordedProcess.cpp 
-	./PointTracker/PointTrackingProcess.cpp)
+	./PointTracker/PointTrackingProcess.cpp	
+	./PointTracker/CircularBufferPointTrackerData.cpp)
 
-  SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+    SET (LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
   	./ViSP/vispUndistordedProcess.h
-	./PointTracker/PointTrackingProcess.h )
+	./PointTracker/PointTrackingProcess.h
+	./PointTracker/CircularBufferPointTrackerData.h)
 ENDIF (VISP_FOUND)
 
 

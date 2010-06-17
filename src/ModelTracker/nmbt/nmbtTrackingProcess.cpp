@@ -422,11 +422,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
     {
       static unsigned int paramnb=0;
       ODEBUG3(" ENTER VPME CASE " << paramnb++);
-      // create a moving edge parameter
-      {
-	vpMe *me = m_tracker.getMovingEdge();
-	me->print();
-      }
+  
 
       // convert the string aValue into a double
       std::istringstream i(aValue);
