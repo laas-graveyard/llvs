@@ -142,7 +142,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   unsigned char *pt =m_CBTD.image->bitmap;
 
   for(int j=0;j<(int)(320*240);j++)
-    aDIOv->anImgData.octetData[j] = *pt++;
+    aDIOv->anImgData.octetData[j] = *pt++;  
 
   aDIOv->aData.cMo[0][0]=m_CBTD.cMo[0][0];
   aDIOv->aData.cMo[0][1]=m_CBTD.cMo[0][1];

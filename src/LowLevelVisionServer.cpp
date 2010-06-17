@@ -68,9 +68,9 @@ extern "C"
 }
 #endif
 
-#if (LLVS_HAVE_NMBT>0)
-#include "ModelTracker/nmbtTrackingProcess.h"
-#endif
+//#if (LLVS_HAVE_NMBT>0)
+//#include "ModelTracker/nmbtTrackingProcess.h"
+//#endif
 
 
 using namespace std; 
@@ -88,9 +88,9 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
-#if (LLVS_HAVE_NMBT>0)
-#include "ModelTracker/nmbtTrackingProcess.h"
-#endif
+//#if (LLVS_HAVE_NMBT>0)
+//#include "ModelTracker/nmbtTrackingProcess.h"
+//#endif
 
 #include <llvs/tools/Debug.h>
 
@@ -431,6 +431,19 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_PointTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_PointTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_PointTrackerProcess);
+  
+  /* Circular Buffer for the point tracker data*/
+  m_CBPointTrackerData= new CBPointTrackerData();
+  m_CBPointTrackerData->image=m_Widecam_image_undistorded;
+  m_CBPointTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
+
+
+
+  m_CBonPointTracker=new CircularPointTrackerData(5);
+  m_CBonPointTracker->SetPointTrackerPointer(m_PointTrackerProcess);
+  m_CBonPointTracker->SetDatum(m_CBPointTrackerData);
+  m_CBonPointTracker->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonPointTracker);
 
 #endif
 
@@ -3382,6 +3395,17 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
 #endif
   return tmp_ModelTrackerInterface._retn();
 }
+
+PointTrackerInterface_ptr LowLevelVisionServer::getPointTracker()
+  throw(CORBA::SystemException)
+{
+  PointTrackerInterface_var tmp_PointTrackerInterface;
+#if (LLVS_HAVE_VISP>0)
+  tmp_PointTrackerInterface = m_PointTrackerCorbaRequestProcess_impl->_this();
+#endif
+  return tmp_PointTrackerInterface._retn();
+}
+
 
 void LowLevelVisionServer::SetTheSLAMImage(int anIndex)
 {

@@ -9,20 +9,14 @@
 */
 
 
-
-#include <visp/vpConfig.h>
-#include <visp/vpDebug.h>
-#include <visp/vpParseArgv.h>
-
-#include <iostream>
-
-//#include <windows.h>
-//#include <winbase.h>
-
 #include "llvsConfig.h"
 
 #if (LLVS_HAVE_VISP>0)
 
+#include <visp/vpConfig.h>
+#include <visp/vpDebug.h>
+#include <visp/vpParseArgv.h>
+#include <iostream>
 
 #include "PointTracker/PointTrackingProcess.h"
 
@@ -42,95 +36,6 @@
 
 
 using namespace std;
-/*
-vpHomogeneousMatrix 
-computePose_cMo(  vpCameraParameters & cam,
-                  vpImage<unsigned char>& I,
-                  const int nbpts,
-                  vpPoint * Ptarget, vpDot2* d )
-{
-
-
- 
- 
-  
-  
-
-  ////////////////////////////////////////////////////////////
-  //
-      //Now we compute the pose of both camera
-  //
-  ////////////////////////////////////////////////////////////
-
-
-  // We need a structure that content both the 3D coordinates of the point
-  // in the object frame and the 2D coordinates of the point expressed in meter
-  // the vpPoint class is ok for that
-
-
-  
-
-
-  // pixel-> meter conversion
-  for (int i=0 ; i < nbpts ; i++)
-    {
-      // u[i]. v[i] are expressed in pixel
-      // conversion in meter is achieved using
-      // x = (u-u0)/px
-      // y = (v-v0)/py
-      // where px, py, u0, v0 are the intrinsic camera parameters
-      double x,y ;
-      vpPixelMeterConversion::convertPoint( cam ,vpIP[i] , x , y )  ;
-      Ptarget[i].set_x(x) ;
-      Ptarget[i].set_y(y) ;
-      
-      
-    }
-  
-  
-  // -----------------------------------------------------------------------
-  // The pose structure is built, we put in the point list the set of point
-  // here both 2D and 3D world coordinates are known
-  // -----------------------------------------------------------------------
-  // The vpPose class mainly contents a list of vpPoint (that is (X,Y,Z, x, y) )
-  vpPose pose ;
-  //  the list of point is cleared (if that's not done before)
-  
-  pose.clearPoint() ;
-  for (int i= 0 ; i < nbpts ; i++)
-    {
-      pose.addPoint( Ptarget[ i ] ) ; // and added to the pose computation point list
-      Ptarget[i].print();
-    }
-  
-  // compute the initial pose using Dementhon method followed by a non linear
-  // minimisation method
-  
-  
-  // Pose by Lagrange it provides an initialization of the pose
-  vpHomogeneousMatrix cMo;
-  cout << " pose.computePose(vpPose::LAGRANGE, cMo ) ;"<<endl;
-  pose.computePose(vpPose::LAGRANGE, cMo ) ;
-  
-  cout << pose.computeResidual( cMo ) <<endl ;
-  
-  // the pose is now refined using the virtual visual servoing approach
-  // Warning: cMo needs to be initialized otherwise it may  diverge
-  pose.computePose( vpPose::LOWE, cMo ) ;
-  
-  // display the compute pose
-  pose.display( I , cMo , cam , 0.05 , vpColor::red ) ;
-  vpDisplay::flush(I) ;
-  
-  cout << pose.computeResidual( cMo) <<endl;
- 
-
-  return cMo;
-  
-
-}*/
-
-
 
 int main()
 {
@@ -366,7 +271,12 @@ int main()
 
  return(0);
 }
+#else
 
+int
+main()
+{
+}
 
 #endif 
  

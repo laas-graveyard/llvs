@@ -89,11 +89,12 @@
 /* Internal framework */
 #include "ViSP/vispConvertImageProcess.h"
 #include "ViSP/vispUndistordedProcess.h"
-
+#include "PointTracker/PointTrackingProcess.h"
+#include "PointTracker/CircularBufferPointTrackerData.h"
 #endif
 
 
-#include "PointTracker/PointTrackingProcess.h"
+
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
@@ -571,6 +572,8 @@ namespace llvs
 
 #if (LLVS_HAVE_VISP>0)
     public:
+      /*! Circular Buffer */
+      CircularPointTrackerData * m_CBonPointTracker;
 
       /*! Model Tracker process. */
       HRP2PointTrackingProcess *m_PointTrackerProcess;
@@ -580,7 +583,9 @@ namespace llvs
       PointTrackerInterface_impl * 
 	m_PointTrackerCorbaRequestProcess_impl;
    
-
+      /* struct save in Circular Buffer*/
+      CBPointTrackerData*           m_CBPointTrackerData;
+ 
     protected:
       /*Visp grey undistorded image for wide cam*/
       vpImage<unsigned char>* m_Widecam_image_undistorded;

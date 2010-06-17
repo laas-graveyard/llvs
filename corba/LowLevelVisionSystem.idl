@@ -30,6 +30,7 @@
 #include "Scene.idl"
 #include "StereoVision.idl"
 #include "ModelTrackerInterface.idl"
+#include "PointTrackerInterface.idl"
 /**
  * Double buffer
  */
@@ -355,6 +356,8 @@ interface LowLevelVisionSystem
   /* Retuns the Model tracker object. */
   ModelTrackerInterface getModelTracker();
 
+  /* Retuns the Model tracker object. */
+  PointTrackerInterface getPointTracker();
 };
 
 
