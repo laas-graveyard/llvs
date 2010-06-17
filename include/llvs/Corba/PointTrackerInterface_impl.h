@@ -56,7 +56,7 @@ namespace llvs
 
     virtual CORBA::Boolean GetDebugInfoObject(PointTrackerInterface::DebugInfoObject_out aDIO);
     
-    
+    virtual CORBA::Boolean GetPointCoord(PointTrackerInterface::PointCoord_out PC);
   };
   
   

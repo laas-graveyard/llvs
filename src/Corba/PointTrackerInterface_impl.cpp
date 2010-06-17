@@ -25,6 +25,8 @@ using namespace std;
 #include <visp/vpHomogeneousMatrix.h>
 #include <visp/vpPoint.h>
 #include <visp/vpImagePoint.h>
+#include <visp/vpPixelMeterConversion.h>
+#include <visp/vpCameraParameters.h>
 #endif
 
 
@@ -204,3 +206,38 @@ PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoO
 
   return false;
 }
+
+CORBA::Boolean
+PointTrackerInterface_impl::GetPointCoord(PointTrackerInterface::PointCoord_out aPC)
+{
+
+#if (LLVS_HAVE_VISP>0)
+
+  PointTrackerInterface::PointCoord_var PCv = 
+    new PointTrackerInterface::PointCoord;
+
+   m_LLVS->m_CBonPointTracker->ReadData(m_CBPTD);
+   
+   double x=0;
+   double y=0;
+
+   vpCameraParameters cam;
+   m_LLVS->m_PointTrackerProcess->GetCameraParameters(cam);
+   
+ for(unsigned int i=0; i<m_CBPTD.vpIP.size();++i)
+    {
+      vpPixelMeterConversion::convertPoint( cam ,*m_CBPTD.vpIP[i] , x , y ) ;
+      PCv->X[i]=x;
+      PCv->Y[i]=y;
+    }
+
+ aPC = PCv._retn();
+
+  return 0;
+
+#else
+  return 1; 
+#endif
+
+}
+

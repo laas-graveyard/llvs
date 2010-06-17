@@ -366,13 +366,9 @@ int HRP2PointTrackingProcess::pRealizeTheProcess()
  
   if(m_inputImagesLoaded && m_InitDone )
     {
- 
-      try
-	{  	
-	  Tracking();
-	}
-      catch(std::string a) // tracking got lost
-	{
+   	
+      if ( Tracking()==-1)
+     	{
 	    
 	  // set the tracking flag
 	  m_trackerTrackSuccess= false;
@@ -383,14 +379,16 @@ int HRP2PointTrackingProcess::pRealizeTheProcess()
 	  // return a negative value
 	  return -1;
 	}
-    
-      // tracking succeed
-      m_trackerTrackSuccess= true;
-      
-      // Compute the resulting transform between the object and the image  
-      computePose();
-      
-      return 0;
+      else
+	{
+	  // tracking succeed
+	  m_trackerTrackSuccess= true;
+	  
+	  // Compute the resulting transform between the object and the image  
+	  computePose();
+	  
+	  return 0;
+	}
     }
   else 
     {
@@ -452,7 +450,16 @@ int HRP2PointTrackingProcess::Tracking()
 {
   for (unsigned int i = 0 ; i < m_NbPoint; i++)
     {
-      m_Dot2List[i]->track( *m_inputVispImage, *m_vpIPList[i] ) ;
+      try{
+	m_Dot2List[i]->track( *m_inputVispImage, *m_vpIPList[i] ) ;
+ 
+      } catch(vpException e){
+	vpERROR_TRACE("Error while tracking dots") ;
+	vpCTRACE << e;
+	return -1;
+      }
+
+     
     }
   return 0;
 }

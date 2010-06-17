@@ -50,6 +50,14 @@ interface PointTrackerInterface{
 
   /* Position of the object */
   boolean GetDebugInfoObject(out DebugInfoObject aDIO);
+  
+  /*! Point Coordinate. */
+  struct PointCoord
+  {
+    sequence<float> X;
+    sequence<float> Y;
+  };
 
+  boolean GetPointCoord(out PointCoord PC);
 
 };
