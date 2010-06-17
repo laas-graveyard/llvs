@@ -41,7 +41,7 @@
 #include "EdgeDetectionProcess.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 extern "C" {
 #include "epbmstep1.h"

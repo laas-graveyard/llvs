@@ -20,7 +20,7 @@
 #include <visp/vpDisplayX.h>
 #include <visp/vpPose.h>
 #include <visp/vpPixelMeterConversion.h>
-#include <Debug.h>
+#include <llvs/tools/Debug.h>
 
 
 /*!-------------------------------------

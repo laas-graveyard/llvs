@@ -45,7 +45,7 @@
 #include <math.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 HRP2ColorDetectionProcess::HRP2ColorDetectionProcess(CosNaming::NamingContext_var cxt,
 						     LowLevelVisionServer *lLLVS,

@@ -41,7 +41,7 @@
 #include <fstream>
 #include <math.h>
 
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 HRP2VisionBasicProcess::HRP2VisionBasicProcess(int Instance)
   : m_Instance(Instance)

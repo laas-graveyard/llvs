@@ -48,7 +48,7 @@
 #include <visp/vpDisplayX.h>
 
 // Debug macro
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 /*!-------------------------------------
 Default constructor

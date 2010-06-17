@@ -48,7 +48,7 @@ extern "C"
 #include <TU/Vector++.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 using namespace TU;
 

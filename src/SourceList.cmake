@@ -16,8 +16,7 @@ SET(LLVS_HEADER_FILES_1
 	LowLevelVisionServer.h 
 	./Simu/SimulatorInputMethod.h 
 	./Simu/FileImagesInputMethod.h 
-	./dc1394/IEEE1394DCImagesInputMethod.h
-	Debug.h )
+	./dc1394/IEEE1394DCImagesInputMethod.h	)
 
 IF (libdc1394-2_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}

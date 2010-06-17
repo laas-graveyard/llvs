@@ -49,7 +49,7 @@
 #include "Simu/FileImagesInputMethod.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 using namespace std;
 using namespace llvs;

@@ -47,7 +47,7 @@
 #include <MonoSLAM/robot_patch.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 using namespace VW;
 

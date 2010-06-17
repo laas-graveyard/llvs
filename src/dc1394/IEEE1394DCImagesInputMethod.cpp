@@ -54,7 +54,7 @@ using std::showbase;
 
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 
 #include <dc1394/IEEE1394DCImagesInputMethod.h>

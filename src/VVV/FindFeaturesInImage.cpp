@@ -44,7 +44,7 @@
 #include <MonoSLAM/monoslaminterface.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 HRP2FindFeaturesInImage::HRP2FindFeaturesInImage()
 {

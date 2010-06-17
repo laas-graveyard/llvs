@@ -27,7 +27,7 @@
 #include "models_wpg_hybrid_motion.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 using namespace std;
 

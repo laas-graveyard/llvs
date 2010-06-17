@@ -19,7 +19,7 @@ extern "C"
 #include "RectificationProcess.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 HRP2RectificationProcess::HRP2RectificationProcess()
 {

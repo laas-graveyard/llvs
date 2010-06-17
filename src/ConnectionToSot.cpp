@@ -4,7 +4,7 @@
 #include "ConnectionToSot.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 void * ConnectionToSotThread(void *arg)
 {

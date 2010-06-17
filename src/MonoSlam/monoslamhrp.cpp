@@ -9,7 +9,7 @@
 #include <VNL/sample.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 MonoSLAMHRP::MonoSLAMHRP(const std::string& initialisation_file,
 			 Motion_Model_Creator *mm_creator,

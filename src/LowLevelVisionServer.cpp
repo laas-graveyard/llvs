@@ -92,7 +92,7 @@ using namespace std;
 #include "ModelTracker/nmbtTrackingProcess.h"
 #endif
 
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 using namespace llvs;
 

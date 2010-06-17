@@ -43,7 +43,7 @@
 #include "isoluminance.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 extern "C"
 {

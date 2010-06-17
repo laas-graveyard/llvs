@@ -41,7 +41,7 @@
 #include <math.h>
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 #if LLVS_HAVE_OPENCV
 

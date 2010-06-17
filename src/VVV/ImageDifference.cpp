@@ -4,7 +4,7 @@
 #include "ImageDifference.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 HRP2ImageDifferenceProcess::HRP2ImageDifferenceProcess()
   : HRP2VisionBasicProcess()

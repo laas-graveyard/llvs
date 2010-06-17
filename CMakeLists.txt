@@ -67,7 +67,19 @@
   MAKE_DIRECTORY(${LLVS_INTERN_INCLUDE_DIR})
   
 #where are use-specific cmake modules
-  SET(CMAKE_MODULE_PATH ${LLVS_SOURCE_DIR}/CMakeModules)
+  LIST(
+		APPEND
+		CMAKE_MODULE_PATH 
+		${LLVS_SOURCE_DIR}/CMakeModules
+		$ENV{ROBOTPKG_BASE}/share/cmake
+	)
+	FIND_PACKAGE(
+		Modules
+		COMPONENTS
+		image
+		architecture
+	)
+	FIND_PACKAGE(LLVT)
   INCLUDE(CheckLibraryExists)
 
 #---------------------------------------------------------
@@ -181,7 +193,7 @@
 
 #Detect OmniOrb.
   IF (SEARCH_FOR_OMNIORB4)
-    INCLUDE(${CMAKE_MODULE_PATH}/UseOmniORB4.cmake)
+    INCLUDE(UseOmniORB4)
     IF (OMNIORB4_FOUND)
      	SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} ${omniORB4_cflags}")
     	IF(omniORB4_include_DIR)

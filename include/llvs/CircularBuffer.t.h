@@ -16,7 +16,7 @@
 
 #include "errno.h"
 
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 #include "VisionBasicProcess.h"
 
 template <class T>

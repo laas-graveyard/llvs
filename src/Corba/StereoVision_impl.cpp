@@ -20,7 +20,7 @@ using namespace std;
 #include "oocmap.h"
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 //#define StereoVISION_DEBUG
 // **********************************************************************

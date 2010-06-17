@@ -14,7 +14,7 @@ extern "C"
 using std::showbase;
 
 // Debug macros
-#include "Debug.h"
+#include <llvs/tools/Debug.h>
 
 #ifndef VFGB_IEEE1394_CONFDIR
 #  define VFGB_IEEE1394_CONFDIR	"/usr/local/VVV/etc/ieee1394"
