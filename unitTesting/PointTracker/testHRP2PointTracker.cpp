@@ -9,20 +9,14 @@
 */
 
 
-
-#include <visp/vpConfig.h>
-#include <visp/vpDebug.h>
-#include <visp/vpParseArgv.h>
-
-#include <iostream>
-
-//#include <windows.h>
-//#include <winbase.h>
-
 #include "llvsConfig.h"
 
 #if (LLVS_HAVE_VISP>0)
 
+#include <visp/vpConfig.h>
+#include <visp/vpDebug.h>
+#include <visp/vpParseArgv.h>
+#include <iostream>
 
 #include "PointTracker/PointTrackingProcess.h"
 
@@ -277,7 +271,12 @@ int main()
 
  return(0);
 }
+#else
 
+int
+main()
+{
+}
 
 #endif 
  
