@@ -340,7 +340,7 @@ HRP2IEEE1394ImagesInputMethod::HRP2IEEE1394ImagesInputMethod() : HRP2ImagesInput
   
   m_Format = "RGB";
 
-  for(int k=0;k<3;k++)
+  for(int k=0;k<4;k++)
     {
       m_ImagesWidth[k]  = 640;
       m_ImagesHeight[k] = 480;

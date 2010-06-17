@@ -134,7 +134,7 @@ namespace llvs
     protected:
 
       /*! Members of the class storing the size of the images. 
-	All the three images have the same size. 
+	All the four images have the same size. 
       */
       std::vector<unsigned int> m_ImagesWidth, m_ImagesHeight;
 

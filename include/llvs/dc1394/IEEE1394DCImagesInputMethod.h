@@ -77,7 +77,8 @@ namespace llvs
   class HRP2IEEE1394DCImagesInputMethod : public HRP2ImagesInputMethod, public HRP2VisionBasicProcess
     {
     public:
-
+			
+			/* Camera semantic definition */
       static const int CAMERA_LEFT = 0;
       static const int CAMERA_RIGHT = 1;
       static const int CAMERA_UP = 2;
@@ -85,6 +86,10 @@ namespace llvs
       
       static const int YUV422_TO_RGB = 0;
       static const int BAYER_TO_RGB = 1;
+
+			/* Global error flags */
+			static const int ERROR_UNDEFINED_CAMERA = -1;
+
       /*! Constructor */
       HRP2IEEE1394DCImagesInputMethod(void) throw(const char*);
   
@@ -95,12 +100,12 @@ namespace llvs
        * \param unsigned char * Image:  A pointer where to store the image.
        * \param int camera: The camera index.
        */
-      virtual int GetSingleImage(unsigned char **Image, int camera,struct timeval &timestamp);
+      virtual int GetSingleImage(unsigned char **Image, unsigned int camera,struct timeval &timestamp);
 
 
-      int GetImageSinglePGM(unsigned char **Image, int camera, struct timeval &timestamp);
-      int GetImageSingleRaw(unsigned char **Image, int camera, struct timeval &timestamp);
-      int GetImageSingleRGB(unsigned char **Image, int camera, struct timeval &timestamp);
+      int GetImageSinglePGM(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
+      int GetImageSingleRaw(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
+      int GetImageSingleRGB(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
 
       /* Real implementation for single PGM */
       int GetImagePGM(unsigned char *Image, int SemanticCamera);
@@ -119,12 +124,12 @@ namespace llvs
 
       /*! Get the current image size for the appropriate camera 
        */
-      virtual int GetImageSize(int &lw, int &lh, int SemanticCameraNumber);
+      virtual int GetImageSize(int &lw, int &lh, unsigned int SemanticCameraNumber);
 
       /*! Set the size of the image willing to be grabbed. 
 	\param CameraNumber specifies the Semantic camera number.
        */
-      virtual int SetImageSize(int lw, int lh, int CameraNumber);
+      virtual int SetImageSize(int lw, int lh, unsigned int CameraNumber);
 
 
       /*! Initialize the cameras */

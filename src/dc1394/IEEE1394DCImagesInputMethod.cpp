@@ -85,7 +85,6 @@ VisionSystemProfile::~VisionSystemProfile()
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const char*)
 : HRP2ImagesInputMethod()
 {
-
   m_MapFromSemanticToRealCamera.resize(4);
   for(unsigned int i=0;i<4;i++)
     m_MapFromSemanticToRealCamera[i] = -1;
@@ -118,7 +117,6 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
   InitializeBoard();
   ODEBUG("Through the constructor");
 
-    
   StartContinuousShot();
   ODEBUG("After setting the parameters.");
 }
@@ -342,7 +340,7 @@ void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp)
+int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
 {  
 
   ODEBUG("--------------------"<<m_Format[camera].c_str()<<"---------------");
@@ -365,11 +363,14 @@ int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, int c
 
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, int camera, struct timeval &timestamp)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
 {
 
-  if ((camera<0) || ((unsigned int)camera> m_DC1394Cameras.size()))
-    return -1;
+	if(camera >= m_DC1394Cameras.size())
+	{
+		ODEBUG("Camera " << camera << " is not defined");
+		return HRP2IEEE1394DCImagesInputMethod::ERROR_UNDEFINED_CAMERA;
+	}
   unsigned char * ImagesDst;
 
   struct timeval tval;
@@ -482,10 +483,15 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, in
   return 0;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, int camera, struct timeval &timestamp)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
 {
   unsigned char * ImagesDst;
 
+	if(camera >= m_DC1394Cameras.size())
+	{
+		ODEBUG("Camera " << camera << " is not defined");
+		return ERROR_UNDEFINED_CAMERA;
+	}
   struct timeval tval;
   double time1, time2;
 #define LOCAL_TYPE unsigned char *
@@ -669,9 +675,15 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, in
   return 0;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, int camera, struct timeval &timestamp)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
 {
   unsigned char * ImagesDst;
+	if(camera >= m_DC1394Cameras.size())
+	{
+		ODEBUG("Camera " << camera << " is not defined");
+		return ERROR_UNDEFINED_CAMERA;
+	}
+    
 
 #define LOCAL_TYPE unsigned char *
 
@@ -782,15 +794,18 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, in
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int SemanticCameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int SemanticCameraNumber)
 {
     
   int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
   
-  if ((CameraNumber<0)|| ((unsigned int)CameraNumber>=m_DC1394Cameras.size()))
-    return -1;
-
-  m_ImagesWidth[CameraNumber] = lw;
+	if(SemanticCameraNumber >= m_DC1394Cameras.size())
+	{
+		ODEBUG("Camera " << camera << " is not defined");
+		return ERROR_UNDEFINED_CAMERA;
+	}
+  
+	m_ImagesWidth[CameraNumber] = lw;
   m_ImagesHeight[CameraNumber] = lh;
   ODEBUG("Debug images");
   ODEBUG("Allocation for m_TmpImage");
@@ -799,17 +814,21 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, int SemanticCa
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, int SemanticCameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, unsigned int SemanticCameraNumber)
 {
-  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
-  if (CameraNumber!=-1)
+  if( m_MapFromSemanticToRealCamera[SemanticCameraNumber] != -1 )
+	{
+		unsigned int CameraNumber( m_MapFromSemanticToRealCamera[SemanticCameraNumber] );
+	  if (CameraNumber < m_DC1394Cameras.size())
     {
       lw = m_ImagesWidth[CameraNumber];
       lh = m_ImagesHeight[CameraNumber];
+			return 0;
     }
-  else 
-    { lw = lh = -1;}
-  return 0;
+	}
+	lw = -1;
+	lh = -1;
+	return ERROR_UNDEFINED_CAMERA;
 }
 
 
