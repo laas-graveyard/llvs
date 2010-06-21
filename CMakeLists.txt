@@ -80,6 +80,7 @@
 		architecture
 	)
 	FIND_PACKAGE(LLVT)
+	INCLUDE_DIRECTORIES(${LLVT_INCLUDE_DIRS})
   INCLUDE(CheckLibraryExists)
 
 #---------------------------------------------------------
