@@ -55,6 +55,7 @@ Default constructor
  -------------------------------------*/
 
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
+  
 {
   
   m_ProcessName = "nmbtTrackingProcess";
@@ -64,6 +65,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   m_modelLoaded = false;
   m_trackerTrackSuccess =false;
   m_inputVispImage=0x0;
+  m_me_modified = false;
   SetDefaultParam();
 }
 
@@ -127,9 +129,9 @@ void  HRP2nmbtTrackingProcess::SetWidth(const int&_width)
 } 
 
 /*! Get tracker parameters : camera parameters */
-void  HRP2nmbtTrackingProcess::GetCameraParameters(vpCameraParameters & _cam)
+void  HRP2nmbtTrackingProcess::GetCameraParameters(vpCameraParameters & cam)
 {
-  m_tracker.getCameraParameters(_cam);
+  m_tracker.getCameraParameters(cam);
 }  
 
 /*! Get tracker parameters : cMo camera /object pose */
@@ -139,27 +141,27 @@ void  HRP2nmbtTrackingProcess::GetcMo(vpHomogeneousMatrix &cMo)
 }
 
 /*! Get the image */
-void  HRP2nmbtTrackingProcess::GetInputVispImages(vpImage<unsigned char> & _I)
+void  HRP2nmbtTrackingProcess::GetInputVispImages(vpImage<unsigned char> & I)
 {
-  _I=*(m_inputVispImage);
+  I=*(m_inputVispImage);
 }  
   
 /*! Get the inputcMo */
-void  HRP2nmbtTrackingProcess::GetInputcMo(vpHomogeneousMatrix & _inputcMo)
+void  HRP2nmbtTrackingProcess::GetInputcMo(vpHomogeneousMatrix & inputcMo)
 {
-  _inputcMo=this->m_inputcMo;
+  inputcMo=this->m_inputcMo;
 } 
   
 /*! Get the inputcMo */
-void  HRP2nmbtTrackingProcess::GetOutputcMo(vpHomogeneousMatrix & _outputcMo)
+void  HRP2nmbtTrackingProcess::GetOutputcMo(vpHomogeneousMatrix & outputcMo)
 {
-  _outputcMo=this->m_outputcMo;
+  outputcMo=this->m_outputcMo;
 } 
  
 /*! Get Image Height*/
-void  HRP2nmbtTrackingProcess::GetHeight(int&_height)
+void  HRP2nmbtTrackingProcess::GetHeight(int&height)
 {
-  _height= m_imageHeight;
+  height= m_imageHeight;
 }   
 
 /*! Get Image Width*/
@@ -421,7 +423,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   if(isAVpMeParam)
     {
       static unsigned int paramnb=0;
-      ODEBUG3(" ENTER VPME CASE " << paramnb++);
+      ODEBUG(" ENTER VPME CASE " << paramnb++);
   
 
       // convert the string aValue into a double
@@ -433,37 +435,62 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
       if (paramId=="MAS")//"VPME_MASK_SIZE"
 	{ 
 	  m_me.setMaskSize(value);
-	  ODEBUG3(" ENTER setMaskSize CASE value : "<<value );
+	  ODEBUG(" ENTER setMaskSize CASE value : "<<value );
 
 	}
       else if (paramId=="RAN")//"VPME_RANGE"
 	{
 	  m_me.setRange(value);
+	  ODEBUG(" ENTER setRange CASE value : "<<value );
 	}
       else if (paramId=="THR")//"VPME_THRESHOLD"
 	{
 	  m_me.setThreshold(value);
+	  ODEBUG(" ENTER THRESHOLD value : "<<value );
 	}
       else if (paramId=="SAM")//"VPME_SAMPLE_STEP"
 	{
 	  m_me.setSampleStep(value);
+	  ODEBUG(" ENTER SAM value : "<<value );
 	}
       else if (paramId=="MU1")//"VPME_MU1 "
 	{
 	  m_me.setMu1(value);
+	  ODEBUG(" ENTER MU1 value : "<<value );
 	}
       else if (paramId=="MU2")//"VPME_MU2 "
 	{
 	  m_me.setMu2(value);
+	  ODEBUG(" ENTER MU2 value : "<<value );
+	}
+      else if (paramId=="MU3")
+	{
+	  ODEBUG(" ENTER MU1 value : "<<value );
+	  m_me.setMu1(value);
+	  i >> value ;
+	  m_me.setMu2(value);
+	  ODEBUG(" ENTER MU2 value : "<<value );
 	}
       else 
 	{
 	  cout << "Warning : unknown vpme parameter :"<< paramId << endl; 
 	  return -1;
 	}
-      ODEBUG3("setMovingEdge");
-      m_tracker.setMovingEdge(m_me);
-      ODEBUG3("setMovingEdge");
+      // If the tracker is not working
+      if (!m_Computing)
+	{
+	  // the modification is realized 
+	  // NOW !
+	  m_tracker.setMovingEdge(m_me);
+	}
+      else 
+	// Otherwise it is left to the time
+	// where the tracker can makes 
+	// the parameter changes.
+	m_me_modified = true;
+
+      //m_me.print();
+      //m_tracker.getMovingEdge()->print();
     }
   
 //-------- PATH ------------//
@@ -544,11 +571,11 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
 /*!-------------------------------------
 Set cMo
 ------------------------------------- */
-void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & _cMo)
+void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
 {
-  m_inputcMo=_cMo;   
+  ODEBUG("GOING HERE INSIDE SetcMo " << cMo);
+  m_inputcMo=cMo;   
 
-  cout<<_cMo<<endl;
   m_tracker.setcMo(m_inputcMo);
   m_initPoseLoaded = true;
 }  
@@ -571,9 +598,11 @@ This Patches will be used to track the line in the image.
 -------------------------------------*/
 int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
+  ODEBUG("Initialize the process.");
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
+  ODEBUG("End of initialize the process.");
   return 0;
 }
 
@@ -604,7 +633,9 @@ the object model
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
   m_trackerTrackSuccess = false;
- 
+  
+  unsigned int r=0;
+
   if(m_inputImagesLoaded)
     {
  
@@ -615,7 +646,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
       catch(std::string a) // tracking got lost
 	{
 	  
-#if 0
+#if 1
 	  std::cerr << std::endl;
 	  std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
 	  std::cerr << std::endl;
@@ -628,25 +659,31 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  m_outputcMo.setIdentity();
 	  
 	  // return a negative value
-	  return -1;
+	  r=-1;
 	  
 
 	}
-    
-      // tracking succeed
-      m_trackerTrackSuccess= true;
-      
-      // set the resulting transform between the object and the image
-      m_tracker.getPose(m_outputcMo);  
-
-#if 0 
+      if (r==0)
+	{
+	  // tracking succeed
+	  m_trackerTrackSuccess= true;
+	  
+	  // set the resulting transform between the object and the image
+	  m_tracker.getPose(m_outputcMo);  
+	}
+#if 0
       static vpDisplayX display(*m_inputVispImage,0,0,"Tracking Server");
       vpDisplay::display(*m_inputVispImage);
       
       m_tracker.display(*m_inputVispImage,m_outputcMo,m_cam, vpColor::green,2);
 #endif
-      
-      return 0;
+
+      if (m_me_modified)
+	{
+	  m_tracker.setMovingEdge(m_me);
+	  m_me_modified = false;
+	}
+      return r;
     }
   else 
     {
@@ -672,11 +709,11 @@ int HRP2nmbtTrackingProcess::pCleanUpTheProcess()
 ----------------------------------------*/
 int HRP2nmbtTrackingProcess::LoadModel( const std::string & pathToModel)
 {
-         //TODO 
-         // add a test to check that the 3 last letter are wrl 
-         // add a test to check if the file exists
-         // return an exception when one of these test fail
-         //
+  //TODO 
+  // add a test to check that the 3 last letter are wrl 
+  // add a test to check if the file exists
+  // return an exception when one of these test fail
+  //
   m_tracker.loadModel(pathToModel.c_str());
   
   return 0;

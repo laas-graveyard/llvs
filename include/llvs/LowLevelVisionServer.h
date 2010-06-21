@@ -89,16 +89,17 @@
 /* Internal framework */
 #include "ViSP/vispConvertImageProcess.h"
 #include "ViSP/vispUndistordedProcess.h"
+
 #include "PointTracker/PointTrackingProcess.h"
 #include "PointTracker/CircularBufferPointTrackerData.h"
+
 #endif
-
-
 
 
 #if (LLVS_HAVE_NMBT>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
 #include "ViSP/CircularBufferTrackerData.h"
+#include "ViSP/ComputeControlLawProcess.h"
 #endif
 
 
@@ -435,6 +436,8 @@ namespace llvs
       /* ! Get Object reference */
       CORBA::Object_ptr getObjectReference(string ServerID, string ServerKind);
 
+      CORBA::Object_ptr getObjectReference(vector<string> & ServerID, vector<string> & ServerKind);
+
       /* ! Create Name context */
       void CreateNameContext(void);
 
@@ -490,7 +493,10 @@ namespace llvs
 
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
-      
+    
+      /*! Compute Control Law process. */
+      HRP2ComputeControlLawProcess *m_ComputeControlLawProcess;
+  
     private:
       /*! Corba object handling Tracker requests.*/
       ModelTrackerInterface_impl *  
@@ -577,14 +583,14 @@ namespace llvs
 
       /*! Model Tracker process. */
       HRP2PointTrackingProcess *m_PointTrackerProcess;
-      
+
     private:
       /*! Corba object handling Point Tracker requests.*/
       PointTrackerInterface_impl * 
 	m_PointTrackerCorbaRequestProcess_impl;
    
       /* struct save in Circular Buffer*/
-      CBPointTrackerData*           m_CBPointTrackerData;
+      CBPointTrackerData*   m_CBPointTrackerData;
  
     protected:
       /*Visp grey undistorded image for wide cam*/

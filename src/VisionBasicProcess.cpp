@@ -80,10 +80,10 @@ int HRP2VisionBasicProcess::StopProcess()
 
 int HRP2VisionBasicProcess::StartProcess()
 {
-  ODEBUG3("Go through StartProcess");
+  ODEBUG3("Go through StartProcess " << m_ProcessName);
   m_Computing = 1;
   pStartProcess();
-  ODEBUG3("Went through StartProcess");
+  ODEBUG3("Went through StartProcess " << m_ProcessName);
   return 1;
 
 }

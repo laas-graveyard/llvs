@@ -23,6 +23,7 @@ author Stephane Embarki & Claire Dune
 
 #include "ViSP/CircularBufferTrackerData.h"
 
+
 namespace llvs
 {
   class LowLevelVisionServer;
@@ -49,7 +50,9 @@ namespace llvs
     ~ModelTrackerInterface_impl();
     
     virtual CORBA::Boolean SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo);
-    
+
+    virtual CORBA::Boolean SetcdMo(const ModelTrackerInterface::HomogeneousMatrix& aHM);
+   
     virtual CORBA::Boolean GetcMo(ModelTrackerInterface::HomogeneousMatrix &acMo);
 
     virtual CORBA::Boolean GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO);

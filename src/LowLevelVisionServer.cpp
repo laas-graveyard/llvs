@@ -68,10 +68,6 @@ extern "C"
 }
 #endif
 
-//#if (LLVS_HAVE_NMBT>0)
-//#include "ModelTracker/nmbtTrackingProcess.h"
-//#endif
-
 
 using namespace std; 
 
@@ -88,9 +84,6 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
-//#if (LLVS_HAVE_NMBT>0)
-//#include "ModelTracker/nmbtTrackingProcess.h"
-//#endif
 
 #include <llvs/tools/Debug.h>
 
@@ -432,18 +425,20 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_PointTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_PointTrackerProcess);
   
-  /* Circular Buffer for the point tracker data*/
+
+ /* Circular Buffer for the point tracker data*/
   m_CBPointTrackerData= new CBPointTrackerData();
   m_CBPointTrackerData->image=m_Widecam_image_undistorded;
   m_CBPointTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
 
-  m_CBonPointTracker=new CircularPointTrackerData(5);
+  m_CBonPointTracker=new CircularPointTrackerData(3);
   m_CBonPointTracker->SetPointTrackerPointer(m_PointTrackerProcess);
   m_CBonPointTracker->SetDatum(m_CBPointTrackerData);
   m_CBonPointTracker->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonPointTracker);
+ 
 
 #endif
 
@@ -454,6 +449,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
+ 
+  /*! Compute Control Law process. */
+  m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();
+  m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
+  m_ComputeControlLawProcess->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
+
 
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
@@ -461,7 +463,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
-  m_CBonNMBT=new CircularModelTrackerData(5);
+  m_CBonNMBT=new CircularModelTrackerData(3);
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_CBonNMBT->StopProcess();
@@ -500,6 +502,10 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     {
       m_CTS=0;
     }
+
+#if (LLVS_HAVE_NMBT>0)
+  m_ComputeControlLawProcess->SetConnectionToSot(m_CTS);
+#endif
 
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
@@ -1004,12 +1010,13 @@ LowLevelVisionServer::ApplyingProcess()
       
       ODEBUG("Here STEP 2\n");
     }
-  ODEBUG("Image grabbed");
+  ODEBUG("Image grabbed" );
 
   // Perform computation for each process.
   unsigned int NbOfActiveProcesses = 0;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     {
+      ODEBUG("Process: " << m_ListOfProcesses[i]->GetName());
       m_ListOfProcesses[i]->RealizeTheProcess();
       if (m_ListOfProcesses[i]->GetStatus())
 	{
@@ -1018,7 +1025,6 @@ LowLevelVisionServer::ApplyingProcess()
 	}
     }
 
-  ODEBUG("FFII realized");
   /* Applying Motion Evaluation */
 #if 0
   if (m_MEP!=0)
@@ -1034,7 +1040,6 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("Motion evaluation computed");
 
 
-  ODEBUG("Color Detection realized");
   gettimeofday(&after,0);
   double waisted_time = (before2.tv_sec - before.tv_sec) + 0.000001*(before2.tv_usec - before.tv_usec);
   double current_time = (after.tv_sec - before.tv_sec) + 0.000001*(after.tv_usec - before.tv_usec);
@@ -2039,6 +2044,82 @@ CORBA::Object_ptr LowLevelVisionServer::getObjectReference(string ServerID, stri
 	 << endl;
   }
   cout << "Here...failed to find the Server " << ServerID << endl;
+  return CORBA::Object::_nil();
+}
+
+CORBA::Object_ptr LowLevelVisionServer::getObjectReference(vector<string> & ServerID, vector<string> & ServerKind)
+{
+  CosNaming::NamingContext_var rootContext;
+  
+  try 
+    {
+      // Obtain a reference to the root context of the Name service:
+      CORBA::Object_var obj;
+      obj = m_orb->resolve_initial_references("NameService");
+            
+      // Narrow the reference returned.
+      rootContext = CosNaming::NamingContext::_narrow(obj);
+      
+      
+      if( CORBA::is_nil(rootContext) ) 
+	{
+	  cerr << "Failed to narrow the root naming context." << endl;
+	  return CORBA::Object::_nil();
+	}
+    }
+  
+  catch(CORBA::ORB::InvalidName& ex) {
+    // This should not happen!
+    cerr << "Service required is invalid [does not exist]." << endl;
+    return CORBA::Object::_nil();
+  }
+
+  catch(...)
+    {
+      cout << "Unknown Error" << endl;
+      return CORBA::Object::_nil();
+    }
+  // Create a name object, containing the name test/context:
+  CosNaming::Name name;
+  name.length(ServerID.size());
+
+#if 0
+  name[0].id   = (const char*) "LowLevelVisionSystem";       // string copied
+  name[0].kind = (const char*) "VisionServer"; // string copied
+#else
+  for(unsigned int i=0;i<ServerID.size();i++)
+    {
+      name[i].id   = ServerID[i].c_str();
+      name[i].kind = ServerKind[i].c_str();
+      cout << "name+kind: " << name[i].id << "." << name[i].kind<< endl;
+    }
+#endif
+
+  /*  name[1].id = (const char*) "Echo";
+      name[1].kind = (const char*) "Object";*/
+
+  // Note on kind: The kind field is used to indicate the type
+  // of the object. This is to avoid conventions such as that used
+  // by files (name.type -- e.g. test.ps = postscript etc.)
+ 
+  try {
+    // Resolve the name to an object reference.
+    return rootContext->resolve(name);
+  }
+  catch(CosNaming::NamingContext::NotFound& ex) {
+    // This exception is thrown if any of the components of the
+    // path [contexts or the object] aren't found:
+    cerr << "Context not found." << endl;
+  }
+  catch(CORBA::COMM_FAILURE& ex) {
+    cerr << "Caught system exception COMM_FAILURE -- unable to contact the "
+         << "naming service." << endl;
+  }
+  catch(CORBA::SystemException&) {
+    cerr << "Caught a CORBA::SystemException while using the naming service."
+	 << endl;
+  }
+  cout << "Here...failed to find the Server " << ServerID[0] << endl;
   return CORBA::Object::_nil();
 }
 
@@ -3347,6 +3428,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       ODEBUG3("RecordImagesOnDisk end");
     }
 }
+
 
 CORBA::Long LowLevelVisionServer::GetSceneObject(SceneObject_out aSceneObject)
   throw(CORBA::SystemException)
