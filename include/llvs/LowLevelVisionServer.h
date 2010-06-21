@@ -436,6 +436,8 @@ namespace llvs
       /* ! Get Object reference */
       CORBA::Object_ptr getObjectReference(string ServerID, string ServerKind);
 
+      CORBA::Object_ptr getObjectReference(vector<string> & ServerID, vector<string> & ServerKind);
+
       /* ! Create Name context */
       void CreateNameContext(void);
 

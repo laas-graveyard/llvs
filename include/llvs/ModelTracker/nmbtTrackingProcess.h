@@ -151,6 +151,9 @@ private:
   // Keep internal track of the tracking parameters.
   vpMe m_me;
 
+  // Tell us if it was modified.
+  bool m_me_modified;
+
   // TODO : uniformiser les 3.
 
   /*! Parse camera parameters*/

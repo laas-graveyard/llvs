@@ -503,6 +503,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
       m_CTS=0;
     }
 
+  m_ComputeControlLawProcess->SetConnectionToSot(m_CTS);
+
   /* SHOULD ALWAYS BE AT THE END */
   m_EndOfConstructor = true;
 
@@ -1006,12 +1008,13 @@ LowLevelVisionServer::ApplyingProcess()
       
       ODEBUG("Here STEP 2\n");
     }
-  ODEBUG("Image grabbed");
+  ODEBUG("Image grabbed" );
 
   // Perform computation for each process.
   unsigned int NbOfActiveProcesses = 0;
   for(unsigned int i=0;i<m_ListOfProcesses.size();i++)
     {
+      ODEBUG("Process: " << m_ListOfProcesses[i]->GetName());
       m_ListOfProcesses[i]->RealizeTheProcess();
       if (m_ListOfProcesses[i]->GetStatus())
 	{
@@ -1020,7 +1023,6 @@ LowLevelVisionServer::ApplyingProcess()
 	}
     }
 
-  ODEBUG("FFII realized");
   /* Applying Motion Evaluation */
 #if 0
   if (m_MEP!=0)
@@ -1036,7 +1038,6 @@ LowLevelVisionServer::ApplyingProcess()
   ODEBUG("Motion evaluation computed");
 
 
-  ODEBUG("Color Detection realized");
   gettimeofday(&after,0);
   double waisted_time = (before2.tv_sec - before.tv_sec) + 0.000001*(before2.tv_usec - before.tv_usec);
   double current_time = (after.tv_sec - before.tv_sec) + 0.000001*(after.tv_usec - before.tv_usec);
@@ -2041,6 +2042,82 @@ CORBA::Object_ptr LowLevelVisionServer::getObjectReference(string ServerID, stri
 	 << endl;
   }
   cout << "Here...failed to find the Server " << ServerID << endl;
+  return CORBA::Object::_nil();
+}
+
+CORBA::Object_ptr LowLevelVisionServer::getObjectReference(vector<string> & ServerID, vector<string> & ServerKind)
+{
+  CosNaming::NamingContext_var rootContext;
+  
+  try 
+    {
+      // Obtain a reference to the root context of the Name service:
+      CORBA::Object_var obj;
+      obj = m_orb->resolve_initial_references("NameService");
+            
+      // Narrow the reference returned.
+      rootContext = CosNaming::NamingContext::_narrow(obj);
+      
+      
+      if( CORBA::is_nil(rootContext) ) 
+	{
+	  cerr << "Failed to narrow the root naming context." << endl;
+	  return CORBA::Object::_nil();
+	}
+    }
+  
+  catch(CORBA::ORB::InvalidName& ex) {
+    // This should not happen!
+    cerr << "Service required is invalid [does not exist]." << endl;
+    return CORBA::Object::_nil();
+  }
+
+  catch(...)
+    {
+      cout << "Unknown Error" << endl;
+      return CORBA::Object::_nil();
+    }
+  // Create a name object, containing the name test/context:
+  CosNaming::Name name;
+  name.length(ServerID.size());
+
+#if 0
+  name[0].id   = (const char*) "LowLevelVisionSystem";       // string copied
+  name[0].kind = (const char*) "VisionServer"; // string copied
+#else
+  for(unsigned int i=0;i<ServerID.size();i++)
+    {
+      name[i].id   = ServerID[i].c_str();
+      name[i].kind = ServerKind[i].c_str();
+      cout << "name+kind: " << name[i].id << "." << name[i].kind<< endl;
+    }
+#endif
+
+  /*  name[1].id = (const char*) "Echo";
+      name[1].kind = (const char*) "Object";*/
+
+  // Note on kind: The kind field is used to indicate the type
+  // of the object. This is to avoid conventions such as that used
+  // by files (name.type -- e.g. test.ps = postscript etc.)
+ 
+  try {
+    // Resolve the name to an object reference.
+    return rootContext->resolve(name);
+  }
+  catch(CosNaming::NamingContext::NotFound& ex) {
+    // This exception is thrown if any of the components of the
+    // path [contexts or the object] aren't found:
+    cerr << "Context not found." << endl;
+  }
+  catch(CORBA::COMM_FAILURE& ex) {
+    cerr << "Caught system exception COMM_FAILURE -- unable to contact the "
+         << "naming service." << endl;
+  }
+  catch(CORBA::SystemException&) {
+    cerr << "Caught a CORBA::SystemException while using the naming service."
+	 << endl;
+  }
+  cout << "Here...failed to find the Server " << ServerID[0] << endl;
   return CORBA::Object::_nil();
 }
 
@@ -3349,6 +3426,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       ODEBUG3("RecordImagesOnDisk end");
     }
 }
+
 
 CORBA::Long LowLevelVisionServer::GetSceneObject(SceneObject_out aSceneObject)
   throw(CORBA::SystemException)

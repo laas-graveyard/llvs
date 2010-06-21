@@ -180,6 +180,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   for(int j=0;j<(int)(320*240);j++)
     aDIOv->anImgData.octetData[j] = *pt++;  
 
+  //  ODEBUG3(" m_CBTD.cMo " << m_CBTD.cMo);
   aDIOv->aData.cMo[0][0]=m_CBTD.cMo[0][0];
   aDIOv->aData.cMo[0][1]=m_CBTD.cMo[0][1];
   aDIOv->aData.cMo[0][2]=m_CBTD.cMo[0][2];

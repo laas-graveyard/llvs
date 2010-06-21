@@ -63,6 +63,15 @@ namespace llvs
       void ReadWaistSignals(double waistposition[3],
 			    double waistattitude[3]);
 
+
+      /*! \brief Read head values.*/
+      void ReadHeadRPYSignals(double headposerpy[6]);
+
+      /*! \brief Read waist values.*/
+      void ReadWaistRPYSignals(double headposerpy[6]);
+
+      void WriteVelocityReference(double velref[3]);
+
       /*! \brief Create the signals, and plkug them. */
       bool Init();
 
@@ -84,13 +93,21 @@ namespace llvs
       LowLevelVisionServer * m_LLVS;
 
       /*! Pointer on SoT server. */
-      SOT_Server_Command_var m_SOT_Server_Command;
+      hppCorbaServer::SOT_Server_Command_var m_SOT_Server_Command;
 
       /*! \brief Store the rank of waist position signal. */
       CORBA::Long m_WaistPositionSignalRank;
 
       /*! \brief Store the rank of waist attitude signal. */
       CORBA::Long m_WaistAttitudeSignalRank;
+
+      /*! \brief Store the rank of head poserpy signal. */
+      CORBA::Long m_HeadPRPYSignalRank;
+
+      /*! \brief Store the rank of waist poserpy signal. */
+      CORBA::Long m_WaistPRPYSignalRank;
+
+      CORBA::Long m_VelRefSignalRank;
 
       /*! \brief Boolean value to go out of the thread */
       bool m_EndOfThreadLoop;

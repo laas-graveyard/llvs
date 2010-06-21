@@ -12,28 +12,64 @@
 #include "ViSP/ComputeControlLawProcess.h"
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cstdlib>
 
+
+#include <sys/time.h>
 #include <visp/vpConfig.h>
+#include <visp/vpThetaUVector.h>
+#include <visp/vpRxyzVector.h>
+#include <visp/vpTranslationVector.h>
 
-
+using namespace std;
+using namespace llvs;
 /*!-------------------------------------
   Default constructor
   -------------------------------------*/
 
 HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 {
-   m_ProcessName ="ComputeControlLawProcess";
+  m_ProcessName ="ComputeControlLawProcess";
 
   m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
   m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
 
   m_ProcessInitialized = false;
 
+  m_ControlLawComputed = false;
+
   m_cdMoSet = false;
 
   m_Lambda = 0.6;
 
+  m_nmbt = 0x0;
+
+  m_CTS=0x0;
+
+  vpHomogeneousMatrix cameraMhead;
+
+	
+  ifstream file;
+
+  string name="./data/ViSP/hrp2CamParam/cMh.3";
+  file.open (name.c_str());
+
+  for(int i=0; i<4; ++i)	
+    {
+      for(int j=0; j<4; ++j)	
+	{
+	  file>>cameraMhead[i][j];
+	}
+    }
+
+  file.close();	
+	
+
+  vpHomogeneousMatrix headMcamera;
+  headMcamera = cameraMhead.inverse();
+    
+  m_hVc.buildFrom(headMcamera);
 }
 
 
@@ -59,7 +95,7 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
 
   -------------------------------------*/
 int HRP2ComputeControlLawProcess::SetParameter(std::string aParameter, 
-					      std::string aValue)
+					       std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
   // A parameter can be or cannot be associated with a value, 
@@ -82,7 +118,7 @@ int HRP2ComputeControlLawProcess::SetParameter(std::string aParameter,
       return -1;
     }
   
-   return 0;
+  return 0;
 }
 
 /*! Set the nmbt tracker pointer */
@@ -97,6 +133,13 @@ void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
   m_cdMo=acdMo;
   m_cdMoSet = true;
 }
+
+/*! Set the ConnectionToSot  pointer */
+void HRP2ComputeControlLawProcess::SetConnectionToSot (ConnectionToSot * aCTS)
+{
+  m_CTS = aCTS;
+}
+
 
 /*! Get the cdMc */
 void  HRP2ComputeControlLawProcess::GetcdMc ( vpHomogeneousMatrix &acdMc)
@@ -117,7 +160,7 @@ void  HRP2ComputeControlLawProcess::GetError ( double &aError)
 }
 
 
- /*! Start the process */
+/*! Start the process */
 int HRP2ComputeControlLawProcess::pStartProcess()
 {
   if (m_cdMoSet == true)
@@ -163,33 +206,111 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 #endif
   
   m_ProcessInitialized =true;
-  
+
+  ofstream aof;
+  aof.open("dumpcommand.dat",ofstream::out);
+  aof.close();
   return 0;
 }
 
 /*!------------------------------------- 
   Realize the process 
-   -------------------------------------*/
+  -------------------------------------*/
 int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
-  m_nmbt->GetOutputcMo(m_cMo);
+  m_ControlLawComputed = false;
+  int r;
+  ODEBUG("m_nmbt:" << (int)m_nmbt);
+  if (m_nmbt->m_trackerTrackSuccess)
+    {
+      m_nmbt->GetOutputcMo(m_cMo);
   
-  cout<<"m.cMo : "<<m_cMo<<endl;
+      ODEBUG("m.cMo : "<<m_cMo);
  
-  cout<<"m.cdMo : "<<m_cdMo<<endl;
+      ODEBUG("m.cdMo : "<<m_cdMo);
 
-  m_cdMc = m_cdMo*m_cMo.inverse();
+      m_cdMc = m_cdMo*m_cMo.inverse();
 
 
-  cout<<"m.cdMc : "<<m_cdMc<<endl;
+      ODEBUG("m.cdMc : "<<m_cdMc);
 
-  m_FT->buildFrom(m_cdMc) ;
-  m_FThU->buildFrom(m_cdMc) ;
-  m_ComputeV = m_Task.computeControlLaw() ;
+      m_FT->buildFrom(m_cdMc) ;
+      m_FThU->buildFrom(m_cdMc) ;
 
-  m_Error = m_Task.error.sumSquare();
+      vpColVector cVelocity(6);
+      
+      ODEBUG("Before Task.computecontroLaw!");
+      cVelocity = m_Task.computeControlLaw() ;
 
-  return 0;
+      ODEBUG("Before SumSquare!");
+      m_Error = m_Task.error.sumSquare();
+      
+      vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
+
+      ODEBUG("Before Vrxyz!");
+      vpRxyzVector Vrxyz(VthU);
+
+      cVelocity[3]=Vrxyz[0];
+      cVelocity[4]=Vrxyz[1];
+      cVelocity[5]=Vrxyz[2];
+
+      
+
+      r=0;
+
+      m_ControlLawComputed = true;
+
+      double headprpy[6];
+      double waistprpy[6];
+      
+      // Read nom information from SoT.
+      if (m_CTS!=0)
+	{
+	  m_CTS->ReadHeadRPYSignals(headprpy);
+	  m_CTS->ReadWaistRPYSignals(waistprpy);
+	}
+      
+      // Transfer velocity from cemra to waist frame
+      vpRxyzVector headRxyz (headprpy[3],headprpy[4],headprpy[5]);
+      vpRxyzVector waistRxyz(waistprpy[3],waistprpy[4],waistprpy[5]);
+
+      vpThetaUVector headThU (headRxyz);
+      vpThetaUVector waistThU (waistRxyz);
+      
+
+      vpTranslationVector  headT (headprpy[0],headprpy[1],headprpy[2]);
+      vpTranslationVector  waistT(waistprpy[0],waistprpy[1],waistprpy[2]);
+
+      
+      vpHomogeneousMatrix  fMh (headT ,headThU);
+      vpHomogeneousMatrix  fMw (waistT, waistThU);
+
+      vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
+
+      vpTwistMatrix wVh (wMh);
+
+      m_ComputeV = wVh*m_hVc *cVelocity;
+
+      
+    }
+  else
+    {
+      m_ComputeV = 0;
+      
+      r=-1;
+    }
+
+  ODEBUG("Staying alive !");
+  ofstream aof;
+  aof.open("dumpcommand.dat",ofstream::app);
+  struct timeval atv;
+  gettimeofday(&atv,0);
+  aof.precision(15);
+  aof << atv.tv_sec + 0.000001 * atv.tv_usec << " " << m_ComputeV.t() << endl;
+  aof.close();
+
+  ODEBUG("Going out of ComputeControlLawProcess !");
+  return r;
  
 }
 

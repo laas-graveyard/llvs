@@ -25,8 +25,13 @@
 #include <visp/vpServo.h>
 #include <visp/vpFeatureTranslation.h>
 #include <visp/vpFeatureThetaU.h>
+#include <visp/vpTwistMatrix.h>
 
 #include "ModelTracker/nmbtTrackingProcess.h"
+
+#include <ConnectionToSot.h>
+
+
 
 /*!  \brief This class implements tracks an object model on a VISP image
   remark:all function that uses X11 are developped in the client
@@ -51,6 +56,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
   /*! Set the cdMo */
   void SetcdMo ( vpHomogeneousMatrix acdMo);
+
+/*! Set the ConnectionToSot  pointer */
+  void SetConnectionToSot (llvs::ConnectionToSot * aCTS);
   
   /*! Get the cdMc */
   void GetcdMc ( vpHomogeneousMatrix &acdMc);
@@ -80,6 +88,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    HRP2nmbtTrackingProcess* m_nmbt;
    
+   llvs::ConnectionToSot * m_CTS;
+
    /* Object pose in camera frame*/
    vpHomogeneousMatrix m_cMo;
 
@@ -94,6 +104,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    vpFeatureTranslation* m_FT;
  
    vpFeatureThetaU *  m_FThU;
+
+   vpTwistMatrix m_hVc;
    
    double m_Lambda;
 
@@ -104,9 +116,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    bool m_ProcessInitialized;
    bool m_cdMoSet;
 
+   bool m_ControlLawComputed;
 
-
-  };
+};
 
 
 
