@@ -272,7 +272,7 @@ void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
       if (m_TmpImage[i] != 0)
 	{
 	  delete m_TmpImage[i];
-	  m_TmpImage[0] = 0;
+	  m_TmpImage[i] = 0;
 	}
     }
 
