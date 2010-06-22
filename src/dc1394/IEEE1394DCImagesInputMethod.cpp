@@ -991,15 +991,15 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
   for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
     m_VideoFrames[k] = 0;
 
-  m_BoardImagesWidth.resize(m_DC1394Cameras.size());
-  m_BoardImagesHeight.resize(m_DC1394Cameras.size());
+  m_BoardImagesWidth.resize(4);
+  m_BoardImagesHeight.resize(4);
 
   bool reallocate=false;
   if ((m_ImagesWidth.size()==0) &&
       (m_ImagesHeight.size()==0))
     {
-      m_ImagesWidth.resize(m_DC1394Cameras.size());
-      m_ImagesHeight.resize(m_DC1394Cameras.size());
+      m_ImagesWidth.resize(4);
+      m_ImagesHeight.resize(4);
     }
   else 
     {
@@ -1014,7 +1014,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
       
   InitializeCameras();
 
-  m_TmpImage.resize(m_DC1394Cameras.size());
+  m_TmpImage.resize(4);
   for(unsigned k=0;k<m_ImagesWidth.size();k++)
     {
       ODEBUG(" Size of m_TmpImage["<<k<<"]:" << 
@@ -1032,7 +1032,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
       m_Format[li] = "RGB";
     }
 
-  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
+  m_GrabbingPeriod.resize(4);
  
 
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
