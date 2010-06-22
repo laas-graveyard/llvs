@@ -86,14 +86,15 @@ void SIGINT_handler(int asig)
 			ODEBUG("Just after cleaning up the frame grabbing ");
 			GlobalVisionServer->RecordImagesOnDisk(0);
 			ODEBUG("Just after recording images on disk " );
+
+        delete globalvisionserver;
+        globalvisionserver = null;
 		}
 		else
 		{
 			ODEBUG("Go out from "<< pthread_self());
 			pthread_exit(0);
 		}
-		delete GlobalVisionServer;
-		GlobalVisionServer = NULL;
 	}
 }
 
@@ -323,7 +324,6 @@ int main(int argc, char * argv[])
 	{
 	  GlobalVisionServer= aVS;
 	  signal(SIGINT,SIGINT_handler);
-	  signal(SIGSEGV,SIGINT_handler);
 	  MainThread = pthread_self();
 
 	  LowLevelVisionSystem_var aVSref = aVS->_this();
