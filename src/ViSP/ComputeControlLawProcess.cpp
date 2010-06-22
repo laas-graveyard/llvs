@@ -35,48 +35,8 @@ using namespace llvs;
 
 HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 {
-  m_ProcessName ="ComputeControlLawProcess";
-
-  m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
-  m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
-
-  m_ProcessInitialized = false;
-
-  m_ControlLawComputed = false;
-
-  m_cdMoSet = false;
-
-  m_Lambda = 0.6;
-
-  m_nmbt = 0x0;
-
-  m_CTS=0x0;
-
-  m_ComputeV.resize(6);
-
-  m_ModelHeightLimit =0.9;
-
-  vpHomogeneousMatrix cameraMhead;
-
-	
-  ifstream file;
-
-  string name="./data/ViSP/hrp2CamParam/cMh.3";
-  file.open (name.c_str());
-
-  for(int i=0; i<4; ++i)	
-    {
-      for(int j=0; j<4; ++j)	
-	{
-	  file>>cameraMhead[i][j];
-	}
-    }
-
-  file.close();	
-	
-  m_headMcamera = cameraMhead.inverse();
-    
-  m_hVc.buildFrom(m_headMcamera);
+ 
+  init();
 }
 
 
@@ -91,6 +51,73 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
  
 }
 
+
+int HRP2ComputeControlLawProcess::init()
+{
+  m_ProcessName ="ComputeControlLawProcess";
+  m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
+  m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
+  m_Lambda = 0.6;
+  m_nmbt = 0x0;
+  m_CTS=0x0;
+  m_ProcessInitialized = false;
+  m_ControlLawComputed = false;
+  m_cdMoSet = false;
+
+  // load 
+  vpHomogeneousMatrix cameraMhead;
+   loadcMh(cameraMhead);
+ // ifstream file;
+  //string name="./data/ViSP/hrp2CamParam/cMh.3";
+  //file.open (name.c_str());
+  //
+  //for(int i=0; i<4; ++i)	
+  //  {
+  //    for(int j=0; j<4; ++j)	/
+  //	{
+  //	  file>>cameraMhead[i][j];
+  //}
+  //  }
+  //file.close();	
+  vpHomogeneousMatrix headMcamera;
+ 
+  headMcamera = cameraMhead.inverse();
+  m_hVc.buildFrom(headMcamera);
+ 
+  m_ModelHeightLimit =0.9;
+ 
+  return 0 ;
+}
+
+
+int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
+{
+ 
+
+  //TODO : this file name shouldn't be written here
+  ifstream file;
+  string name="./data/ViSP/hrp2CamParam/cMh.3";
+  file.open (name.c_str());
+  std::ifstream f("homogeneous.dat");
+  try
+    {
+      cMh.load(file);
+    }
+  catch(vpException a) // file doesn't exist
+    { 
+      cout << "---- Open Exception ---- " <<endl;
+      vpCTRACE << endl <<a;
+      cout << "------------------ " <<endl;
+      // fill a defaut matrix
+      cMh[0][0]=0.016937505;   cMh[0][1]=-0.9997821632;  cMh[0][3]= -0.01217327283; cMh[0][4]=-0.05195444004;
+      cMh[1][0]=-0.1698427574; cMh[1][1]=0.009121740254; cMh[1][3]= -0.9854286431;  cMh[1][4]= 0.1036017168 ;
+      cMh[2][0]=0.9853256992 ; cMh[2][1]=0.0187590039;   cMh[2][3]= -0.1696511946;  cMh[2][4]=-0.04729590458 ;
+      return -1;
+    } 
+    
+  file.close();
+  return 0;
+}
 
 
 /*!-------------------------------------
@@ -225,6 +252,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   -------------------------------------*/
 int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
+  m_ComputeV.resize(6);
   m_ControlLawComputed = false;
   int r;
   ODEBUG("m_nmbt:" << (int)m_nmbt);
@@ -245,18 +273,17 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_FThU->buildFrom(m_cdMc) ;
 
       vpColVector cVelocity(6);
-      
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
 
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
-      
-      vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
 
+
+      // express the rotation as rx ry rz
+      vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
       vpRxyzVector Vrxyz(VthU);
-
       cVelocity[3]=Vrxyz[0];
       cVelocity[4]=Vrxyz[1];
       cVelocity[5]=Vrxyz[2];
@@ -277,7 +304,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
 	}
       
-      // Transfer velocity from cemra to waist frame
+      // Transfer velocity from camera to waist frame
       vpRxyzVector headRxyz (headprpy[3],headprpy[4],headprpy[5]);
       vpRxyzVector waistRxyz(waistprpy[3],waistprpy[4],waistprpy[5]);
 
@@ -288,18 +315,15 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       vpTranslationVector  headT (headprpy[0],headprpy[1],headprpy[2]);
       vpTranslationVector  waistT(waistprpy[0],waistprpy[1],waistprpy[2]);
 
+      
       vpHomogeneousMatrix  fMh (headT ,headThU);
       vpHomogeneousMatrix  fMw (waistT, waistThU);
-
-      ODEBUG( "headT" << fMh);
-
-      ODEBUG(   "waistT"<<endl << fMw);
 
       vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
 
       vpTwistMatrix wVh (wMh);
 
-      
+
       vpHomogeneousMatrix fMo = fMh*m_headMcamera*m_cMo;
 
       ODEBUG3(  "fMo[2][3]: \n"<<fMo[2][3]);
@@ -314,13 +338,15 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	  m_ComputeV[0]=0.001;
 	  r=-1;
 	}
+
+      
     }
   else
     {
- 
+        
+      cerr << "Error in Compute control law >> the tracking failed !!!" << endl; 
       m_ComputeV = 0;
       m_ComputeV[0] = 0.001;
-      
       r=-1;
     }
 
@@ -342,7 +368,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   ODEBUG("Staying alive !");
 
-#if 1
+
+  
   ofstream aof;
   aof.open("dumpcommand.dat",ofstream::app);
   struct timeval atv;
@@ -352,15 +379,90 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   aof<< velref[0]<< "  "<< velref[1]<< "  "<<velref[2]<< endl;
   aof.close();
 
-#endif
-
   ODEBUG("Going out of ComputeControlLawProcess !");
   return r;
  
 }
 
+/*
+  Clean up the process
+*/
 int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
 {
     
   return 0;
 } 
+
+/*
+ Change the velocity frame
+ 
+ \brief :
+ The velocituy results from the visual servoing control
+ law. It is basically expressed in the camera frame
+ Using the current measurements, we can compute the
+ transformation between the camera frame in the waist
+ 
+ wMc and the correponding Twist wVc
+ 
+ and use it to change the velocity frame.
+
+ 
+ return : 0  if ok
+          -1 if the input velocity is not of size 6
+          
+  
+ warning : attention nothing garanties the size 
+           of   poseHeadInFoot and poseWaistInFoot
+
+ */
+ int  HRP2ComputeControlLawProcess::changeFrame(const vpColVector& velCam,
+		 vpColVector& velWaist,
+		 double *poseHeadInFoot,
+		 double *poseWaistInFoot)
+{
+
+  // test on the input velocity
+  if(velCam.getRows()!=6)
+    {
+      return -1;
+    }
+ 
+  velWaist.resize(6); 
+  
+  //Express rotation in theta U 
+  vpRxyzVector headInFootRxyz      (poseHeadInFoot[3],
+				    poseHeadInFoot[4],
+				    poseHeadInFoot[5]);
+  vpRxyzVector waistInFootRxyz     (poseWaistInFoot[3],
+				    poseWaistInFoot[4],
+				    poseWaistInFoot[5]);
+  vpThetaUVector headInFootThU     (headInFootRxyz);
+  vpThetaUVector waistInFootThU    (waistInFootRxyz);
+
+  //Create translation vectors      
+  vpTranslationVector  headInFootT (poseHeadInFoot[0],
+				    poseHeadInFoot[1],
+				    poseHeadInFoot[2]);
+  vpTranslationVector  waistInFootT(poseWaistInFoot[0],
+				    poseWaistInFoot[1],
+				    poseWaistInFoot[2]);
+
+  //Create the corresponding homogeneousMatrix    
+  vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
+  vpHomogeneousMatrix  fMw (waistInFootT, waistInFootThU);
+ 
+  //Compute the position of the head in the waist
+  vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
+ 
+  //Compute the associate twist matrix
+  vpTwistMatrix wVh (wMh);
+ 
+  //The position of the current camera in the head should
+  // have been previously loaded
+  //Change the velocity frame
+  velWaist = wVh*m_hVc*velCam;
+  
+  return 0;
+  
+  
+}

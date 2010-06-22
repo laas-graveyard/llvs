@@ -16,6 +16,8 @@ SET (SOURCE
 testConvertImage.cpp
 testvispUndistort.cpp
 testComputeControlLaw.cpp
+testUnitaryComputeControlLaw.cpp
+testVelocityFrame.cpp
 )
 
 # rule for binary build

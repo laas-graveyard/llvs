@@ -40,7 +40,6 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 {
 
  public:
-
   
   /*! Constructor */
   HRP2ComputeControlLawProcess();
@@ -63,6 +62,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Get the cdMc */
   void GetcdMc ( vpHomogeneousMatrix &acdMc);
 
+  inline void GethVc(vpTwistMatrix& hVc){hVc=m_hVc;} 
+  
   /*! Get the ComputeV */
   void GetComputeVelocity ( vpColVector &aCV);
 
@@ -82,47 +83,85 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Cleanup the process */
    int pCleanUpTheProcess();
 
- /*! Start the process */
+  /*! Start the process */
    int pStartProcess();
 
+ public:
+   /*!Convert velocity from camera to waist*/
+   int changeFrame(const vpColVector&velCam,
+                   vpColVector&velWaist,
+                   double *poseHeadInFoot,
+		   double *poseWaistInFoot);
 
+ protected:
+   /*!Init the parameters*/
+   int init();
+   
+   /*!load the cameraHeadTransform*/
+   int loadcMh(vpHomogeneousMatrix &M);
+  
+   /* Nmbt tracking process*/
    HRP2nmbtTrackingProcess* m_nmbt;
    
+   /* Connection to Stack of Task*/
    llvs::ConnectionToSot * m_CTS;
 
-   /* Object pose in camera frame*/
+   /* Object pose in the current camera frame*/
    vpHomogeneousMatrix m_cMo;
 
-   /* Object pose desired in camera frame*/
+   /* Object pose in the desired camera frame*/
    vpHomogeneousMatrix m_cdMo;
 
-   /* Camera pose desired in camera frame*/
+   /* Current camera pose in the desired camera frame*/
    vpHomogeneousMatrix m_cdMc;
+   
+   /*Change velocity frame from camera to head*/
+   vpTwistMatrix m_hVc;
 
+<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
    vpHomogeneousMatrix m_headMcamera;
 
+=======
+   /* Visual Servoing Task */
+>>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
    vpServo m_Task;  
-
+    
+   /* Visual Servoing Translation Feature*/
    vpFeatureTranslation* m_FT;
  
+   /* Visual Servoing Utheta Feature*/
    vpFeatureThetaU *  m_FThU;
 
-   vpTwistMatrix m_hVc;
-   
+   /* Visual Servoing gain */
    double m_Lambda;
-
+  
+   /* Visual Servoing error */
    double m_Error;
 
+<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
    double m_ModelHeightLimit;
 
+=======
+   /* Control velocity expressed in the Waist Frame */ 
+>>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
    vpColVector m_ComputeV;
 
+   /*Flag to check if the process is initialized*/
    bool m_ProcessInitialized;
+   
+   /*Flag to check if cMo is set*/
    bool m_cdMoSet;
 
+   /*Flag to check if the control law is computed*/
    bool m_ControlLawComputed;
 
+<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
  };
+=======
+
+
+};
+>>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
 
 
 

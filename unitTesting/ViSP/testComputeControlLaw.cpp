@@ -90,7 +90,9 @@ int main(void)
   cout <<" ---------------------------" << endl;
 
 
-  // creation d une image en niveau de gris
+
+
+  // create an image in greyscale
   vpImage<unsigned char> I ;
  
   //creer un grabber pour communiquer avec la webcam
@@ -104,7 +106,7 @@ int main(void)
   // on recupere directement ces information du grabber
   vpTRACE(" grab the images");
   try{
-    
+ 
     // on etablit la connexion
      g.open(I);
     // acquire une image
