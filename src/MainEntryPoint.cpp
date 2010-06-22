@@ -87,8 +87,8 @@ void SIGINT_handler(int asig)
 			GlobalVisionServer->RecordImagesOnDisk(0);
 			ODEBUG("Just after recording images on disk " );
 
-        delete globalvisionserver;
-        globalvisionserver = null;
+			delete GlobalVisionServer;
+			GlobalVisionServer = NULL;
 		}
 		else
 		{
