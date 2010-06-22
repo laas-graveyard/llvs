@@ -99,6 +99,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /* Camera pose desired in camera frame*/
    vpHomogeneousMatrix m_cdMc;
 
+   vpHomogeneousMatrix m_headMcamera;
+
    vpServo m_Task;  
 
    vpFeatureTranslation* m_FT;
@@ -111,6 +113,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    double m_Error;
 
+   double m_ModelHeightLimit;
+
    vpColVector m_ComputeV;
 
    bool m_ProcessInitialized;
@@ -118,7 +122,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    bool m_ControlLawComputed;
 
-};
+ };
 
 
 

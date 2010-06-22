@@ -9,6 +9,8 @@
 */
 #include <Debug.h>
 
+#include <math.h>
+
 #include "ViSP/ComputeControlLawProcess.h"
 #include <iostream>
 #include <sstream>
@@ -21,6 +23,9 @@
 #include <visp/vpThetaUVector.h>
 #include <visp/vpRxyzVector.h>
 #include <visp/vpTranslationVector.h>
+
+#define SATURATE(x, s) (fabs(x) > s ? (x < 0 ? -s : s) : x)
+
 
 using namespace std;
 using namespace llvs;
@@ -47,6 +52,10 @@ HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 
   m_CTS=0x0;
 
+  m_ComputeV.resize(6);
+
+  m_ModelHeightLimit =0.9;
+
   vpHomogeneousMatrix cameraMhead;
 
 	
@@ -65,11 +74,9 @@ HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 
   file.close();	
 	
-
-  vpHomogeneousMatrix headMcamera;
-  headMcamera = cameraMhead.inverse();
+  m_headMcamera = cameraMhead.inverse();
     
-  m_hVc.buildFrom(headMcamera);
+  m_hVc.buildFrom(m_headMcamera);
 }
 
 
@@ -281,33 +288,69 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       vpTranslationVector  headT (headprpy[0],headprpy[1],headprpy[2]);
       vpTranslationVector  waistT(waistprpy[0],waistprpy[1],waistprpy[2]);
 
-      
       vpHomogeneousMatrix  fMh (headT ,headThU);
       vpHomogeneousMatrix  fMw (waistT, waistThU);
+
+      ODEBUG( "headT" << fMh);
+
+      ODEBUG(   "waistT"<<endl << fMw);
 
       vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
 
       vpTwistMatrix wVh (wMh);
 
-      m_ComputeV = wVh*m_hVc *cVelocity;
-
       
+      vpHomogeneousMatrix fMo = fMh*m_headMcamera*m_cMo;
+
+      ODEBUG3(  "fMo[2][3]: \n"<<fMo[2][3]);
+
+      if(fMo[2][3]<m_ModelHeightLimit)
+	{
+	  m_ComputeV = wVh*m_hVc *cVelocity;
+	}
+      else
+	{
+	  m_ComputeV = 0;
+	  m_ComputeV[0]=0.001;
+	  r=-1;
+	}
     }
   else
     {
+ 
       m_ComputeV = 0;
+      m_ComputeV[0] = 0.001;
       
       r=-1;
     }
 
+  if(r==-1)
+    m_Computing = 0;
+
+  double velref[3];
+  
+  velref[0]=SATURATE( m_ComputeV[0], 0.2);
+  velref[1]= SATURATE( m_ComputeV[1], 0.1);
+  velref[2]= SATURATE(m_ComputeV[5], 0.18);
+
+
+  m_CTS-> WriteVelocityReference(velref);
+
+
+
   ODEBUG("Staying alive !");
+
+#if 1
   ofstream aof;
   aof.open("dumpcommand.dat",ofstream::app);
   struct timeval atv;
   gettimeofday(&atv,0);
   aof.precision(15);
   aof << atv.tv_sec + 0.000001 * atv.tv_usec << " " << m_ComputeV.t() << endl;
+  aof<< velref[0]<< "  "<< velref[1]<< "  "<<velref[2]<< endl;
   aof.close();
+
+#endif
 
   ODEBUG("Going out of ComputeControlLawProcess !");
   return r;

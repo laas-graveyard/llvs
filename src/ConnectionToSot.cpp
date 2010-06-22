@@ -32,10 +32,10 @@ void * ConnectionToSotThread(void *arg)
 #else
 	  double headprpy[6];
 	  double waistprpy[6];
-
+#if 0
 	  aCST->ReadHeadRPYSignals(headprpy);
 	  aCST->ReadWaistRPYSignals(waistprpy);
-
+#endif 
 	  usleep(23000);
 #if 0
 	  ODEBUG3("headprpy ( " 
@@ -108,7 +108,7 @@ void ConnectionToSot::StartThreadOnConnectionSot()
   pthread_t aThread;
   m_EndOfThreadLoop = false;
   /* Thread creation */
-  {
+  if (0) {
     pthread_attr_t Thread_Attr;
     
     pthread_attr_init(&Thread_Attr);
@@ -179,20 +179,20 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
 	    
 
       hppCorbaServer::DoubleSeq_var DSvelref;
+      ODEBUG("Enter WriteVelocityReference 1 ");
       DSvelref = new hppCorbaServer::DoubleSeq;
-      DSvelref->length(6);
+      DSvelref->length(3);
+      ODEBUG("Enter WriteVelocityReference 2 ");
       for(unsigned int li=0;li<3;li++)
 	DSvelref[li]= velref[li];
-      DSvelref._retn();
-      
+      ODEBUG("Enter WriteVelocityReference 3 " << m_VelRefSignalRank);
       m_SOT_Server_Command->writeOutputVectorSignal(m_VelRefSignalRank,
-						    DSvelref);
-      
+						    DSvelref);      
 
     }
   catch(...)
     {
-      cout << "Unable to connect to Sot. "<< endl;
+      cout << "Unable to write signal of rank . " << m_VelRefSignalRank<< endl;
       
     }
   ODEBUG("Go out of WriteVelocityReference ");
@@ -245,7 +245,7 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
     }
   catch(...)
     {
-      cout << "Unable to connect to Sot. "<< endl;
+      cout << "Unable to read waist signals. "<< endl;
       
     }
   ODEBUG("Go out of  ReadWaistSignals ");
@@ -253,7 +253,7 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 
 void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
 {
-  ODEBUG("Enter ReadWaistSignals ");
+  ODEBUG("Enter ReadHeadRPYSignals ");
 
   try
     {
@@ -265,21 +265,31 @@ void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
 						  DShead);
       
       if (DShead->length()==6)
-	for(unsigned int li=0;li<6;li++)
-	  headposerpy[li]= DShead[li];
+	{
+	  for(unsigned int li=0;li<6;li++)
+	    {
+	      headposerpy[li]= DShead[li];
+	    }
+	}
+      ODEBUG("Head Pose-RPY: " << 
+	      DShead[0] << " " <<
+	      DShead[1] << " " <<
+	      DShead[2] << " " <<
+	      DShead[3] << " " <<
+	      DShead[4] << " " <<
+	      DShead[5] );
     }
   catch(...)
     {
-      cout << "Unable to connect to Sot. "<< endl;
-      
+      cout << "Unable to read head rpy signals. "<< endl;
     }
-  ODEBUG("Go out of  ReadHeadSignals ");
+  ODEBUG("Go out of ReadHeadRPYSignals ");
 }
 
 
 void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
 {
-  ODEBUG("Enter ReadWaistSignals ");
+  ODEBUG("Enter ReadWaistRPYSignals ");
 
   try
     {
@@ -296,10 +306,10 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
     }
   catch(...)
     {
-      cout << "Unable to connect to Sot. "<< endl;
+      cout << "Unable to read waist rpy signals. "<< endl;
       
     }
-  ODEBUG("Go out of  ReadHeadSignals ");
+  ODEBUG("Go out of  ReadWaistRPYSignals ");
 }
 
 
@@ -344,8 +354,6 @@ bool ConnectionToSot::Init()
 	else if (li==3)
 	  m_WaistPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
 
-	m_VelRefSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[0].c_str());
-
       }
       catch(...)
 	{
@@ -353,8 +361,25 @@ bool ConnectionToSot::Init()
 	  exit(-1);
 	}
 
-      ODEBUG("Creation of signals: " << CstSignaux[li]);
+      ODEBUG("Creation of signal: " << CstSignaux[li]);
     }
+
+  try
+    {
+      m_VelRefSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[0].c_str());
+      ODEBUG("Creation of signal: " << OutSignal[0] << " " << m_VelRefSignalRank);
+      {
+	double velref[3] = {0.0,0.0,0.0};
+	WriteVelocityReference(velref);
+      }
+
+    }
+  catch(...)
+    {
+      cerr << "Tried to create signal " << OutSignal[0] << endl;
+      exit(-1);
+    }
+  
   ODEBUG("After creating the signals: " );
   
 #if 0
@@ -365,8 +390,8 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 11
-  string SotCommand[11]= {
+#define NBCOMMANDS 13
+  string SotCommand[13]= {
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",
     "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
@@ -377,6 +402,8 @@ bool ConnectionToSot::Init()
     "new MatrixHomoToPoseRollPitchYaw dwhtp",
     "plug dyn.Waist dwhtp.in",
     "plug dwhtp.out coshell.Waist",
+    "OpenHRP.periodicCall addSignal dhhtp.out",
+    "OpenHRP.periodicCall addSignal dwhtp.out",
     "plug coshell.VelRef pg.velocitydes"
   };
 #endif
@@ -403,7 +430,7 @@ bool ConnectionToSot::Init()
 	  return false;
 	}
     }
-
+  
   ODEBUG("Launched all the commands");
   
   return true;

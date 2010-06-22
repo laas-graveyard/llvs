@@ -602,6 +602,29 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
+
+ try
+   {  	
+     m_tracker.track(*m_inputVispImage) ;
+   }
+ catch(std::string a) // tracking got lost
+   {
+    
+     std::cerr << std::endl;
+     std::cerr << "-----    -----   Failed with exception \"" 
+	       << a << "\"     -----    -----" << std::endl;
+     std::cerr << std::endl;
+     
+     // set the tracking flag
+     m_trackerTrackSuccess= false;
+     
+     // set the cMo matrix to identity   
+     m_outputcMo.setIdentity();
+     
+     // return a negative value
+     return -1;
+   }
+
   ODEBUG("End of initialize the process.");
   return 0;
 }
