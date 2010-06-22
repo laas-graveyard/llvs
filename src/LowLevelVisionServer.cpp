@@ -553,8 +553,11 @@ LowLevelVisionServer::FreeBinaryImages()
 {
   for(unsigned int i=0;i<m_BinaryImages.size();i++)
     {
-      if (m_BinaryImages[i]!=0)
-	delete m_BinaryImages[i];
+			if (m_BinaryImages[i]!=0)
+			{
+				delete[] m_BinaryImages[i];
+				m_BinaryImages[i] = 0;
+			}
     }
   
 #if (LLVS_HAVE_VVV>0)
