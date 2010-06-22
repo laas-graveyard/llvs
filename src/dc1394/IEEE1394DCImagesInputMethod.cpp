@@ -801,7 +801,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int S
   
 	if(SemanticCameraNumber >= m_DC1394Cameras.size())
 	{
-		ODEBUG("Camera " << camera << " is not defined");
+		ODEBUG("Camera " << SemanticCameraNumber << " is not defined");
 		return ERROR_UNDEFINED_CAMERA;
 	}
   
