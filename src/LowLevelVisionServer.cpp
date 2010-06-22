@@ -140,6 +140,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ImageCounter = 0;
   m_TheSLAMImage = 0;
 
+  m_ImagesInputMethod = 0;
+
 
   /* ******* Create the Stereo Vision object *********** */
   /* It is an interface to call the VVV scripts . */
