@@ -90,8 +90,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /*!Convert velocity from camera to waist*/
    int changeFrame(const vpColVector&velCam,
                    vpColVector&velWaist,
-                   double *poseHeadInFoot,
-		   double *poseWaistInFoot);
+                   const double *poseHeadInFoot,
+		   const double *poseWaistInFoot);
 
  protected:
    /*!Init the parameters*/
@@ -118,12 +118,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /*Change velocity frame from camera to head*/
    vpTwistMatrix m_hVc;
 
-<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
    vpHomogeneousMatrix m_headMcamera;
 
-=======
    /* Visual Servoing Task */
->>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
    vpServo m_Task;  
     
    /* Visual Servoing Translation Feature*/
@@ -138,12 +135,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /* Visual Servoing error */
    double m_Error;
 
-<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
    double m_ModelHeightLimit;
 
-=======
    /* Control velocity expressed in the Waist Frame */ 
->>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
    vpColVector m_ComputeV;
 
    /*Flag to check if the process is initialized*/
@@ -155,14 +149,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /*Flag to check if the control law is computed*/
    bool m_ControlLawComputed;
 
-<<<<<<< HEAD:include/llvs/ViSP/ComputeControlLawProcess.h
- };
-=======
-
-
 };
->>>>>>> CLAIRE >> test function in LLVS when Loading hMc File \ convertion Frame function:include/llvs/ViSP/ComputeControlLawProcess.h
-
 
 
 #endif 
