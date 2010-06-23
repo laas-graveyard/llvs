@@ -38,8 +38,16 @@
 */
 class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 {
-
  public:
+
+  typedef enum
+    {  
+	FREE,
+	HEIGHT_LIMITED,
+	PLAN_MOTION,
+	ON_GROUND
+
+    } typeMotion;
   
   /*! Constructor */
   HRP2ComputeControlLawProcess();
@@ -56,9 +64,13 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Set the cdMo */
   void SetcdMo ( vpHomogeneousMatrix acdMo);
 
-/*! Set the ConnectionToSot  pointer */
+  /*! Set the ConnectionToSot  pointer */
   void SetConnectionToSot (llvs::ConnectionToSot * aCTS);
-  
+
+  /*! Set the type of test on motion*/
+  void SetMotionTest(typeMotion aMotion,
+		     const vector<double> &limit = vector<double>(0));
+   
   /*! Get the cdMc */
   void GetcdMc ( vpHomogeneousMatrix &acdMc);
 
@@ -73,25 +85,37 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
  protected:
 
-
   /*! Initialize the process. */
   int pInitializeTheProcess();
-
+  
   /*! Realize the process */
   int pRealizeTheProcess();
   
   /*! Cleanup the process */
-   int pCleanUpTheProcess();
-
+  int pCleanUpTheProcess();
+  
   /*! Start the process */
-   int pStartProcess();
+  int pStartProcess();
 
+  /*! Test if object is still on the ground  */
+  bool objectOnGround(const vpHomogeneousMatrix &afMh);
+
+  /*! Test on object plan  Motion */
+  bool planMotion(const vpHomogeneousMatrix &afMh);
+
+  /*! Test the object high position*/
+  bool heightInLimit(const vpHomogeneousMatrix &afMh);
+
+  /*! Test the object Motion */
+  bool TestObjectMotion(const vpHomogeneousMatrix &afMh);
+ 
  public:
    /*!Convert velocity from camera to waist*/
-   int changeFrame(const vpColVector&velCam,
-                   vpColVector&velWaist,
-                   const double *poseHeadInFoot,
-		   const double *poseWaistInFoot);
+   int changeVelocityFrame(const vpColVector&velCam,
+			   vpColVector&velWaist,
+			   const double *poseHeadInFoot,
+			   const double *poseWaistInFoot,
+			   vpHomogeneousMatrix & afMh);
 
  protected:
    /*!Init the parameters*/
@@ -135,10 +159,23 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /* Visual Servoing error */
    double m_Error;
 
+   /* Heiht limitation for the model*/
    double m_ModelHeightLimit;
 
+   /* Rotation on X axis limitation for the model */
+   double m_RxLimit;
+
+   /* Rotation on X axis limitation for the model */
+   double m_RyLimit;
+
+   /* Save of the initial object pose ion foot frame*/
+   vpColVector m_fMoInit;
+   
    /* Control velocity expressed in the Waist Frame */ 
    vpColVector m_ComputeV;
+
+   /* Define type of motion tested*/
+   typeMotion m_MotionTested;
 
    /*Flag to check if the process is initialized*/
    bool m_ProcessInitialized;
@@ -148,7 +185,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    /*Flag to check if the control law is computed*/
    bool m_ControlLawComputed;
-
+   
 };
 
 

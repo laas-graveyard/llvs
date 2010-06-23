@@ -64,6 +64,7 @@ using namespace std;
 #include <visp/vpFeatureTranslation.h>
 #include <visp/vpFeatureThetaU.h>
 #include <visp/vpColVector.h>
+#include <visp/vpHomogeneousMatrix.h>
 
 // Exception
 #include <visp/vpException.h>
@@ -108,11 +109,14 @@ int main(void)
   poseHeadInFoot[2]=1.3;
   poseWaistInFoot[2]=0.6;
 
+  vpHomogeneousMatrix tmp;
+
   int res;
-  res = CCLProcess->changeFrame(vcam,
-                   vwaist,
-                   poseHeadInFoot,
-		   poseWaistInFoot);
+  res = CCLProcess->changeVelocityFrame(vcam,
+					vwaist,
+					poseHeadInFoot,
+					poseWaistInFoot,
+					tmp);
    
    cout << "vcam" << endl;
   cout << vcam.t() << endl; 
