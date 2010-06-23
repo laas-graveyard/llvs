@@ -362,6 +362,9 @@ HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber
 	pthread_mutex_lock(&m_mutex_device);
 	try
 	{
+		//FIXME: If camera is unplugged during the execution,
+		//DC1394_CAPTURE_POLICY_WAIT might not be the good solution
+		//since it will never return.
 		dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
 																					DC1394_CAPTURE_POLICY_WAIT, 
 																					&m_VideoFrames[cameraNumber]);
@@ -369,6 +372,7 @@ HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber
 	catch(std::exception &except)
 	{
 		ODEBUG("Exception during snap: " << except.what() );
+		pthread_mutex_unlock(&m_mutex_device);
 		return ERROR_SNAP_EXCEPTION;
 	}
 	pthread_mutex_unlock(&m_mutex_device);
