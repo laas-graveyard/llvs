@@ -90,7 +90,7 @@ namespace llvs
       /*! \brief Board on which the camera is connected. */
       unsigned int m_BoardNumber;
       
-      /*! \brief Camerea number in the user semantic. 
+      /*! \brief Camera number in the user semantic. 
 	default : the order of the detection is the semantic order. */
       unsigned int m_CameraNumberInUserSemantic;
       

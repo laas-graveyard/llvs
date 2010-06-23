@@ -49,6 +49,9 @@
 #include <vector>
 using namespace std;
 
+//FIXME: Export this definition in a proper place
+#define LLVS_CAMERA_NUMBER_MAX 	255
+
 namespace llvs
 {
   
@@ -87,8 +90,29 @@ namespace llvs
       static const int YUV422_TO_RGB = 0;
       static const int BAYER_TO_RGB = 1;
 
+			/* Limit parameters */
+			static const unsigned int UNDEFINED_CAMERA_NUMBER = LLVS_CAMERA_NUMBER_MAX + 1;
+
 			/* Global error flags */
-			static const int ERROR_UNDEFINED_CAMERA = -1;
+			/* Operation went through without any errors */
+			static const unsigned int RESULT_OK                       = 0;
+			/* The given physical camera number is out of bounds */
+			static const unsigned int ERROR_UNDEFINED_PHYSICAL_CAMERA = 1;
+			/* The given semantic is known but there is no physical camera 
+			 * currently associated to this semantic. You need to connect 
+			 * more cameras or change the semantic of your current physical 
+			 * cameras. */
+			static const unsigned int ERROR_NO_CAMERA_ASSIGNED        = 2;
+			/* Camera is well linked to a semantic, but physical camera
+			 * is no more existing.*/
+			static const unsigned int ERROR_CAMERA_MISSING            = 3;
+			/* The given semantic is out of bounds (unknwon semantic) */
+			static const unsigned int ERROR_UNDEFINED_SEMANTIC_CAMERA = 4;
+			/* An error occured during the dc1394 snapshot request */
+			static const unsigned int ERROR_SNAP_EXCEPTION            = 5;
+			/* Cannot find out the camera format (RGB, RAW, etc.) */
+			static const unsigned int ERROR_UNKNOWN_FORMAT            = 6;
+
 
       /*! Constructor */
       HRP2IEEE1394DCImagesInputMethod(void) throw(const char*);
@@ -100,12 +124,12 @@ namespace llvs
        * \param unsigned char * Image:  A pointer where to store the image.
        * \param int camera: The camera index.
        */
-      virtual int GetSingleImage(unsigned char **Image, unsigned int camera,struct timeval &timestamp);
+      virtual int GetSingleImage(unsigned char **Image, unsigned int SemanticCamera,struct timeval &timestamp);
 
 
-      int GetImageSinglePGM(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
-      int GetImageSingleRaw(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
-      int GetImageSingleRGB(unsigned char **Image, unsigned int camera, struct timeval &timestamp);
+      unsigned int GetImageSinglePGM(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
+      unsigned int GetImageSingleRaw(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
+      unsigned int GetImageSingleRGB(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
 
       /* Real implementation for single PGM */
       int GetImagePGM(unsigned char *Image, int SemanticCamera);
@@ -211,6 +235,20 @@ namespace llvs
 
 
     protected:
+
+			/*! Put in <CameraNumber> the physical camera number 
+			 * linked to <SemanticCamera>. Default return value is RETURN_OK.
+			 * If an error occured and the physical camera number could not
+			 * be deducted, then <CameraNumber> is set to UNDEFINED_CAMERA_NUMBER
+			 * and return value can be one of the following (please refer to
+			 * interface header for detailed information about these errors):
+			 *
+			 *   - ERROR_UNDEFINED_SEMANTIC_CAMERA
+			 *   - ERROR_NO_CAMERA_ASSIGNED
+			 *   - ERROR_CAMERA_MISSING
+			 */ 
+			unsigned int GetCameraNumber(const unsigned int& SemanticCamera,
+					                         unsigned int& CameraNumber) const;
 
       /*! Clean memory when stopping the board. */
       void CleanMemory();

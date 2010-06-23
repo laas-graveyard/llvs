@@ -340,533 +340,538 @@ void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
-{  
+int
+HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, 
+		                                            unsigned int SemanticCamera, 
+																								struct timeval &timestamp)
+{
+	ODEBUG("------------------------- Get Single Image ---------------------");
 
-  ODEBUG("--------------------"<<m_Format[camera].c_str()<<"---------------");
+	unsigned int cameraNumber;
+	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	if(result != RESULT_OK)
+	{
+		ODEBUG("Error #" << result << " occured.");
+		return result;
+	}
+	ODEBUG("Request on camera semantic #" << SemanticCamera);
+	ODEBUG("                  physical #" << cameraNumber);
+  ODEBUG("--------------------"<<m_Format[cameraNumber].c_str()<<"---------------");
 
-
-
-  if (m_Computing==0)
+  if (m_Computing == 0)
     return -1;
 
-  ODEBUG("m_Format["<<camera << "]=" << m_Format[camera]);
-  int r=-1;
-  if (m_Format[camera]=="PGM")
-    r = GetImageSinglePGM(Image,camera,timestamp);
-  else if (m_Format[camera]=="RAW")
-    r = GetImageSingleRaw(Image,camera,timestamp);
-  else if (m_Format[camera]=="RGB")
-    r = GetImageSingleRGB(Image,camera,timestamp);
-  return r;
+  ODEBUG("m_Format["<<cameraNumber << "]=" << m_Format[cameraNumber]);
+  if (m_Format[cameraNumber]=="PGM")
+    return GetImageSinglePGM(Image,cameraNumber,timestamp);
+  else if (m_Format[cameraNumber]=="RAW")
+    return GetImageSingleRaw(Image,cameraNumber,timestamp);
+  else if (m_Format[cameraNumber]=="RGB")
+    return GetImageSingleRGB(Image,cameraNumber,timestamp);
+	else
+		return ERROR_UNKNOWN_FORMAT;
 }
 
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
+		                                               const unsigned int& cameraNumber,
+																									 struct timeval &timestamp)
 {
-
-	if(camera >= m_DC1394Cameras.size())
-	{
-		ODEBUG("Camera " << camera << " is not defined");
-		return HRP2IEEE1394DCImagesInputMethod::ERROR_UNDEFINED_CAMERA;
-	}
-  unsigned char * ImagesDst;
-
-  struct timeval tval;
-  double time1, time2;
+	unsigned char * ImagesDst;
+	unsigned int dc1394result;
+	struct timeval tval;
+	double time1, time2;
 #define LOCAL_TYPE unsigned char *
 
-  ODEBUG("GetImageSinglePGM cam: " << camera);
-  LOCAL_TYPE ImagesTab[1];
-  
-  if (m_TmpImage[0]==0)
-    {
-      ImagesTab[0] = (LOCAL_TYPE)*Image;
+	ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
+	LOCAL_TYPE ImagesTab[1];
 
-      try
+	if (m_TmpImage[0]==0)
 	{
-	  pthread_mutex_lock(&m_mutex_device);
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], 
-				     DC1394_CAPTURE_POLICY_WAIT, 
-				     &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	    dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
+		ImagesTab[0] = (LOCAL_TYPE)*Image;
 
-    }
-  else
-    {
-
-      ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[0];
-
-      ImagesDst = *Image;
-
-      ODEBUG("Get Images " );
-      try
-	{
-	  pthread_mutex_lock(&m_mutex_device);
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], 
-				     DC1394_CAPTURE_POLICY_WAIT, 
-				     &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	    dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
-
-      time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
-
-      //m_Board->get_images(ImagesTab);
-      ODEBUG("Get Images finito...");
-
-      unsigned char *ImgSrc,*ImgDst;
-      ImgDst =(unsigned char *) ImagesDst;
-      
-
-      int intervalw, intervalh, indexd, indexs;
-      unsigned int BWidth, BHeight;
-      BWidth = m_BoardImagesWidth[camera];
-      BHeight = m_BoardImagesHeight[camera];
-      intervalw = BWidth / m_ImagesWidth[camera];
-      intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
-      ImgSrc = m_TmpImage[camera];
-      
-      for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
-	    {
-	      for(unsigned int i=0;i<m_ImagesWidth[camera];i++)
+		try
 		{
-		  indexd = j * m_ImagesWidth[camera] + i ;
-		  
-		  indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
-		  unsigned long localsum = 0;
-		  for(int l=0;l<intervalh;l++)
-		    {
-		      int lindexs = l * BWidth * 3  + indexs;
-		      for(int m=0;m<intervalw;m++)
+			pthread_mutex_lock(&m_mutex_device);
+			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
+                                            DC1394_CAPTURE_POLICY_WAIT, 
+                                            &m_VideoFrames[cameraNumber]);
+			pthread_mutex_unlock(&m_mutex_device);
+			if( dc1394result != DC1394_SUCCESS )
 			{
-			  localsum += ImgSrc[lindexs+m*3];
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
 			}
-		    }
-		  
-		  ImgDst[indexd] = (unsigned char ) (localsum/(intervalh*intervalw));
+			gettimeofday(&timestamp,0);
 		}
-	    }
-    }
+		catch(std::exception &except)
+		{
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
+		}
 
-  
-  if (m_VideoFrames[camera])
-    {
-      pthread_mutex_lock(&m_mutex_device);
-      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
-      pthread_mutex_unlock(&m_mutex_device);
-    }
+	}
+	else
+	{
+		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[0];
+
+		ImagesDst = *Image;
+
+		ODEBUG("Get Images " );
+		try
+		{
+			pthread_mutex_lock(&m_mutex_device);
+			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
+                                            DC1394_CAPTURE_POLICY_WAIT, 
+                                            &m_VideoFrames[cameraNumber]);
+			pthread_mutex_unlock(&m_mutex_device);
+			if( dc1394result != DC1394_SUCCESS )
+			{
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
+			}
+			gettimeofday(&timestamp,0);
+		}
+		catch(std::exception &except)
+		{
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
+		}
+
+		time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
+
+		//m_Board->get_images(ImagesTab);
+		ODEBUG("Get Images finito...");
+
+		unsigned char *ImgSrc,*ImgDst;
+		ImgDst =(unsigned char *) ImagesDst;
 
 
-  //gettimeofday(&tval,0);
-  //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
-  //ODEBUG( time2 - time1);
+		int intervalw, intervalh, indexd, indexs;
+		unsigned int BWidth, BHeight;
+		BWidth = m_BoardImagesWidth[cameraNumber];
+		BHeight = m_BoardImagesHeight[cameraNumber];
+		intervalw = BWidth / m_ImagesWidth[cameraNumber];
+		intervalh =  BHeight/ m_ImagesHeight[cameraNumber];
 
-  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
-  return 0;
+
+		ImgSrc = m_TmpImage[cameraNumber];
+
+		for(unsigned int j=0;j<m_ImagesHeight[cameraNumber];j++)
+		{
+			for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i++)
+			{
+				indexd = j * m_ImagesWidth[cameraNumber] + i ;
+
+				indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
+				unsigned long localsum = 0;
+				for(int l=0;l<intervalh;l++)
+				{
+					int lindexs = l * BWidth * 3  + indexs;
+					for(int m=0;m<intervalw;m++)
+					{
+						localsum += ImgSrc[lindexs+m*3];
+					}
+				}
+
+				ImgDst[indexd] = (unsigned char ) (localsum/(intervalh*intervalw));
+			}
+		}
+	}
+
+
+	if (m_VideoFrames[cameraNumber])
+	{
+		pthread_mutex_lock(&m_mutex_device);
+		dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+		pthread_mutex_unlock(&m_mutex_device);
+	}
+
+	m_LastGrabbingTime[cameraNumber]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
+	return RESULT_OK;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, 
+                                                   const unsigned int& cameraNumber,
+                                                   struct timeval &timestamp)
 {
-  unsigned char * ImagesDst;
-
-	if(camera >= m_DC1394Cameras.size())
-	{
-		ODEBUG("Camera " << camera << " is not defined");
-		return ERROR_UNDEFINED_CAMERA;
-	}
-  struct timeval tval;
-  double time1, time2;
+	unsigned char * ImagesDst;
+	struct timeval tval;
+	double time1, time2;
 #define LOCAL_TYPE unsigned char *
 
-  ODEBUG("GetImageSingleRGB cam: " << camera);
-  LOCAL_TYPE ImagesTab[1];
+	ODEBUG("GetImageSingleRGB cam: " << cameraNumber);
+	LOCAL_TYPE ImagesTab[1];
 
-  pthread_mutex_lock(&m_mutex_device);  
-  ODEBUG("After mutex acquisition " << (int)(m_TmpImage[camera]!=0) );
-  if (m_TmpImage[camera]==0)
-    {
-      ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
-      ImagesTab[0] = (LOCAL_TYPE)*Image;
-      
-      try
+	pthread_mutex_lock(&m_mutex_device);  
+	ODEBUG("After mutex acquisition " << (int)(m_TmpImage[cameraNumber]!=0) );
+	if (m_TmpImage[cameraNumber]==0)
 	{
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	    dc1394_log_error("Failed to capture from camera %d", camera);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
-      ODEBUG("Before converting " << m_BoardImagesWidth[camera] << " " 
-	      <<      m_BoardImagesHeight[camera] << "  m_ModelRaw2RGB: " 
-	      << m_ModeRaw2RGB );
-      switch(m_ModeRaw2RGB)
-	{
-	case YUV422_TO_RGB:
-	  dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
-				 *Image,
-				 m_BoardImagesWidth[camera],
-				 m_BoardImagesHeight[camera],
-				 DC1394_BYTE_ORDER_UYVY,
-				 DC1394_COLOR_CODING_YUV422,1);
-	  break;
-	case BAYER_TO_RGB:
-	  dc1394_bayer_decoding_8bit(m_VideoFrames[camera]->image,
-				     *Image,
-				     m_BoardImagesWidth[camera],
-				     m_BoardImagesHeight[camera],
-				     DC1394_COLOR_FILTER_GRBG,
-				     DC1394_BAYER_METHOD_SIMPLE);
-	  break;
-	}
+		ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
+		ImagesTab[0] = (LOCAL_TYPE)*Image;
 
-      ODEBUG("After converting");
-#if 0
-      static unsigned int linc=0;
-      ofstream aof;
-      char Buffer[128];
-      sprintf(Buffer,"dump_Dst_%d_%06d.ppm",camera,linc++);
-      aof.open(Buffer,ofstream::out);
-      aof << "P6\n"<< m_ImagesWidth[camera] << " " << m_ImagesHeight[camera] << endl;
-      aof << "255\n";
-      
-      unsigned char *pt =  *Image;
-      for(unsigned int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
-	aof << (unsigned char)*pt++;
-      aof.close();
-#endif
-
-    }
-  else
-    {
-      ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage " );
-      ODEBUG("camera is "<< camera);
-      ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[camera];
-
-      ImagesDst = *Image;
-
-      ODEBUG("ImagesDst");
-      try
-	{
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	     dc1394_log_error("Failed to capture from camera %d", camera);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
-      ODEBUG("dequeue finished");
-      switch(m_ModeRaw2RGB)
-	{
-	case YUV422_TO_RGB:
-	  ODEBUG("YUV422_TO_RGB");
-	  dc1394_convert_to_RGB8(m_VideoFrames[camera]->image,
-				 ImagesTab[0],
-				 m_BoardImagesWidth[camera],
-				 m_BoardImagesHeight[camera],
-				 DC1394_BYTE_ORDER_UYVY,
-				 DC1394_COLOR_CODING_YUV422,1);
-	  break;
-	case BAYER_TO_RGB:
-	  ODEBUG("BAYER_TO_RGB");
-	  dc1394_bayer_decoding_8bit(m_VideoFrames[camera]->image,
-				     ImagesTab[0],
-				     m_BoardImagesWidth[camera],
-				     m_BoardImagesHeight[camera],
-				     DC1394_COLOR_FILTER_GRBG,
-				     DC1394_BAYER_METHOD_SIMPLE);
-	  break;
-	}
-
-
-      time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
-
-      ODEBUG("Get Images finito...");
-
-      unsigned char *ImgSrc,*ImgDst;
-      ImgDst =(unsigned char *) ImagesDst;
-      
-
-      int intervalw, intervalh, indexd, indexs;
-      unsigned int BWidth, BHeight;
-      BWidth = m_BoardImagesWidth[camera];
-      BHeight = m_BoardImagesHeight[camera];
-      intervalw = BWidth / m_ImagesWidth[camera];
-      intervalh =  BHeight/ m_ImagesHeight[camera];
-      ImgSrc =  ImagesTab[0];
- 
-      ODEBUG("intervalw: " << intervalw);
-      ODEBUG("intervalh: " << intervalh);
-      for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
-	{
-	  for(unsigned int i=0;i<m_ImagesWidth[camera];i++)
-	    {
-	      indexd = j * m_ImagesWidth[camera]*3 + i*3 ;
-	      
-	      indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
-	      unsigned long localsum[3] = {0,0,0};
-	      for(int l=0;l<intervalh;l++)
+		try
 		{
-		  int lindexs = l * BWidth * 3  + indexs;
-		  for(int m=0;m<intervalw;m++)
-		    {
-		      for(int n=0;n<3;n++)
-			localsum[n] += ImgSrc[lindexs+m*3+n];
-		    }
+			if (dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber])
+					!=DC1394_SUCCESS)
+			{
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
+			}
+			gettimeofday(&timestamp,0);
 		}
-	      for(int n=0;n<3;n++)
+		catch(std::exception &except)
 		{
-		  ODEBUG("indedx : " << indexd << " n: " << n );
-		  ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
 		}
-	    }
+		ODEBUG("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
+				<<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: " 
+				<< m_ModeRaw2RGB );
+		switch(m_ModeRaw2RGB)
+		{
+			case YUV422_TO_RGB:
+				dc1394_convert_to_RGB8(m_VideoFrames[cameraNumber]->image,
+						*Image,
+						m_BoardImagesWidth[cameraNumber],
+						m_BoardImagesHeight[cameraNumber],
+						DC1394_BYTE_ORDER_UYVY,
+						DC1394_COLOR_CODING_YUV422,1);
+				break;
+			case BAYER_TO_RGB:
+				dc1394_bayer_decoding_8bit(m_VideoFrames[cameraNumber]->image,
+						*Image,
+						m_BoardImagesWidth[cameraNumber],
+						m_BoardImagesHeight[cameraNumber],
+						DC1394_COLOR_FILTER_GRBG,
+						DC1394_BAYER_METHOD_SIMPLE);
+				break;
+		}
+
+		ODEBUG("After converting");
+	}
+	else
+	{
+		ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage " );
+		ODEBUG("camera is "<< cameraNumber);
+		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[cameraNumber];
+
+		ImagesDst = *Image;
+
+		ODEBUG("ImagesDst");
+		try
+		{
+			if (dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber])
+					!=DC1394_SUCCESS)
+			{
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
+			}
+			gettimeofday(&timestamp,0);
+		}
+		catch(std::exception &except)
+		{
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
+		}
+		ODEBUG("dequeue finished");
+		switch(m_ModeRaw2RGB)
+		{
+			case YUV422_TO_RGB:
+				ODEBUG("YUV422_TO_RGB");
+				dc1394_convert_to_RGB8(m_VideoFrames[cameraNumber]->image,
+						ImagesTab[0],
+						m_BoardImagesWidth[cameraNumber],
+						m_BoardImagesHeight[cameraNumber],
+						DC1394_BYTE_ORDER_UYVY,
+						DC1394_COLOR_CODING_YUV422,1);
+				break;
+			case BAYER_TO_RGB:
+				ODEBUG("BAYER_TO_RGB");
+				dc1394_bayer_decoding_8bit(m_VideoFrames[cameraNumber]->image,
+						ImagesTab[0],
+						m_BoardImagesWidth[cameraNumber],
+						m_BoardImagesHeight[cameraNumber],
+						DC1394_COLOR_FILTER_GRBG,
+						DC1394_BAYER_METHOD_SIMPLE);
+				break;
+		}
+
+
+		time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
+
+		ODEBUG("Get Images finito...");
+
+		unsigned char *ImgSrc,*ImgDst;
+		ImgDst =(unsigned char *) ImagesDst;
+
+
+		int intervalw, intervalh, indexd, indexs;
+		unsigned int BWidth, BHeight;
+		BWidth = m_BoardImagesWidth[cameraNumber];
+		BHeight = m_BoardImagesHeight[cameraNumber];
+		intervalw = BWidth / m_ImagesWidth[cameraNumber];
+		intervalh =  BHeight/ m_ImagesHeight[cameraNumber];
+		ImgSrc =  ImagesTab[0];
+
+		ODEBUG("intervalw: " << intervalw);
+		ODEBUG("intervalh: " << intervalh);
+		for(unsigned int j=0;j<m_ImagesHeight[cameraNumber];j++)
+		{
+			for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i++)
+			{
+				indexd = j * m_ImagesWidth[cameraNumber]*3 + i*3 ;
+
+				indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
+				unsigned long localsum[3] = {0,0,0};
+				for(int l=0;l<intervalh;l++)
+				{
+					int lindexs = l * BWidth * 3  + indexs;
+					for(int m=0;m<intervalw;m++)
+					{
+						for(int n=0;n<3;n++)
+							localsum[n] += ImgSrc[lindexs+m*3+n];
+					}
+				}
+				for(int n=0;n<3;n++)
+				{
+					ODEBUG("indedx : " << indexd << " n: " << n );
+					ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
+				}
+			}
+		}
+
 	}
 
-#if 0
-      static unsigned int linc=0;
-      ofstream aof;
-      char Buffer[128];
-      sprintf(Buffer,"dump_Dst_%d_%06d.ppm",camera,linc++);
 
-      aof.open(Buffer,ofstream::out);
-      aof << "P6\n"<< BWidth << " " << BHeight << endl;
-      aof << "255\n";
-      
-      for(unsigned int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
-	aof << (unsigned char) ImgDst[j];
-      aof.close();
-#endif
-
-    }
-
-  
-  if (m_VideoFrames[camera])
-    {
-      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
-    }
-  pthread_mutex_unlock(&m_mutex_device);  
-  //gettimeofday(&tval,0);
-  //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
-  //ODEBUG( time2 - time1);
-  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
-  ODEBUG("GetImageSingleRGB cam: " << camera << " Finished" );
-  return 0;
+	if (m_VideoFrames[cameraNumber])
+	{
+		dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+	}
+	pthread_mutex_unlock(&m_mutex_device);  
+	m_LastGrabbingTime[cameraNumber]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
+	ODEBUG("GetImageSingleRGB cam: " << cameraNumber << " Finished" );
+	return RESULT_OK;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image, unsigned int camera, struct timeval &timestamp)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
+		                                               const unsigned int& cameraNumber,
+                                                   struct timeval &timestamp)
 {
-  unsigned char * ImagesDst;
-	if(camera >= m_DC1394Cameras.size())
-	{
-		ODEBUG("Camera " << camera << " is not defined");
-		return ERROR_UNDEFINED_CAMERA;
-	}
-    
+	unsigned char * ImagesDst;
+	unsigned int dc1394result;
 
 #define LOCAL_TYPE unsigned char *
 
-  ODEBUG("GetImageSinglePGM cam: " << camera);
-  LOCAL_TYPE ImagesTab[1];
-  
-  
-  if (m_TmpImage[camera]==0)
-    {
-        ImagesTab[0] = (LOCAL_TYPE)*Image;
+	ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
+	LOCAL_TYPE ImagesTab[1];
 
-      try
+
+	if (m_TmpImage[cameraNumber]==0)
 	{
-	  pthread_mutex_lock(&m_mutex_device);
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	     dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
-    }
-  else
-    {
+		ImagesTab[0] = (LOCAL_TYPE)*Image;
 
-      ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[camera];
-
-      ImagesDst = *Image;
-
-      ODEBUG("Get Images " );
-      try
-	{
-	  pthread_mutex_lock(&m_mutex_device);
-	  if (dc1394_capture_dequeue(m_DC1394Cameras[camera], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[camera])
-	      !=DC1394_SUCCESS)
-	     dc1394_log_error("Failed to capture from camera %d", camera);
-	  pthread_mutex_unlock(&m_mutex_device);
-	  gettimeofday(&timestamp,0);
-	}
-      catch(std::exception &except)
-	{
-	  ODEBUG("Exception during snap: " << except.what() );
-	}
-
-      //m_Board->get_images(ImagesTab);
-      ODEBUG("Get Images finito...");
-
-      unsigned char *ImgSrc,*ImgDst;
-      ImgDst =(unsigned char *) ImagesDst;
-      
-
-      int intervalw, intervalh, indexd, indexs;
-      unsigned int BWidth, BHeight;
-      BWidth = m_BoardImagesWidth[camera];
-      BHeight = m_BoardImagesHeight[camera];
-
-      intervalw = BWidth / m_ImagesWidth[camera];
-      intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
-      ImgSrc = m_TmpImage[camera];
-      
-      for(unsigned int j=0;j<m_ImagesHeight[camera];j+=2)
-	    {
-	      for(unsigned int i=0;i<m_ImagesWidth[camera];i+=2)
+		try
 		{
-
-		  indexd = j * m_ImagesWidth[camera] + i ;
-		  
-		  indexs = j * intervalh * BWidth  + i * intervalw ;
-		  unsigned long localsum[4] = {0,0,0,0};
-		  for(int l=0;l<2*intervalh;l+=2)
-		    {
-		      int lindexs = l * BWidth   + indexs;
-		      for(int m=0;m<2*intervalw;m+=2)
+			pthread_mutex_lock(&m_mutex_device);
+			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber]);
+			pthread_mutex_unlock(&m_mutex_device);
+			if( dc1394result != DC1394_SUCCESS )
 			{
-			   localsum[0] += ImgSrc[lindexs+m];
-			   localsum[1] += ImgSrc[lindexs+m+1];
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
 			}
-		      lindexs += BWidth;
-		      for(int m=0;m<2*intervalw;m+=2)
-			{
-			   localsum[2] += ImgSrc[lindexs+m];
-			   localsum[3] += ImgSrc[lindexs+m+1];
-			}
-		    }
-
-		  ImgDst[indexd+0] = (unsigned char ) ((float)localsum[0]/(float)(intervalh*intervalw));
-		  ImgDst[indexd+1] = (unsigned char ) ((float)localsum[1]/(float)(intervalh*intervalw));
-		  ImgDst[indexd+m_ImagesWidth[camera]+0] = (unsigned char ) ((float)localsum[2]/(float)(intervalh*intervalw));
-		  ImgDst[indexd+m_ImagesWidth[camera]+1] = (unsigned char ) ((float)localsum[3]/(float)(intervalh*intervalw));
-
+			gettimeofday(&timestamp,0);
 		}
-	    }
-    }
-  if (m_VideoFrames[camera])
-    {
-      pthread_mutex_lock(&m_mutex_device);
-      dc1394_capture_enqueue (m_DC1394Cameras[camera], m_VideoFrames[camera]);
-      pthread_mutex_unlock(&m_mutex_device);
-    }
+		catch(std::exception &except)
+		{
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
+		}
+	}
+	else
+	{
 
-  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;    
-  return 0;
+		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[cameraNumber];
+
+		ImagesDst = *Image;
+
+		ODEBUG("Get Images " );
+		try
+		{
+			pthread_mutex_lock(&m_mutex_device);
+			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber]);
+			pthread_mutex_unlock(&m_mutex_device);
+			if( dc1394result != DC1394_SUCCESS )
+			{
+				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+				return ERROR_SNAP_EXCEPTION;
+			}
+			gettimeofday(&timestamp,0);
+		}
+		catch(std::exception &except)
+		{
+			ODEBUG("Exception during snap: " << except.what() );
+			return ERROR_SNAP_EXCEPTION;
+		}
+
+		//m_Board->get_images(ImagesTab);
+		ODEBUG("Get Images finito...");
+
+		unsigned char *ImgSrc,*ImgDst;
+		ImgDst =(unsigned char *) ImagesDst;
+
+
+		int intervalw, intervalh, indexd, indexs;
+		unsigned int BWidth, BHeight;
+		BWidth = m_BoardImagesWidth[cameraNumber];
+		BHeight = m_BoardImagesHeight[cameraNumber];
+
+		intervalw = BWidth / m_ImagesWidth[cameraNumber];
+		intervalh =  BHeight/ m_ImagesHeight[cameraNumber];
+
+
+		ImgSrc = m_TmpImage[cameraNumber];
+
+		for(unsigned int j=0;j<m_ImagesHeight[cameraNumber];j+=2)
+		{
+			for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i+=2)
+			{
+
+				indexd = j * m_ImagesWidth[cameraNumber] + i ;
+
+				indexs = j * intervalh * BWidth  + i * intervalw ;
+				unsigned long localsum[4] = {0,0,0,0};
+				for(int l=0;l<2*intervalh;l+=2)
+				{
+					int lindexs = l * BWidth   + indexs;
+					for(int m=0;m<2*intervalw;m+=2)
+					{
+						localsum[0] += ImgSrc[lindexs+m];
+						localsum[1] += ImgSrc[lindexs+m+1];
+					}
+					lindexs += BWidth;
+					for(int m=0;m<2*intervalw;m+=2)
+					{
+						localsum[2] += ImgSrc[lindexs+m];
+						localsum[3] += ImgSrc[lindexs+m+1];
+					}
+				}
+
+				ImgDst[indexd+0] = (unsigned char ) ((float)localsum[0]/(float)(intervalh*intervalw));
+				ImgDst[indexd+1] = (unsigned char ) ((float)localsum[1]/(float)(intervalh*intervalw));
+				ImgDst[indexd+m_ImagesWidth[cameraNumber]+0] = (unsigned char ) ((float)localsum[2]/(float)(intervalh*intervalw));
+				ImgDst[indexd+m_ImagesWidth[cameraNumber]+1] = (unsigned char ) ((float)localsum[3]/(float)(intervalh*intervalw));
+
+			}
+		}
+	}
+	if (m_VideoFrames[cameraNumber])
+	{
+		pthread_mutex_lock(&m_mutex_device);
+		dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+		pthread_mutex_unlock(&m_mutex_device);
+	}
+
+	m_LastGrabbingTime[cameraNumber]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;    
+	return RESULT_OK;
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int SemanticCameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int SemanticCamera)
 {
-    
-  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
-  
-	if(SemanticCameraNumber >= m_DC1394Cameras.size())
+	unsigned int cameraNumber;
+	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	if(result != RESULT_OK)
 	{
-		ODEBUG("Camera " << SemanticCameraNumber << " is not defined");
-		return ERROR_UNDEFINED_CAMERA;
+		return result;
 	}
   
-	m_ImagesWidth[CameraNumber] = lw;
-  m_ImagesHeight[CameraNumber] = lh;
+	m_ImagesWidth[cameraNumber] = lw;
+  m_ImagesHeight[cameraNumber] = lh;
   ODEBUG("Debug images");
   ODEBUG("Allocation for m_TmpImage");
   
-  return 0;
+  return RESULT_OK;
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, unsigned int SemanticCameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, unsigned int SemanticCamera)
 {
-  if( m_MapFromSemanticToRealCamera[SemanticCameraNumber] != -1 )
-	{
-		unsigned int CameraNumber( m_MapFromSemanticToRealCamera[SemanticCameraNumber] );
-	  if (CameraNumber < m_DC1394Cameras.size())
-    {
-      lw = m_ImagesWidth[CameraNumber];
-      lh = m_ImagesHeight[CameraNumber];
-			return 0;
-    }
-	}
 	lw = -1;
 	lh = -1;
-	return ERROR_UNDEFINED_CAMERA;
+
+	unsigned int cameraNumber;
+	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	if(result != RESULT_OK)
+	{
+		return result;
+	}
+
+	lw = m_ImagesWidth[cameraNumber];
+	lh = m_ImagesHeight[cameraNumber];
+	return RESULT_OK;
 }
 
 
-string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int SemanticCameraNumber)
+string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int SemanticCamera)
 {
-  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
-  if ((CameraNumber>=0) && (CameraNumber<(int)m_Format.size()))
-      return m_Format[CameraNumber];
-  string ErrorMsg("Error Format : wrong camera id.");
-  return ErrorMsg;
+	unsigned int cameraNumber;
+	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	if(result != RESULT_OK)
+	{
+		string ErrorMsg("Argument error: Semantic id is not valid");
+		return ErrorMsg;
+	}
+	if (cameraNumber < m_Format.size())
+	{
+		return m_Format[cameraNumber];
+	}
+	else
+	{
+		string ErrorMsg("Error Format : wrong camera id.");
+		return ErrorMsg;
+	}
 }
 
-int HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, unsigned int SemanticCameraNumber)
+int HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, unsigned int SemanticCamera)
 {
-  int CameraNumber = m_MapFromSemanticToRealCamera[SemanticCameraNumber];
-  if ((CameraNumber<0) || (CameraNumber>=(int)m_Format.size()))
-    return -1;
+	unsigned int cameraNumber;
+	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	if(result != RESULT_OK)
+	{
+		return result;
+	}
+  if (cameraNumber >= m_Format.size())
+	{
+		return ERROR_CAMERA_MISSING;
+	}
 
   if (aFormat=="RGB")
     {
-      m_Format[CameraNumber] = "RGB";
+      m_Format[cameraNumber] = "RGB";
       ODEBUG("Format Image : RGB");
-      return 0;
     }
   else if (aFormat=="PGM")
     {
-      m_Format[CameraNumber] = "PGM";
+      m_Format[cameraNumber] = "PGM";
       ODEBUG("Format Image : PGM");
-      return 0;
     }
   else if (aFormat=="RAW")
     {
-      m_Format[CameraNumber] = "RAW";
+      m_Format[cameraNumber] = "RAW";
       ODEBUG("Format Image : RAW");
-      return 0;
     }
+	else
+	{
+		return ERROR_UNKNOWN_FORMAT;
+	}
   
-  return -1;
+  return RESULT_OK;
 }
 
 
@@ -1560,6 +1565,32 @@ int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(int lCameraIndexOnCompu
       m_CameraParameters[lCameraIndexOnComputer]->GetCameraNumberInUserSemantic();
 
   return -1;
+}
+
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::GetCameraNumber(const unsigned int& SemanticCamera,
+		                                             unsigned int& CameraNumber)
+const
+{
+	CameraNumber = UNDEFINED_CAMERA_NUMBER;
+
+	//FIXME: Remove hard-coded camera number
+	if(SemanticCamera > 4)
+	{
+		ODEBUG("Camera semantic #" << SemanticCamera << " is not defined");
+		return HRP2IEEE1394DCImagesInputMethod::ERROR_UNDEFINED_SEMANTIC_CAMERA;
+	}
+	if(m_MapFromSemanticToRealCamera[ SemanticCamera ] == -1)
+	{
+		return ERROR_NO_CAMERA_ASSIGNED;
+	}
+	CameraNumber = m_MapFromSemanticToRealCamera[ SemanticCamera ];
+	if(CameraNumber >= m_DC1394Cameras.size())
+	{
+		CameraNumber = UNDEFINED_CAMERA_NUMBER;
+		return ERROR_CAMERA_MISSING;
+	}
+	return RESULT_OK;
 }
 
 bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
