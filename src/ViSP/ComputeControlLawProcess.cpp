@@ -334,8 +334,10 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   velref[2]= SATURATE(m_ComputeV[5], 0.18);
 
 
-  m_CTS-> WriteVelocityReference(velref);
-
+  if (m_CTS!=0)
+    {
+      m_CTS-> WriteVelocityReference(velref);
+    }
 
 
   ODEBUG("Staying alive !");
