@@ -62,6 +62,40 @@ namespace llvs
   class HRP2ImagesInputMethod
     {
     public:
+			
+			/* ------------------
+			 * Global error flags    
+			 * ----------------- */
+
+			/* Operation went through without any errors */
+			static const unsigned int RESULT_OK                       = 0;
+
+			/* The given physical camera number is out of bounds */
+			static const unsigned int ERROR_UNDEFINED_PHYSICAL_CAMERA = 1;
+
+			/* The given semantic is known but there is no physical camera 
+			 * currently associated to this semantic. You need to connect 
+			 * more cameras or change the semantic of your current physical 
+			 * cameras. */
+			static const unsigned int ERROR_NO_CAMERA_ASSIGNED        = 2;
+
+			/* Camera is well linked to a semantic, but physical camera
+			 * is no more existing.*/
+			static const unsigned int ERROR_CAMERA_MISSING            = 3;
+
+			/* The given semantic is out of bounds (unknwon semantic) */
+			static const unsigned int ERROR_UNDEFINED_SEMANTIC_CAMERA = 4;
+
+			/* An error occured during the dc1394 snapshot request */
+			static const unsigned int ERROR_SNAP_EXCEPTION            = 5;
+
+			/* Cannot find out the camera format (RGB, RAW, etc.) */
+			static const unsigned int ERROR_UNKNOWN_FORMAT            = 6;
+
+			/* You may have called a method while ImagesInputMethod
+			 * object is not well formed (still initializing or 
+			 * already destroyed!) */
+			static const unsigned int ERROR_IMAGE_INPUT_NOT_READY    = 7;
   
       /*! Constructor */
       HRP2ImagesInputMethod();
@@ -71,37 +105,43 @@ namespace llvs
 
       /*! Takes a new image.
        * Input: 
-       * unsigned char * Image : A pointer where to store the image.
-       * int camera : Reference to the image itself.
+       * Image : A pointer where to store the image.
+       * SemanticCamera : Reference to the image itself (semantic number).
+			 * timestamp : The image time stamp
+			 * Output:
+			 * RESULT_OK if process went through without errors.
+			 * Else it returns a non-null number corresponding to
+			 * a specific error reason. Please see above list of
+			 * handled errors.
        */
-      virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp) = 0;
 
       /*! Set the size of the image willing to be grabbed. */
-      virtual int SetImageSize(int lw, int lh, int CameraNumber);
+      virtual unsigned int SetImageSize(int lw, int lh, const unsigned int& SemanticCamera);
 
       /*! Get the current image size for the appropriate camera */
-      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+      virtual unsigned int GetImageSize(int &lw, int &lh, const unsigned int& SemanticCamera) const;
 
       /*! \brief Get the current format of the image.
 	@param[in] CameraNumber: The camera for which the format is asked. 
       */
-      virtual string GetFormat(unsigned int CameraNumber);
+      virtual string GetFormat(const unsigned int& SemanticCamera) const;
 
       /*! Set the level of verbosity */
-      int SetLevelOfVerbosity(int VerbosityParameter);
+      int SetLevelOfVerbosity(const int& VerbosityParameter);
 
       /*! Get the level of verbosity */
-      int GetLevelOfVerbosity();
+      int GetLevelOfVerbosity() const;
 
       /*! \brief Get the number of camera */
-      virtual unsigned int GetNumberOfCameras();
+      virtual unsigned int GetNumberOfCameras() const;
 
       /*! \brief Get the next time for grabbing an image. */
-      virtual double NextTimeForGrabbing(int CameraNumber);
+      virtual double NextTimeForGrabbing(const unsigned int& CameraNumber);
 
       /*! \brief Returns true if the initialization phase was correct and there is one camera connected
 	(abstract method) */
-      virtual bool CameraPresent()=0;
+      virtual bool CameraPresent() const = 0;
 
       /*! \brief Initialize the grabbing system. 
           @return: True if initialization was successful.
@@ -129,7 +169,7 @@ namespace llvs
 	\param CameraNumberOnWS : The index of the camera detected on your computer.
 	\return int : The index of the image in the semantic described below.
        */
-      virtual int GetSemanticOfCamera(int CameraNumberOnWS)=0;
+      virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS)=0;
 
     protected:
 

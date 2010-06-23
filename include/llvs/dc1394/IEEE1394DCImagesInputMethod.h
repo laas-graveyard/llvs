@@ -93,27 +93,6 @@ namespace llvs
 			/* Limit parameters */
 			static const unsigned int UNDEFINED_CAMERA_NUMBER = LLVS_CAMERA_NUMBER_MAX + 1;
 
-			/* Global error flags */
-			/* Operation went through without any errors */
-			static const unsigned int RESULT_OK                       = 0;
-			/* The given physical camera number is out of bounds */
-			static const unsigned int ERROR_UNDEFINED_PHYSICAL_CAMERA = 1;
-			/* The given semantic is known but there is no physical camera 
-			 * currently associated to this semantic. You need to connect 
-			 * more cameras or change the semantic of your current physical 
-			 * cameras. */
-			static const unsigned int ERROR_NO_CAMERA_ASSIGNED        = 2;
-			/* Camera is well linked to a semantic, but physical camera
-			 * is no more existing.*/
-			static const unsigned int ERROR_CAMERA_MISSING            = 3;
-			/* The given semantic is out of bounds (unknwon semantic) */
-			static const unsigned int ERROR_UNDEFINED_SEMANTIC_CAMERA = 4;
-			/* An error occured during the dc1394 snapshot request */
-			static const unsigned int ERROR_SNAP_EXCEPTION            = 5;
-			/* Cannot find out the camera format (RGB, RAW, etc.) */
-			static const unsigned int ERROR_UNKNOWN_FORMAT            = 6;
-
-
       /*! Constructor */
       HRP2IEEE1394DCImagesInputMethod(void) throw(const char*);
   
@@ -124,7 +103,7 @@ namespace llvs
        * \param unsigned char * Image:  A pointer where to store the image.
        * \param int camera: The camera index.
        */
-      virtual int GetSingleImage(unsigned char **Image, unsigned int SemanticCamera,struct timeval &timestamp);
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera,struct timeval &timestamp);
 
 
       unsigned int GetImageSinglePGM(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
@@ -136,24 +115,24 @@ namespace llvs
   
       /*! \brief Get the current format of the image 
 	according to the camera index. 
-	@param[in] CameraNumber: camera to which the format applies.
+	@param[in] SemanticNumber: camera to which the format applies.
       */
-      virtual string GetFormat(unsigned int SemanticCameraNumber);
+      virtual string GetFormat(const unsigned int& SemanticCamera) const;
 
       /*! \brief Set the format of the current image: default PGM 
 	@param[in] aFormat: Name of the format to use.
-	@param[in] CameraNumber: Camera which should switch to format aFormat.
+	@param[in] SemanticNumber: Camera which should switch to format aFormat.
       */
-      int SetFormat(string aFormat, unsigned int SemanticCameraNumber);
+      unsigned int SetFormat(string aFormat, const unsigned int& SemanticCamera);
 
       /*! Get the current image size for the appropriate camera 
        */
-      virtual int GetImageSize(int &lw, int &lh, unsigned int SemanticCameraNumber);
+      virtual unsigned int GetImageSize(int &lw, int &lh, const unsigned int& SemanticCamera) const;
 
       /*! Set the size of the image willing to be grabbed. 
 	\param CameraNumber specifies the Semantic camera number.
        */
-      virtual int SetImageSize(int lw, int lh, unsigned int CameraNumber);
+      virtual unsigned int SetImageSize(int lw, int lh, const unsigned int& SemanticCamera);
 
 
       /*! Initialize the cameras */
@@ -167,7 +146,7 @@ namespace llvs
       void DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
 				      dc1394video_mode_t &res,
 				      dc1394framerate_t &fps,
-				      unsigned int InternalCameraNumber);
+				      const unsigned int& InternalCameraNumber);
 
       /*! Initialize the board */
       void InitializeBoard() throw(const char*);
@@ -194,10 +173,10 @@ namespace llvs
       /*! \brief Returns the number of cameras 
 	Here the number of IEEE 1394 cameras detected.
        */
-      virtual unsigned int GetNumberOfCameras();
+      virtual unsigned int GetNumberOfCameras() const;
       
       /*! \brief Returns true if one camera is detected. */
-      bool CameraPresent();
+      bool CameraPresent() const;
       
       /*! \brief Initialize the grabbing system. 
           @return: True if initialization was successful.
@@ -216,13 +195,13 @@ namespace llvs
   
       /*! Returns the next time when the camera CameraNumber
 	will  grab. */
-      virtual double NextTimeForGrabbing(int CameraNumber);
+      virtual double NextTimeForGrabbing(const unsigned int& CameraNumber);
   
       /*! From FrameRate to Time */
-      void FromFrameRateToTime(int CameraNumber);
+      void FromFrameRateToTime(const unsigned int& CameraNumber) const;
 
       /*! Provide semantic */
-      int GetSemanticOfCamera(int lCameraIndexOnComputer);
+      int GetSemanticOfCamera(const unsigned int& lCameraIndexOnComputer);
 
       /*! Initialize the process. */
       int pInitializeTheProcess(){return 0;};
@@ -247,8 +226,8 @@ namespace llvs
 			 *   - ERROR_NO_CAMERA_ASSIGNED
 			 *   - ERROR_CAMERA_MISSING
 			 */ 
-			unsigned int GetCameraNumber(const unsigned int& SemanticCamera,
-					                         unsigned int& CameraNumber) const;
+			unsigned int GetCameraId(const unsigned int& SemanticCamera,
+					                     unsigned int& CameraNumber) const;
 
       /*! Clean memory when stopping the board. */
       void CleanMemory();

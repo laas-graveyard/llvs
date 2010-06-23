@@ -910,8 +910,6 @@ LowLevelVisionServer::ApplyingProcess()
 	      ResFromGIFF=GetImageFromFrameGrabber();
 	      NbOfWait=0;
 	    }
-	  //sleep(1);
-	  //  cout << "Coucou 1" << endl;
 	}
       while((!m_SynchroTrigger) ||
 	    (ResFromGIFF==-1) ); 
@@ -1117,7 +1115,8 @@ LowLevelVisionServer::ApplyingProcess()
 CORBA::Long
 LowLevelVisionServer::GetImageFromFrameGrabber()
 {
-  int r=0,result=-1;
+  int result=-1;
+	unsigned int r;
 
   if (m_Verbosity>=2)
     cout << "Before ImagesInput Method : " << m_ImagesInputMethod->GetNumberOfCameras() << endl;
@@ -1159,9 +1158,19 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
 	      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
-	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],li,m_timestamps[SemanticCamera]);
-	      result=0;
-	      if ((m_CheckEntry) && (r==0) && (li!=2))
+	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],
+				                                        SemanticCamera,
+				                                        m_timestamps[SemanticCamera]);
+				if(r != HRP2ImagesInputMethod::RESULT_OK)
+				{
+					ODEBUG("Could not grab image on camera semantic #" << SemanticCamera << " : Error code #" << r);
+					result = -1;
+				}
+				else
+				{
+					result = 0;
+				}
+	      if ((m_CheckEntry) && (r == HRP2ImagesInputMethod::RESULT_OK) && (li!=2))
 		StoreImageOnStack(li);
 
 	    }
@@ -1171,6 +1180,12 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
       /* Test if a reallocation has taking place 
        * This may be the case while reading a file.
        */
+		//FIXME: Simulation version of InputMethod (e.g. File) are not using
+		// interface conventions regarding the result return value.
+		// r == 2 has then no meaning and may make a collision with an
+		// already defined error value. Lines regarding this test
+		// are commented to avoid unwanted behaviour. To be fixed.
+		/*
       if (r==2)
 	{
 	  int lw,lh,i;
@@ -1180,12 +1195,13 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	  if (m_Verbosity>=2)
 	    cout << "Reallocation detected : " << lw << " " << lh << endl;
 
-	  /* Fix the size of the image */
+	  // Fix the size of the image
 	  //	  for(int li=0;li<lNbOfCameras;li++)
 	  ///	  SetImagesGrabbedSize(lw,lh);
 
 	}
-    }
+		*/
+    } // (if inputMethod is allocated)
   if (m_Verbosity>=2)
     cout << "After ImagesInput Method : " << endl;
 

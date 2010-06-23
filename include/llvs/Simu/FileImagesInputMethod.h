@@ -60,22 +60,18 @@ namespace llvs {
        */
       virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
-      /*! Takes a new image.
-       * Input: 
-       * unsigned char * Image : A pointer where to store the image.
-       * int camera : Reference to the image itself.
-       */
-      virtual int GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp);
+      /*! Takes a new image.*/
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& camera, struct timeval &timestamp);
 
       /*! Get the current format of the image */
-      virtual string GetFormat(unsigned int CameraNumber);
+      virtual string GetFormat(const unsigned int& CameraNumber) const;
 
 
       /*! Set the base name for reading the file containing the images. */
       int SetBaseName(string afilename);
 
       /*! Get the base name for reading the images. */
-      string GetBaseName(void);
+      string GetBaseName(void) const;
 
       /*! Read EPBM image */
       int ReadEPBMFileImage(string & afilename, unsigned char ** ImageLeft, unsigned char **ImageRight, unsigned char ** ImageUp,
@@ -88,10 +84,10 @@ namespace llvs {
       int ReadEPBMImageHeader(ifstream & aifstream, int CameraNumber, int &depth);
   
       /*! Returns the number of cameras */
-      unsigned int GetNumberOfCameras();
+      virtual unsigned int GetNumberOfCameras() const;
 
       /*! \brief Returns true if one camera is present */
-      bool CameraPresent();
+      virtual bool CameraPresent() const;
 
 
       /*! \brief Initialize the grabbing system. 
@@ -106,7 +102,7 @@ namespace llvs {
 
       /*! \brief Return the link between the detected camera 
        and its semantic. */
-      virtual int GetSemanticOfCamera(int CameraNumberOnWS)
+      virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS)
       { /* TODO */ 
 	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
 	assert(false); 
@@ -127,7 +123,9 @@ namespace llvs {
       vector< SimpleImage *> m_ReadImageData;
   
       /* Initialization during Get Number of Cameras . */
-      int m_InitValue;
+			//FIXME: See comment at GetNumberOfCameras definition
+      //bool m_IsReallocationNeeded;
     };
-};  
+} 
+
 #endif /* _HRP2_INPUT_METHOD_H_ */

@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Simu/SimulatorInputMethod.h"
+#include <llvs/tools/Debug.h>
 
 #ifdef __ORBIX__
 #include "common.h"
@@ -107,37 +108,56 @@ HRP2SimulatorInputMethod::~HRP2SimulatorInputMethod()
 
 int HRP2SimulatorInputMethod::GetImage(unsigned char ** ImageLeft, unsigned char ** ImageRight, unsigned char ** ImageUp)
 {
-
   return -1;
 }
 
-int HRP2SimulatorInputMethod::SetImageSize(int lw, int lh, int CameraNumber)
+unsigned int
+HRP2SimulatorInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp)
 {
-  if ((CameraNumber<0) || (CameraNumber>2))
-    return -1;
+	ODEBUG("Not implemented");
+	return ERROR_UNDEFINED_SEMANTIC_CAMERA;
+}
+
+//FIXME: Use semantic camera designation instead of physical camera id
+unsigned int
+HRP2SimulatorInputMethod::SetImageSize(int lw, int lh, const unsigned int& CameraNumber)
+{
+  if (CameraNumber>2)
+	{
+    return ERROR_UNDEFINED_PHYSICAL_CAMERA;
+	}
 
   m_ImagesWidth[CameraNumber] = lw;
   m_ImagesHeight[CameraNumber] = lh;
-  return 0;
+  return RESULT_OK;
 }
 
-int HRP2SimulatorInputMethod::GetImageSize(int &lw, int &lh, int CameraNumber)
+//FIXME: Use semantic camera designation instead of physical camera id
+unsigned int
+HRP2SimulatorInputMethod::GetImageSize(int &lw, int &lh, const unsigned int& CameraNumber)
+const
 {
-  if ((CameraNumber<0) || (CameraNumber>2))
-    return -1;
+  if (CameraNumber>2)
+	{
+    return ERROR_UNDEFINED_PHYSICAL_CAMERA;
+	}
 
   lw = m_ImagesWidth[CameraNumber];
   lh = m_ImagesHeight[CameraNumber];
-  return 0;
+  return RESULT_OK;
 }
 
-string HRP2SimulatorInputMethod::GetFormat()
+string
+HRP2SimulatorInputMethod::GetFormat(const unsigned int&)
+const
 {
   string aFormat("Simulator based information");
   return aFormat;
 }
 
-bool HRP2SimulatorInputMethod::CameraPresent()
+bool
+HRP2SimulatorInputMethod::CameraPresent()
+const
 {
   return true;
 }

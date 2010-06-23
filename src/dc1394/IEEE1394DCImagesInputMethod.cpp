@@ -340,26 +340,21 @@ void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 }
 
 
-int
+unsigned int
 HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, 
-		                                            unsigned int SemanticCamera, 
+		                                            const unsigned int& SemanticCamera, 
 																								struct timeval &timestamp)
 {
-	ODEBUG("------------------------- Get Single Image ---------------------");
-
 	unsigned int cameraNumber;
-	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
 		ODEBUG("Error #" << result << " occured.");
 		return result;
 	}
-	ODEBUG("Request on camera semantic #" << SemanticCamera);
-	ODEBUG("                  physical #" << cameraNumber);
-  ODEBUG("--------------------"<<m_Format[cameraNumber].c_str()<<"---------------");
 
   if (m_Computing == 0)
-    return -1;
+    return ERROR_IMAGE_INPUT_NOT_READY;
 
   ODEBUG("m_Format["<<cameraNumber << "]=" << m_Format[cameraNumber]);
   if (m_Format[cameraNumber]=="PGM")
@@ -368,8 +363,8 @@ HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image,
     return GetImageSingleRaw(Image,cameraNumber,timestamp);
   else if (m_Format[cameraNumber]=="RGB")
     return GetImageSingleRGB(Image,cameraNumber,timestamp);
-	else
-		return ERROR_UNKNOWN_FORMAT;
+
+	return ERROR_UNKNOWN_FORMAT;
 }
 
 
@@ -638,7 +633,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 				}
 				for(int n=0;n<3;n++)
 				{
-					ODEBUG("indedx : " << indexd << " n: " << n );
+					//ODEBUG("indedx : " << indexd << " n: " << n );
 					ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
 				}
 			}
@@ -782,10 +777,11 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int SemanticCamera)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, const unsigned int& SemanticCamera)
 {
 	unsigned int cameraNumber;
-	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
 		return result;
@@ -800,13 +796,15 @@ int HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, unsigned int S
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, unsigned int SemanticCamera)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, const unsigned int& SemanticCamera)
+const
 {
 	lw = -1;
 	lh = -1;
 
 	unsigned int cameraNumber;
-	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
 		return result;
@@ -818,10 +816,12 @@ int HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, unsigned int
 }
 
 
-string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int SemanticCamera)
+string
+HRP2IEEE1394DCImagesInputMethod::GetFormat(const unsigned int& SemanticCamera)
+const
 {
 	unsigned int cameraNumber;
-	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
 		string ErrorMsg("Argument error: Semantic id is not valid");
@@ -838,10 +838,11 @@ string HRP2IEEE1394DCImagesInputMethod::GetFormat(unsigned int SemanticCamera)
 	}
 }
 
-int HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, unsigned int SemanticCamera)
+unsigned int 
+HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, const unsigned int& SemanticCamera)
 {
 	unsigned int cameraNumber;
-	unsigned int result = GetCameraNumber(SemanticCamera, cameraNumber);
+	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
 		return result;
@@ -1051,7 +1052,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
 void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
 								 dc1394video_mode_t &res,
 								 dc1394framerate_t &fps,
-								 unsigned int CameraNb)
+								 const unsigned int& CameraNb)
 {
   ODEBUG("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
   if (m_CurrentVisionSystemProfileID!=-1)
@@ -1303,22 +1304,26 @@ void HRP2IEEE1394DCImagesInputMethod::StopBoard()
 }
 
 unsigned int HRP2IEEE1394DCImagesInputMethod::GetNumberOfCameras()
+const
 {
   return m_DC1394Cameras.size();
 }
 
-void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime(int CameraNumber)
+void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime(const unsigned int& CameraNumber)
+const
 {
   
 }
 
 
-double HRP2IEEE1394DCImagesInputMethod::NextTimeForGrabbing(int CameraNumber)
+double HRP2IEEE1394DCImagesInputMethod::NextTimeForGrabbing(const unsigned int& CameraNumber)
 {
   return m_LastGrabbingTime[CameraNumber]+ m_GrabbingPeriod[CameraNumber];
 }
 
-bool HRP2IEEE1394DCImagesInputMethod::CameraPresent()
+bool
+HRP2IEEE1394DCImagesInputMethod::CameraPresent()
+const
 {
   return m_AtLeastOneCameraPresent;
 }
@@ -1555,7 +1560,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
     }
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(int lCameraIndexOnComputer)
+int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(const unsigned int& lCameraIndexOnComputer)
 {
   if ((lCameraIndexOnComputer>=0) &&
       ((unsigned int )lCameraIndexOnComputer< m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->
@@ -1568,8 +1573,8 @@ int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(int lCameraIndexOnCompu
 }
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetCameraNumber(const unsigned int& SemanticCamera,
-		                                             unsigned int& CameraNumber)
+HRP2IEEE1394DCImagesInputMethod::GetCameraId(const unsigned int& SemanticCamera,
+                                             unsigned int& CameraNumber)
 const
 {
 	CameraNumber = UNDEFINED_CAMERA_NUMBER;
