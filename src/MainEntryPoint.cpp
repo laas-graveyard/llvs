@@ -453,8 +453,10 @@ int main(int argc, char * argv[])
 	GlobalVisionServer->RecordImagesOnDisk(0);
 
 	// Disconnect the object from CORBA
+	ODEBUG("Deactivate LLVS");
 	poa->deactivate_object(GlobalVisionServerID.in());
 
+	cout << "LLVS exited normally." << endl;
   return 0;
 }
 

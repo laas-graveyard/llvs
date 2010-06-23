@@ -128,7 +128,7 @@ namespace llvs
 
 
       /*! Initialize the cameras */
-      void InitializeCameras();
+      void InitializeCameras() throw(const char*);
 
       /*! Initialize a camera */
       void InitializeCamera(IEEE1394DCCameraParameters &CamParams);
@@ -289,17 +289,7 @@ namespace llvs
       /*! @} */
 
       /*! \name Methods related to vision system profiles. 
-	@{
-       */
-
-      /*! \brief List of Vision System Profile. 
-	At least one is asked for. 
-       */
-      vector<VisionSystemProfile *> m_VisionSystemProfiles;
-
-      /*! \brief Index of the best vision profile for the current detected cameras set. */
-      int m_CurrentVisionSystemProfileID;
-
+	@{*/
       /*! \brief Detect the best vision system profile. 
 	The algorithm is simple we count the number of cameras 
 	describe in the vision system profile. The one with
@@ -317,6 +307,15 @@ namespace llvs
       void ReadConfigurationFileVSPFormat(string aFileName, std::string ProfileName);
 
       /*! @} */
+
+      /*! \brief List of Vision System Profile. 
+	At least one is asked for. 
+       */
+      vector<VisionSystemProfile *> m_VisionSystemProfiles;
+
+      /*! \brief Index of the best vision profile for the current detected cameras set. */
+      int m_CurrentVisionSystemProfileID;
+
     };
 };  
 #endif 

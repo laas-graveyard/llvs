@@ -77,22 +77,19 @@ VisionSystemProfile::~VisionSystemProfile()
  * class Images Input                                         *
  **************************************************************/
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const char*)
-: HRP2ImagesInputMethod()
+: HRP2ImagesInputMethod(),
+	m_numCameras(0),
+	m_ModeRaw2RGB(HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB),
+	m_HandleDC1394(0),
+	m_AtLeastOneCameraPresent(false),
+	m_CurrentVisionSystemProfileID(-1)
 {
+	/* Create input mutex to avoid concurrent access */
+  pthread_mutex_init(&m_mutex_device, NULL);
+
   m_MapFromSemanticToRealCamera.resize(4);
   for(unsigned int i=0;i<4;i++)
     m_MapFromSemanticToRealCamera[i] = -1;
-
-  m_ModeRaw2RGB =  HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB;
-
-  m_CurrentVisionSystemProfileID = -1;
-  pthread_mutexattr_t lmutattr;
-  pthread_mutexattr_init(&lmutattr);
-  pthread_mutex_init(&m_mutex_device,&lmutattr);
-
-  m_mutex_device;
-
-  m_AtLeastOneCameraPresent = false;
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
 
@@ -325,12 +322,7 @@ bool HRP2IEEE1394DCImagesInputMethod::Initialize()
 
 void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 {
-  HRP2VisionBasicProcess::StopProcess();
-  if (m_DC1394Cameras.size()!=0)
-    {
-      StopContinuousShot();
-      StopBoard();
-    }
+	StopProcess();
 }
 
 
@@ -1121,7 +1113,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameter
   
 }
 
-void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
+void HRP2IEEE1394DCImagesInputMethod::InitializeCameras() throw(const char*)
 {
   VisionSystemProfile *aVSP = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID];
 
@@ -1148,7 +1140,6 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
       unsigned int NUM_BUFFERS=8;
       
       ODEBUG("Speed");
-      pthread_mutex_lock(&m_mutex_device);      
       err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
       DC1394_ERR(err,"Could not set ISO speed");
       
@@ -1169,7 +1160,6 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 	      InitializeCamera(*aVSP->m_CameraParameters[VSPCamId]);
 	    }
 	}
-
       /*
       SetCameraFeatureValue(string("LEFT"),string("SHUTTER"),string("300"));
       SetCameraFeatureValue(string("RIGHT"),string("SHUTTER"),string("300"));
@@ -1180,11 +1170,11 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras()
 
       */
       ODEBUG("NbBuffers");
-      err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
-      DC1394_ERR(err,"Could not setup camera-\nmake sure \
-                          that the video mode and framerate \
-                          are\nsupported by your camera"); 
-      pthread_mutex_unlock(&m_mutex_device);
+			err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
+			if(err == DC1394_FAILURE)
+			{
+				throw("Can not access to physical camera");
+			}
 
       if (fps==DC1394_FRAMERATE_30)
   	{
@@ -1210,7 +1200,9 @@ void HRP2IEEE1394DCImagesInputMethod::StartContinuousShot()
   dc1394error_t err;
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     {
+			pthread_mutex_lock(&m_mutex_device);
       err=dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_ON);
+			pthread_mutex_unlock(&m_mutex_device);
       DC1394_ERR(err,"Could not start camera iso transmission");
     }
 
