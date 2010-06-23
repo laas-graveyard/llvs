@@ -85,7 +85,7 @@ int main(void)
 {
   cout <<" -------------------------- " << endl;
   cout << endl; 
-  cout <<" Test AsserVisu class"    << endl;
+  cout <<" Test Compute Control Law  Process"    << endl;
   cout << endl; 
   cout <<" ---------------------------" << endl;
 

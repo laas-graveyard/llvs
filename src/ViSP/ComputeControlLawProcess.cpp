@@ -35,7 +35,7 @@ using namespace llvs;
 
 HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 {
- 
+  m_ProcessName ="ComputeControlLawProcess";
   init();
 }
 
@@ -54,7 +54,7 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
 
 int HRP2ComputeControlLawProcess::init()
 {
-  m_ProcessName ="ComputeControlLawProcess";
+ 
   m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
   m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
   m_Lambda = 0.6;
@@ -66,7 +66,7 @@ int HRP2ComputeControlLawProcess::init()
 
   // load 
   vpHomogeneousMatrix cameraMhead;
-   loadcMh(cameraMhead);
+  loadcMh(cameraMhead);
  // ifstream file;
   //string name="./data/ViSP/hrp2CamParam/cMh.3";
   //file.open (name.c_str());
@@ -98,14 +98,15 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
   ifstream file;
   string name="./data/ViSP/hrp2CamParam/cMh.3";
   file.open (name.c_str());
-  std::ifstream f("homogeneous.dat");
+  
   try
     {
       cMh.load(file);
     }
   catch(vpException a) // file doesn't exist
     { 
-      cout << "---- Open Exception ---- " <<endl;
+      cout << "---- Open Exception Default---------------"<<endl;
+      cout<<"extrinsic parameters ---- " <<endl;
       vpCTRACE << endl <<a;
       cout << "------------------ " <<endl;
       // fill a defaut matrix
@@ -259,16 +260,11 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   if (m_nmbt->m_trackerTrackSuccess)
     {
       m_nmbt->GetOutputcMo(m_cMo);
-  
       ODEBUG("m.cMo : "<<m_cMo);
- 
       ODEBUG("m.cdMo : "<<m_cdMo);
-
       m_cdMc = m_cdMo*m_cMo.inverse();
 
-
       ODEBUG("m.cdMc : "<<m_cdMc);
-
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
 
@@ -417,8 +413,8 @@ int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
  */
  int  HRP2ComputeControlLawProcess::changeFrame(const vpColVector& velCam,
 		 vpColVector& velWaist,
-		 double *poseHeadInFoot,
-		 double *poseWaistInFoot)
+		 const double *poseHeadInFoot,
+		 const double *poseWaistInFoot)
 {
 
   // test on the input velocity
