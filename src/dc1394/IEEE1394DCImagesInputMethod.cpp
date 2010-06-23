@@ -47,6 +47,11 @@
 /*! Debug macros */
 #include <llvs/tools/Debug.h>
 
+/*! FIXME:  In current state, this
+	macro seems useless since the change of type would trigger
+	compiler conversion errors (ImagesTab var is used as right
+	operand without any explicit cast).*/
+#define LOCAL_IMAGE_TYPE unsigned char *
 
 /************************************************************************
 *  static functions							*
@@ -367,14 +372,13 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 	unsigned int dc1394result;
 	struct timeval tval;
 	double time1, time2;
-#define LOCAL_TYPE unsigned char *
 
 	ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
-	LOCAL_TYPE ImagesTab[1];
+	LOCAL_IMAGE_TYPE ImagesTab[1];
 
 	if (m_TmpImage[0]==0)
 	{
-		ImagesTab[0] = (LOCAL_TYPE)*Image;
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
 
 		try
 		{
@@ -399,7 +403,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 	}
 	else
 	{
-		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[0];
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE) m_TmpImage[0];
 
 		ImagesDst = *Image;
 
@@ -485,17 +489,16 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	unsigned char * ImagesDst;
 	struct timeval tval;
 	double time1, time2;
-#define LOCAL_TYPE unsigned char *
 
 	ODEBUG("GetImageSingleRGB cam: " << cameraNumber);
-	LOCAL_TYPE ImagesTab[1];
+	LOCAL_IMAGE_TYPE ImagesTab[1];
 
 	pthread_mutex_lock(&m_mutex_device);  
 	ODEBUG("After mutex acquisition " << (int)(m_TmpImage[cameraNumber]!=0) );
 	if (m_TmpImage[cameraNumber]==0)
 	{
 		ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
-		ImagesTab[0] = (LOCAL_TYPE)*Image;
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
 
 		try
 		{
@@ -541,7 +544,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	{
 		ODEBUG("GetImageSingleRGB before dc1394_capture with TmpImage " );
 		ODEBUG("camera is "<< cameraNumber);
-		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[cameraNumber];
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE) m_TmpImage[cameraNumber];
 
 		ImagesDst = *Image;
 
@@ -649,15 +652,14 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 	unsigned char * ImagesDst;
 	unsigned int dc1394result;
 
-#define LOCAL_TYPE unsigned char *
 
 	ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
-	LOCAL_TYPE ImagesTab[1];
+	LOCAL_IMAGE_TYPE ImagesTab[1];
 
 
 	if (m_TmpImage[cameraNumber]==0)
 	{
-		ImagesTab[0] = (LOCAL_TYPE)*Image;
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
 
 		try
 		{
@@ -680,7 +682,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 	else
 	{
 
-		ImagesTab[0] = (LOCAL_TYPE) m_TmpImage[cameraNumber];
+		ImagesTab[0] = (LOCAL_IMAGE_TYPE) m_TmpImage[cameraNumber];
 
 		ImagesDst = *Image;
 
