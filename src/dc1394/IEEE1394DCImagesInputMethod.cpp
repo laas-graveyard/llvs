@@ -488,12 +488,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 {
 	unsigned char * ImagesDst;
 	struct timeval tval;
+	unsigned int dc1394result;
 	double time1, time2;
 
 	ODEBUG("GetImageSingleRGB cam: " << cameraNumber);
 	LOCAL_IMAGE_TYPE ImagesTab[1];
 
-	pthread_mutex_lock(&m_mutex_device);  
 	ODEBUG("After mutex acquisition " << (int)(m_TmpImage[cameraNumber]!=0) );
 	if (m_TmpImage[cameraNumber]==0)
 	{
@@ -502,8 +502,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 
 		try
 		{
-			if (dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber])
-					!=DC1394_SUCCESS)
+			pthread_mutex_lock(&m_mutex_device);
+			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
+                                            DC1394_CAPTURE_POLICY_WAIT, 
+                                            &m_VideoFrames[cameraNumber]);
+			pthread_mutex_unlock(&m_mutex_device);
+			if( dc1394result != DC1394_SUCCESS )
 			{
 				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
 				return ERROR_SNAP_EXCEPTION;
@@ -515,6 +519,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 			ODEBUG("Exception during snap: " << except.what() );
 			return ERROR_SNAP_EXCEPTION;
 		}
+
 		ODEBUG("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
 				<<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: " 
 				<< m_ModeRaw2RGB );
@@ -551,6 +556,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 		ODEBUG("ImagesDst");
 		try
 		{
+			pthread_mutex_lock(&m_mutex_device);
 			if (dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber])
 					!=DC1394_SUCCESS)
 			{
@@ -636,9 +642,10 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 
 	if (m_VideoFrames[cameraNumber])
 	{
+		pthread_mutex_lock(&m_mutex_device);
 		dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+		pthread_mutex_unlock(&m_mutex_device);
 	}
-	pthread_mutex_unlock(&m_mutex_device);  
 	m_LastGrabbingTime[cameraNumber]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
 	ODEBUG("GetImageSingleRGB cam: " << cameraNumber << " Finished" );
 	return RESULT_OK;
