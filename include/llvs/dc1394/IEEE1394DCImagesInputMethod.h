@@ -221,6 +221,10 @@ namespace llvs
 			unsigned int GetCameraId(const unsigned int& SemanticCamera,
 					                     unsigned int& CameraNumber) const;
 
+			/*! Request a capture dequeue through dc1394. Action is performed
+			 * on a physical camera which id is provided by <cameraNumber>*/
+			unsigned int CaptureDequeue(const unsigned int& cameraNumber);
+
 			/*! Specialization of GetImageSingle for PGM image format */
       unsigned int GetImageSinglePGM(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
 

@@ -361,7 +361,33 @@ HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image,
 	return ERROR_UNKNOWN_FORMAT;
 }
 
-
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber)
+{
+	unsigned int dc1394result;
+	
+	//FIXME: Mutex might be specific to the physical camera. This method
+	// works but add a useless constraint on all cameras.
+	pthread_mutex_lock(&m_mutex_device);
+	try
+	{
+		dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
+																					DC1394_CAPTURE_POLICY_WAIT, 
+																					&m_VideoFrames[cameraNumber]);
+	}
+	catch(std::exception &except)
+	{
+		ODEBUG("Exception during snap: " << except.what() );
+		return ERROR_SNAP_EXCEPTION;
+	}
+	pthread_mutex_unlock(&m_mutex_device);
+	if( dc1394result != DC1394_SUCCESS )
+	{
+		dc1394_log_error("Failed to capture from camera %d", cameraNumber);
+		return ERROR_SNAP_EXCEPTION;
+	}
+	return RESULT_OK;
+}
 
 unsigned int
 HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
@@ -369,7 +395,6 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 																									 struct timeval &timestamp)
 {
 	unsigned char * ImagesDst;
-	unsigned int dc1394result;
 	struct timeval tval;
 	double time1, time2;
 
@@ -379,27 +404,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 	if (m_TmpImage[0]==0)
 	{
 		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
-
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
-                                            DC1394_CAPTURE_POLICY_WAIT, 
-                                            &m_VideoFrames[cameraNumber]);
-			pthread_mutex_unlock(&m_mutex_device);
-			if( dc1394result != DC1394_SUCCESS )
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
-
+		gettimeofday(&timestamp,0);
 	}
 	else
 	{
@@ -408,25 +418,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 		ImagesDst = *Image;
 
 		ODEBUG("Get Images " );
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
-                                            DC1394_CAPTURE_POLICY_WAIT, 
-                                            &m_VideoFrames[cameraNumber]);
-			pthread_mutex_unlock(&m_mutex_device);
-			if( dc1394result != DC1394_SUCCESS )
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
+		gettimeofday(&timestamp,0);
 
 		time1 = timestamp.tv_sec + 0.000001* timestamp.tv_usec;
 
@@ -488,7 +485,6 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 {
 	unsigned char * ImagesDst;
 	struct timeval tval;
-	unsigned int dc1394result;
 	double time1, time2;
 
 	ODEBUG("GetImageSingleRGB cam: " << cameraNumber);
@@ -500,25 +496,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 		ODEBUG("GetImageSingleRGB before dc1394_capture without TmpImage");
 		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
 
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
-                                            DC1394_CAPTURE_POLICY_WAIT, 
-                                            &m_VideoFrames[cameraNumber]);
-			pthread_mutex_unlock(&m_mutex_device);
-			if( dc1394result != DC1394_SUCCESS )
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
+		gettimeofday(&timestamp,0);
 
 		ODEBUG("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
 				<<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: " 
@@ -554,22 +537,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 		ImagesDst = *Image;
 
 		ODEBUG("ImagesDst");
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			if (dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber])
-					!=DC1394_SUCCESS)
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
+		gettimeofday(&timestamp,0);
 		ODEBUG("dequeue finished");
 		switch(m_ModeRaw2RGB)
 		{
@@ -657,8 +630,6 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
                                                    struct timeval &timestamp)
 {
 	unsigned char * ImagesDst;
-	unsigned int dc1394result;
-
 
 	ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
 	LOCAL_IMAGE_TYPE ImagesTab[1];
@@ -668,23 +639,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 	{
 		ImagesTab[0] = (LOCAL_IMAGE_TYPE)*Image;
 
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber]);
-			pthread_mutex_unlock(&m_mutex_device);
-			if( dc1394result != DC1394_SUCCESS )
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
+		gettimeofday(&timestamp,0);
 	}
 	else
 	{
@@ -694,23 +654,12 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 		ImagesDst = *Image;
 
 		ODEBUG("Get Images " );
-		try
+		unsigned int result = CaptureDequeue(cameraNumber);
+		if( result != RESULT_OK )
 		{
-			pthread_mutex_lock(&m_mutex_device);
-			dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], DC1394_CAPTURE_POLICY_WAIT, &m_VideoFrames[cameraNumber]);
-			pthread_mutex_unlock(&m_mutex_device);
-			if( dc1394result != DC1394_SUCCESS )
-			{
-				dc1394_log_error("Failed to capture from camera %d", cameraNumber);
-				return ERROR_SNAP_EXCEPTION;
-			}
-			gettimeofday(&timestamp,0);
+			return result;
 		}
-		catch(std::exception &except)
-		{
-			ODEBUG("Exception during snap: " << except.what() );
-			return ERROR_SNAP_EXCEPTION;
-		}
+		gettimeofday(&timestamp,0);
 
 		//m_Board->get_images(ImagesTab);
 		ODEBUG("Get Images finito...");
