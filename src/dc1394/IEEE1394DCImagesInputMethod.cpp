@@ -78,7 +78,6 @@ VisionSystemProfile::~VisionSystemProfile()
  **************************************************************/
 HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const char*)
 : HRP2ImagesInputMethod(),
-	m_numCameras(0),
 	m_ModeRaw2RGB(HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB),
 	m_HandleDC1394(0),
 	m_AtLeastOneCameraPresent(false),

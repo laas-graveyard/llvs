@@ -237,9 +237,6 @@ namespace llvs
       /*! Clean memory when stopping the board. */
       void CleanMemory();
 
-      /*! Number of cameras */
-      unsigned int m_numCameras;
-
       /*! Map from semantic camera to real ones */
       vector<int> m_MapFromSemanticToRealCamera;
 
