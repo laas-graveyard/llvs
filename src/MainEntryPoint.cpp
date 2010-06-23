@@ -18,7 +18,6 @@
 
 // Debug macros
 #include <llvs/tools/Debug.h>
-
 #include "LowLevelVisionServer.h"
 
 using namespace llvs;
@@ -26,8 +25,8 @@ pthread_t MainThread;
 LowLevelVisionServer *GlobalVisionServer = NULL;
 PortableServer::POA_var poa;
 PortableServer::ObjectId_var GlobalVisionServerID;
-pthread_t aThread;
-bool EndOfMainLoop=false;
+pthread_t LLVSThread_id;
+pthread_mutex_t ExitApplicationMutex;
 bool ServerBinded=false;
 
 void * LLVSThread(void *arg)
@@ -36,70 +35,63 @@ void * LLVSThread(void *arg)
   
   if (aVS!=0)
     {
-      double current_time;
-      double mean=0;
+			double current_time;
+			double mean=0;
 
-      
-      ODEBUG("LLVS thread: " << pthread_self());
-      // Start to process.
-      aVS->StartMainProcess();
+			ODEBUG("LLVS thread: " << pthread_self());
+			// Start to process.
+			aVS->StartMainProcess();
 
-      // Current strategy:
-      // If the Vision system read a file and or a directory,
-      // or takes information from the frame-grabber 
-      // it is in stand-alone mode.
-      // In simulation mode, everything is trigger through
-      // the SetImage method.
-      if (aVS->GetInputMode()==LowLevelVisionSystem::SIMULATION)
-	pthread_exit(0);
+			// Current strategy:
+			// If the Vision system read a file and or a directory,
+			// or takes information from the frame-grabber 
+			// it is in stand-alone mode.
+			// In simulation mode, everything is trigger through
+			// the SetImage method.
+			if (aVS->GetInputMode()==LowLevelVisionSystem::SIMULATION)
+				pthread_exit(0);
 
-      // Vision Main loop.
-      while(!EndOfMainLoop)
-	{
-	  aVS->ApplyingProcess();
-	  //	  usleep(1);
-	  //      sleep(1);
-	}
+			// Vision Main loop.
+			for(;;)
+			{
+				aVS->ApplyingProcess();
+			}
     }
   return 0;
 }
 
 
-void SIGINT_handler(int asig)
+void SIGINT_handler(int signal_code)
 {
-	ODEBUG("Went through SIGINT_handler : "<< asig << " " << pthread_self() << " " << MainThread);
-	if(GlobalVisionServer != NULL)
+	ODEBUG("Went through SIGINT_handler : "<< signal_code << " " << pthread_self() << " " << MainThread);
+	if(pthread_self() == MainThread)
 	{
-		if(pthread_self() == MainThread)
+		int rc = pthread_mutex_trylock(&ExitApplicationMutex);
+		if(rc == EBUSY)
 		{
-			/* Stop the processes */
-			GlobalVisionServer->StopMainProcess();
-			EndOfMainLoop = true;
-			ODEBUG("Stopped the processes ");
-			sleep(1);
-
-			pthread_kill(aThread,asig);
-
-			/* Stop the processes */
-			ODEBUG("Just before cleaning up the frame grabbing ");
-			GlobalVisionServer->CleanUpGrabbing();
-			ODEBUG("Just after cleaning up the frame grabbing ");
-			GlobalVisionServer->RecordImagesOnDisk(0);
-			ODEBUG("Just after recording images on disk " );
-
-			delete GlobalVisionServer;
-			GlobalVisionServer = NULL;
+			// Trigger the application exit process
+			ODEBUG("Trigger application exit process");
+			pthread_mutex_unlock(&ExitApplicationMutex);
 		}
 		else
 		{
-			ODEBUG("Go out from "<< pthread_self());
-			pthread_exit(0);
+			ODEBUG("Normal exit failed. Exiting immediatly.");
+			exit(-1);
 		}
+	}
+	else
+	{
+		ODEBUG("Go out from "<< pthread_self());
+		pthread_exit(0);
 	}
 }
 
 int main(int argc, char * argv[])
 {
+	// Init exit mutex
+	pthread_mutex_init(&ExitApplicationMutex, NULL);
+	pthread_mutex_lock(&ExitApplicationMutex);
+
   LowLevelVisionServer * aVS=0;
   static struct option long_options[]= 
     {
@@ -414,18 +406,18 @@ int main(int argc, char * argv[])
 	    pthread_attr_t Thread_Attr;
 
 	    pthread_attr_init(&Thread_Attr);
-	    pthread_create(&aThread, &Thread_Attr,LLVSThread, (void *)aVS);
+	    pthread_create(&LLVSThread_id, &Thread_Attr,LLVSThread, (void *)aVS);
 
 	    ODEBUG("OmniORB thread:" << pthread_self());
 	  }
 #ifdef __ORBIX__
 	  orb->run()
 #endif
-#ifdef OMNIORB4
-	    pthread_join(aThread,0);
-#endif
 	}
 
+		// Wait for handler signal to quit the application
+		pthread_mutex_lock(&ExitApplicationMutex);
+		pthread_mutex_unlock(&ExitApplicationMutex);
 
     }
 
@@ -444,11 +436,26 @@ int main(int argc, char * argv[])
     cerr << "MainEntryPoint::Caught unknown exception." << endl;
 	  
   }
+	/* Stop the processes */
+	ODEBUG("Stop global vision server");
+	GlobalVisionServer->StopMainProcess();
 
-  //  poa->deactivate_object(GlobalVisionServerID.in());
-  //delete GlobalVisionServer;
+	/* Stop llvs motor loop */
+	ODEBUG("Kill vision main loop");
+	pthread_kill(LLVSThread_id, SIGINT);
+	ODEBUG("Wait for end of process");
+	pthread_join(LLVSThread_id, 0);
+
+	/* Clean Stop the processes */
+	ODEBUG("Clean up the frame grabbing ");
+	GlobalVisionServer->CleanUpGrabbing();
+	ODEBUG("Record images on disk");
+	GlobalVisionServer->RecordImagesOnDisk(0);
+
+	// Disconnect the object from CORBA
+	delete GlobalVisionServer;
+
   return 0;
-
 }
 
 
