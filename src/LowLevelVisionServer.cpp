@@ -2252,15 +2252,15 @@ void LowLevelVisionServer::CheckImageFormat(char *&Format)
 
 
 /* Get an image */
-CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
+CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  ODEBUG("getImage :" << CameraID << " " << string(Format) << " " <<
+  ODEBUG("getImage :" << SemanticCamera << " " << string(Format) << " " <<
 						    m_BinaryImages.size());
-  if ((CameraID<0) || ((unsigned int)CameraID>=m_BinaryImages.size()) )
+  if ((SemanticCamera<0) || ((unsigned int)SemanticCamera>=m_BinaryImages.size()) )
     {
       ODEBUG("No image to transmit");
       an2Image->format=GRAY;
@@ -2274,41 +2274,41 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long CameraID, ImageData_out a
 
   CheckImageFormat(Format);
 
-  CORBA::Long Size = m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID];
-  if (m_depth[CameraID]==3)
+  CORBA::Long Size = m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera];
+  if (m_depth[SemanticCamera]==3)
     an2Image->format=ARGB;
-  else if (m_depth[CameraID]==1)
+  else if (m_depth[SemanticCamera]==1)
     an2Image->format=GRAY;
 
-  an2Image->width = m_Width[CameraID];
-  an2Image->height = m_Height[CameraID];
+  an2Image->width = m_Width[SemanticCamera];
+  an2Image->height = m_Height[SemanticCamera];
   
   ODEBUG("Size: " << Size);
   an2Image->octetData.length(Size);
   an2Image->longData.length(2);
 
 
-  unsigned char *pt = m_BinaryImages[CameraID];
-  for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
+  unsigned char *pt = m_BinaryImages[SemanticCamera];
+  for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
     an2Image->octetData[j] = *pt++;
 
-  an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
-  an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
+  an2Image->longData[0] = m_timestamps[SemanticCamera].tv_sec;
+  an2Image->longData[1] = m_timestamps[SemanticCamera].tv_usec;
   anImage = an2Image._retn();
 
-  ODEBUG("m_depth["<<CameraID << "]="<<(int)m_depth[CameraID]<< endl);
+  ODEBUG("m_depth["<<SemanticCamera << "]="<<(int)m_depth[SemanticCamera]<< endl);
   return Size;
 }
 
 /* Get a rectified image */
-CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
+CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  cout << "CameraID:" << CameraID << std::endl;
-  if ((CameraID<0) || ((unsigned int) CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
+  cout << "SemanticCamera:" << SemanticCamera << std::endl;
+  if ((SemanticCamera<0) || ((unsigned int) SemanticCamera>m_ImagesInputMethod->GetNumberOfCameras()))
     {
       an2Image->octetData.length(0);
       an2Image->longData.length(0);
@@ -2321,11 +2321,11 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
   
   CheckImageFormat(Format);
 #if (LLVS_HAVE_VVV>0)
-  an2Image->octetData.length(m_Height[CameraID] * m_Width[CameraID]*m_depth[CameraID]);
+  an2Image->octetData.length(m_Height[SemanticCamera] * m_Width[SemanticCamera]*m_depth[SemanticCamera]);
 
-  for(j=0;j<(int)(m_Height[CameraID]*m_Width[CameraID]*m_depth[CameraID]);j++)
-    an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[CameraID].Image)[j];
-  //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[CameraID].Image)[j];
+  for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
+    an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[SemanticCamera].Image)[j];
+  //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[SemanticCamera].Image)[j];
 #endif
 
 #if (LLVS_HAVE_VISP>0)
@@ -2336,8 +2336,8 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
  an2Image->height=240;
  an2Image->longData.length(2);
  an2Image->format=GRAY;//PixelFormat::GRAY;
- an2Image->longData[0] = m_timestamps[CameraID].tv_sec;
- an2Image->longData[1] = m_timestamps[CameraID].tv_usec;
+ an2Image->longData[0] = m_timestamps[SemanticCamera].tv_sec;
+ an2Image->longData[1] = m_timestamps[SemanticCamera].tv_usec;
 
 
  unsigned char *pt =m_Widecam_image_undistorded->bitmap;
@@ -2367,14 +2367,14 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long CameraID, ImageD
 }
 
 /* Get the edge image */
-CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long CameraID, ImageData_out anImage, char *&Format)
+CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *&Format)
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
 
-  if ((CameraID<0) || ((unsigned int)CameraID>m_ImagesInputMethod->GetNumberOfCameras()) 
+  if ((SemanticCamera<0) || ((unsigned int)SemanticCamera>m_ImagesInputMethod->GetNumberOfCameras()) 
 #if (LLVS_HAVE_VVV>0)
       || (m_EdgeDetection==0)
 #endif
@@ -2385,14 +2385,14 @@ CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long CameraID, ImageData_o
       return -1;
     }
   
-  an2Image->longData.length(m_Height[CameraID] * m_Width[CameraID]);
+  an2Image->longData.length(m_Height[SemanticCamera] * m_Width[SemanticCamera]);
 #if (LLVS_HAVE_VVV>0)
-  for(j=0;j<m_Height[CameraID]*m_Width[CameraID];j++)
-    an2Image->longData[j] = ((unsigned int *)m_EdgeDetection->m_Edge[CameraID].Image)[j];
+  for(j=0;j<m_Height[SemanticCamera]*m_Width[SemanticCamera];j++)
+    an2Image->longData[j] = ((unsigned int *)m_EdgeDetection->m_Edge[SemanticCamera].Image)[j];
 #endif
   
   anImage = an2Image._retn();
-  return m_Height[CameraID]*m_Width[CameraID];
+  return m_Height[SemanticCamera]*m_Width[SemanticCamera];
 
 }
 

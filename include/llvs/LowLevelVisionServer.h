@@ -260,15 +260,15 @@ namespace llvs
       unsigned char * GetImageMemory(unsigned int CameraID);
 
       /*! Interface: Get an image */
-      virtual CORBA::Long getImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
+      virtual CORBA::Long getImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
 	throw(CORBA::SystemException);
 
       /*! Interface: Get an edge image */
-      virtual CORBA::Long getEdgeImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
+      virtual CORBA::Long getEdgeImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
 	throw(CORBA::SystemException);
 
       /*! Interface: Get a rectified image */
-      CORBA::Long getRectifiedImage(CORBA::Long CameraID, ImageData_out anImage, char *& Format)
+      CORBA::Long getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
 	throw(CORBA::SystemException);
 
       /*! Interface: Get range map */
