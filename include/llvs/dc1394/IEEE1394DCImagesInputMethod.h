@@ -32,11 +32,9 @@
 #ifndef _HRP2_IEEE1394_DC_INPUT_METHOD_H_
 #define _HRP2_IEEE1394_DC_INPUT_METHOD_H_
 
-
-#include <ImagesInputMethod.h>
-#include <VisionBasicProcess.h>
+/*! Includes system */
 #include <string>
-
+#include <vector>
 #include <pthread.h>
 
 /*! Includes for 1394 communications. */
@@ -44,10 +42,9 @@
 #include <dc1394/dc1394.h>
 
 /*! Include from llvs */
+#include <ImagesInputMethod.h>
+#include <VisionBasicProcess.h>
 #include <dc1394/IEEE1394DCCameraParameters.h>
-
-#include <vector>
-using namespace std;
 
 //FIXME: Export this definition in a proper place
 #define LLVS_CAMERA_NUMBER_MAX 	255
@@ -60,10 +57,10 @@ namespace llvs
   {
   public:
     /*! \brief Visual System Profile name */
-    string m_Name;
+    std::string m_Name;
 
     /*! \brief Location of the file described the system. */
-    string m_FileNameDescription;
+    std::string m_FileNameDescription;
 
     /*! \brief The vector of camera parameters associated
       with this description. */
@@ -112,7 +109,7 @@ namespace llvs
 	according to the camera index. 
 	@param[in] SemanticNumber: camera to which the format applies.
       */
-      virtual string GetFormat(const unsigned int& SemanticCamera) const;
+      virtual std::string GetFormat(const unsigned int& SemanticCamera) const;
 
       /*! \brief Set the format of the current image: default PGM 
 	@param[in] aFormat: Name of the format to use.
@@ -150,7 +147,7 @@ namespace llvs
       void StopBoard();
   
       /*! Set parameter value */
-      virtual int SetParameter(string aParameter, string aValue);
+      virtual int SetParameter(string aParameter, std::string aValue);
   
       /*! Override Start Process */
       virtual int StartProcess() throw(const char*);
@@ -158,8 +155,8 @@ namespace llvs
       /*! Override Stop Process */
       virtual int StopProcess();
 
-      void GetCameraFeatureValue(string aCamera, string aFeature, string &aValue);
-      void SetCameraFeatureValue(string aCamera, string aFeature, string aValue);
+      void GetCameraFeatureValue(string aCamera, std::string aFeature, std::string &aValue);
+      void SetCameraFeatureValue(string aCamera, std::string aFeature, std::string aValue);
 
       /*! \name Reimplement the ImagesInputMethod abstract interface 
 	@{
@@ -310,10 +307,10 @@ namespace llvs
       bool DetectTheBestVisionSystemProfile();
 
       /*! \brief Read configuration files in the VVV format. */
-      void ReadConfigurationFileVVVFormat(string aFileName, string ProfileName);
+      void ReadConfigurationFileVVVFormat(string aFileName, std::string ProfileName);
 
       /*! \brief Read configuration files in the VSP format. */
-      void ReadConfigurationFileVSPFormat(string aFileName, string ProfileName);
+      void ReadConfigurationFileVSPFormat(string aFileName, std::string ProfileName);
 
       /*! @} */
     };

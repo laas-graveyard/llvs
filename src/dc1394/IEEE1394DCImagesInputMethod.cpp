@@ -36,28 +36,17 @@
    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <iostream>
-#include <fstream>
+#include <dc1394/IEEE1394DCImagesInputMethod.h>
 
-#include <sstream>
+/*! Includes system */
+#include <fstream>
 #include <iomanip>
 
 #include <dc1394/conversions.h>
 
-using namespace std;
-
-
-using std::showbase;
-
-
-// Debug macros
+/*! Debug macros */
 #include <llvs/tools/Debug.h>
 
-
-#include <dc1394/IEEE1394DCImagesInputMethod.h>
 
 /************************************************************************
 *  static functions							*
@@ -102,12 +91,12 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
 
-  string ListOfVSPs[2] = {"vsp:default","vsp:unibrain"};
-  string ListOfVSPsFN[2] = {"Default.vsp","Unibrain.vsp"};
+  std::string ListOfVSPs[2] = {"vsp:default","vsp:unibrain"};
+  std::string ListOfVSPsFN[2] = {"Default.vsp","Unibrain.vsp"};
   for(unsigned int i=0;i<2;i++)
     {
-      string VisionSystemProfileDefault(ListOfVSPs[i]);
-      string VSPDValue(ListOfVSPsFN[i]);
+      std::string VisionSystemProfileDefault(ListOfVSPs[i]);
+      std::string VSPDValue(ListOfVSPsFN[i]);
       SetParameter(VisionSystemProfileDefault,
 		   VSPDValue);
     }
@@ -121,7 +110,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
   ODEBUG("After setting the parameters.");
 }
 
-void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, string aFeature, string &aValue)
+void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(std::string aCamera, std::string aFeature, std::string &aValue)
 {
 
   int iCamera=0;
@@ -176,7 +165,7 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(string aCamera, stri
     }
 }
 
-void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(string aCamera, string aFeature, string aValue)
+void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(std::string aCamera, std::string aFeature, std::string aValue)
 {
   dc1394feature_info_t lFeature;
   bool Is1394Feature=true;
@@ -816,7 +805,7 @@ const
 }
 
 
-string
+std::string
 HRP2IEEE1394DCImagesInputMethod::GetFormat(const unsigned int& SemanticCamera)
 const
 {
@@ -824,7 +813,7 @@ const
 	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
 	if(result != RESULT_OK)
 	{
-		string ErrorMsg("Argument error: Semantic id is not valid");
+		std::string ErrorMsg("Argument error: Semantic id is not valid");
 		return ErrorMsg;
 	}
 	if (cameraNumber < m_Format.size())
@@ -833,13 +822,13 @@ const
 	}
 	else
 	{
-		string ErrorMsg("Error Format : wrong camera id.");
+		std::string ErrorMsg("Error Format : wrong camera id.");
 		return ErrorMsg;
 	}
 }
 
 unsigned int 
-HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, const unsigned int& SemanticCamera)
+HRP2IEEE1394DCImagesInputMethod::SetFormat(std::string aFormat, const unsigned int& SemanticCamera)
 {
 	unsigned int cameraNumber;
 	unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
@@ -876,10 +865,10 @@ HRP2IEEE1394DCImagesInputMethod::SetFormat(string aFormat, const unsigned int& S
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aValue)
+int HRP2IEEE1394DCImagesInputMethod::SetParameter(std::string aParameter, std::string aValue)
 {
   HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
-  string CameraPrefix;
+  std::string CameraPrefix;
   unsigned char IsACamera = 0;
   unsigned int lpos = 0;
 
@@ -903,13 +892,13 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
   else if (CameraPrefix=="vvv:")
     {
       lpos=4;
-      string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      std::string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
       ReadConfigurationFileVVVFormat(aValue,ProfileName);
     }
   else if (CameraPrefix=="vsp:")
     {
       lpos=4;
-      string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      std::string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
       ReadConfigurationFileVSPFormat(aValue,ProfileName);
     }
 
@@ -918,7 +907,7 @@ int HRP2IEEE1394DCImagesInputMethod::SetParameter(string aParameter, string aVal
       ODEBUG("Is a camera");
       unsigned char IsFeature=0;
       
-      string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
+     std::string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
       for(unsigned int i=0;i<m_Features.size();i++)
 	if (lFeature == m_Features[i])
 	  {
@@ -1116,7 +1105,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameters &CamParams)
 {
   unsigned int CamId = CamParams.GetCameraNumberInUserSemantic();
-  string iCamera, aFeature, aValue;
+ std::string iCamera, aFeature, aValue;
   if (CamId==0 )
     iCamera = "LEFT";
   else if (CamId==1)
@@ -1329,7 +1318,7 @@ const
 }
 
 void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFileName,
-								     string ProfileName)
+								    std::string ProfileName)
 {
   ifstream aif;
   unsigned int lBoardNumber;
@@ -1351,7 +1340,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
 	{
-	  string lGUID,lFormat,tmp,lFPS;
+	 std::string lGUID,lFormat,tmp,lFPS;
 	  unsigned int lBrightness, lExposure;
 	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
 	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(i);
@@ -1429,7 +1418,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 }
 
 void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFileName,
-								     string ProfileName)
+								    std::string ProfileName)
 {
   ifstream aif;
   unsigned int lBoardNumber;
@@ -1451,11 +1440,11 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
 	{
-	  string lGUID,lFormat,tmp,lFPS;
+	 std::string lGUID,lFormat,tmp,lFPS;
 	  unsigned int lBrightness, lExposure;
 	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
 	  
-	  string Semantic;
+	 std::string Semantic;
 	  aif >> Semantic;
 	  
 	  int iCamera=0;
@@ -1614,13 +1603,10 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
       // For each camera inside the profile 
       for(unsigned int j=0;j<m_VisionSystemProfiles[i]->m_CameraParameters.size();j++)
 	{
-	  string sVSPCameraGUID = m_VisionSystemProfiles[i]
+	 std::string sVSPCameraGUID = m_VisionSystemProfiles[i]
 	    ->m_CameraParameters[j]->GetGUID();
 	  uint64_t VSPCameraGUID;
 	  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
-
-	  // Try to find the camera listed in the profile inside the list
-	  // of connected camera.
 	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
 	    {
 	      if (VSPCameraGUID==m_DC1394Cameras[k]->guid)
@@ -1679,7 +1665,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	      for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 		    ->m_CameraParameters.size();k++)
 		{
-		  string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+		 std::string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 		    ->m_CameraParameters[k]->GetGUID();
 		  uint64_t VSPCameraGUID=0;
 		  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
@@ -1718,7 +1704,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters.size();k++)
     {
-      string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+     std::string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters[k]->GetGUID();
       uint64_t VSPCameraGUID=0;
       sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
