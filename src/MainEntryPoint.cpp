@@ -453,7 +453,7 @@ int main(int argc, char * argv[])
 	GlobalVisionServer->RecordImagesOnDisk(0);
 
 	// Disconnect the object from CORBA
-	delete GlobalVisionServer;
+	poa->deactivate_object(GlobalVisionServerID.in());
 
   return 0;
 }
