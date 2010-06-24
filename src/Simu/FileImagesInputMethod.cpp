@@ -59,7 +59,8 @@ HRP2FileImagesInputMethod::HRP2FileImagesInputMethod(int MethodForInputImages) :
   m_MethodHowReading = MethodForInputImages;
   m_NbOfImages = 0;
   m_ReadImageData.clear();
-  m_InitValue = 0;
+	//FIXME: See comment at GetNumberOfCameras definition
+  //m_IsReallocationNeeded = false;
   m_Verbosity=5;
 }
 
@@ -74,7 +75,9 @@ int HRP2FileImagesInputMethod::SetBaseName(string aFileName)
   return 0;
 }
 
-string HRP2FileImagesInputMethod::GetBaseName()
+string
+HRP2FileImagesInputMethod::GetBaseName()
+const
 {
   return m_BaseName;
 }
@@ -530,7 +533,8 @@ int HRP2FileImagesInputMethod::ReadEPBMFileImage(string & aFileName,
   return res;
 }
   
-int HRP2FileImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp)
+int
+HRP2FileImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp)
 {
   int r=0;
 
@@ -568,11 +572,13 @@ int HRP2FileImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char
   return r;
 }
 
-int HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, int camera, struct timeval &timestamp)
+unsigned int
+HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& camera, struct timeval &timestamp)
 {
   int r=0;
-
-  ODEBUG3("GetSingleImage::" << m_InitValue );
+		
+	//FIXME: See comment at GetNumberOfCameras definition
+  //ODEBUG3("GetSingleImage::" << m_IsReallocationNeeded );
 
   ODEBUG("Start of GetSingleImage " << m_ReadImageData.size()<< " " << camera);
   if (camera==0)
@@ -609,12 +615,14 @@ int HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, int camera,
 	  }
 	  break;
 	}
-
-      if (m_InitValue==2)
+	//FIXME: See comment at GetNumberOfCameras definition
+/*
+      if (m_IsReallocationNeeded)
 	{
 	  //r = 2;
-	  m_InitValue = 0;
+	  m_IsReallocationNeeded = false;
 	}
+	*/
     }
   
 
@@ -667,7 +675,8 @@ int HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, int camera,
 }
 
 
-string HRP2FileImagesInputMethod::GetFormat(unsigned int CameraNumber)
+string
+HRP2FileImagesInputMethod::GetFormat(const unsigned int& CameraNumber) const
 {
   string aFormat("RGB");
 
@@ -683,24 +692,36 @@ string HRP2FileImagesInputMethod::GetFormat(unsigned int CameraNumber)
   return aFormat;
 }
 
-unsigned int HRP2FileImagesInputMethod::GetNumberOfCameras()
+//FIXME: GetNumberOfCameras MUST BE a read-only method.
+// It is currently used as a refresh process, based on
+// the fact user call GetNumberOfCameras time to time.
+// This must be changed and has been commented meanwhile.
+// To delete (with also isReallocationNeeded boolean)
+// if not necessary.
+unsigned int
+HRP2FileImagesInputMethod::GetNumberOfCameras()
+const
 {
+	/*
   if (m_NbOfImages==0)
     {
       struct timeval atimestamp;
       unsigned char * anImage = 0;
       GetSingleImage(&anImage, 0, atimestamp);
       if (anImage!=0)
-	delete anImage;
+				delete anImage;
       m_NbOfImages = 0;
       // To be remember the next get single is called.
       // to indicate that a reallocation and a change of size is needed.
-      m_InitValue = 2;
+      m_IsReallocationNeeded = true;
     }
+	*/
   return m_ReadImageData.size();
 }
 
-bool HRP2FileImagesInputMethod::CameraPresent()
+bool
+HRP2FileImagesInputMethod::CameraPresent()
+const
 {
   if (m_NbOfImages>0)
     return true;

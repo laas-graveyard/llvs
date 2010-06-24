@@ -47,55 +47,65 @@ HRP2ImagesInputMethod::~HRP2ImagesInputMethod()
 {
 }
 
-int HRP2ImagesInputMethod::GetSingleImage(unsigned char **Images, int camera, struct timeval &timestamp)
+//FIXME: Use semantic camera number instead of camera id
+unsigned int
+HRP2ImagesInputMethod::SetImageSize(int lw, int lh, const unsigned int& CameraNumber)
 {
-  return -1;
-}
-
-int HRP2ImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumber)
-{
-  if ((CameraNumber<0) || (CameraNumber>3))
-    return -1;
+  if (CameraNumber>3)
+	{
+		return ERROR_UNDEFINED_PHYSICAL_CAMERA;
+	}
 
   m_ImagesWidth[CameraNumber] = lw;
   m_ImagesHeight[CameraNumber] = lh;
-  return 0;
+  return RESULT_OK;
 }
 
-int HRP2ImagesInputMethod::GetImageSize(int &lw, int &lh, int CameraNumber)
+//FIXME: Use semantic camera number instead of camera id
+unsigned int
+HRP2ImagesInputMethod::GetImageSize(int &lw, int &lh, const unsigned int& CameraNumber)
+const
 {
- if ((CameraNumber<0) || (CameraNumber>3))
-    return -1;
+  if (CameraNumber>3)
+	{
+		return ERROR_UNDEFINED_PHYSICAL_CAMERA;
+	}
 
   lw = m_ImagesWidth[CameraNumber];
   lh = m_ImagesHeight[CameraNumber];
-  return 0;
+  return RESULT_OK;
 }
 
-string HRP2ImagesInputMethod::GetFormat(unsigned int CameraNumber)
+string
+HRP2ImagesInputMethod::GetFormat(const unsigned int& SemanticCamera)
+const
 {
   string aFormat("none");
   return aFormat;
 }
 
-int HRP2ImagesInputMethod::SetLevelOfVerbosity(int VerbosityParameter)
+int HRP2ImagesInputMethod::SetLevelOfVerbosity(const int& VerbosityParameter)
 {
   m_Verbosity = VerbosityParameter;
   return m_Verbosity;
 }
 
-int HRP2ImagesInputMethod::GetLevelOfVerbosity()
+int
+HRP2ImagesInputMethod::GetLevelOfVerbosity()
+const
 {
   return m_Verbosity;
 }
 
-unsigned int HRP2ImagesInputMethod::GetNumberOfCameras()
+unsigned int
+HRP2ImagesInputMethod::GetNumberOfCameras()
+const
 {
   return 0;
 }
 
-double HRP2ImagesInputMethod::NextTimeForGrabbing(int CameraNumber)
+double
+HRP2ImagesInputMethod::NextTimeForGrabbing(const unsigned int& CameraNumber)
 {
-  
   return -1.0;
 }

@@ -207,7 +207,7 @@ interface LowLevelVisionSystem
   long getCameraSeq( out HRP2CameraSeq cameras );
 
   /* Get the original image given by one camera 
-   * @param cameraId : identifier of a camera.
+   * @param SemanticCamera : semantic identifier of a camera.
    * @param anImage: The image of the camera.
    * @param Format:  The current supported format is "GrayScaleChar".
    * The pixels are ordered by rows, the gray intensity is coded on 8 bits.
@@ -215,10 +215,10 @@ interface LowLevelVisionSystem
    * the default one is used and specified in Format.
    * @return The number of points of the image.
    */
-  long getImage(in long CameraID, out ImageData anImage, inout string Format);
+  long getImage(in long SemanticCamera, out ImageData anImage, inout string Format);
 
   /* Get the image given by one camera on which an edge detector has been applied
-   * @param cameraId : identifier of a camera.
+   * @param SemanticCamera : semantic identifier of a camera.
    * @param anImage: The image of the camera.
    * @param Format:  The current supported format is "GrayScaleChar".
    * The pixels are ordered by rows, the gray intensity is coded on 8 bits.
@@ -226,10 +226,10 @@ interface LowLevelVisionSystem
    * the default one is used and specified in Format.
    * @return The number of points of the image.
    */
-  long getEdgeImage(in long CameraID, out ImageData anImage, inout string Format);
+  long getEdgeImage(in long SemanticCamera, out ImageData anImage, inout string Format);
 
   /* Get the rectified image using the calibration parameters.
-   * @param cameraID: identifier of a camera.
+   * @param SemanticCamera : semantic identifier of a camera.
    * @param anImage: The rectified Image.
    * @param Format:  The current supported format is "GrayScaleChar".
    * The pixels are ordered by rows, the gray intensity is coded on 8 bits.
@@ -237,7 +237,7 @@ interface LowLevelVisionSystem
    * the default one is used and specified in Format.
    * @return The number of points of the image.
    */
-  long getRectifiedImage(in long CameraID, out ImageData anImage, inout string Format);
+  long getRectifiedImage(in long SemanticCamera, out ImageData anImage, inout string Format);
 
   /* Get a range map. 
    * @param aRangeMap: An array of 3D points.

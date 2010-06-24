@@ -96,17 +96,19 @@ namespace llvs
        */
       virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp);
+
       /*! \brief Set the size of the image willing to be grabbed. */
-      virtual int SetImageSize(int lw, int lh, int CameraNumber);
+      virtual unsigned int SetImageSize(int lw, int lh, const unsigned int& CameraNumber);
 
       /*! \brief Get the current image size for the appropriate camera */
-      virtual int GetImageSize(int &lw, int &lh, int CameraNumber);
+      virtual unsigned int GetImageSize(int &lw, int &lh, const unsigned int& SemanticCameraNumber) const;
 
       /*! \brief Get the current format of the image */
-      virtual string GetFormat();
+      virtual string GetFormat(const unsigned int& SemanticCamera) const;
 
       /*! \brief Tells if at least one camera is present. */
-      virtual bool CameraPresent();
+      virtual bool CameraPresent() const;
 
       /*! \brief Initialize the grabbing system. 
 	@return: True if initialization was successful.
@@ -120,7 +122,7 @@ namespace llvs
 
       /*! \brief Return the link between the detected camera 
        and its semantic. */
-      virtual int GetSemanticOfCamera(int CameraNumberOnWS)
+      virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS)
       { /* TODO */ 
 	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
 	assert(false); 
