@@ -14,7 +14,7 @@
 #-----------------------------------------------------------
 # CMake Settings
 #------------------------------------------------------------
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.6.4)
   enable_language(CXX)
 #Debug mode for cmake
   SET(CMAKE_VERBOSE_MAKEFILE ON)
