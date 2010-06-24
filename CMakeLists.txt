@@ -79,6 +79,7 @@
 		image
 		architecture
 		middleware
+		localization
 	)
 	FIND_PACKAGE(LLVT)
 	INCLUDE_DIRECTORIES(${LLVT_INCLUDE_DIRS})
@@ -108,9 +109,10 @@
   OPTION(SEARCH_FOR_OMNIORB4 "search for corba." ON)
   OPTION(SEARCH_FOR_MMX "search for mmx lib. " OFF)
   OPTION(SEARCH_FOR_DC1394_V2 "search for lib dc 1394 v2." ON)
-  OPTION(SEARCH_FOR_VISP "search for visual servoing plateform." ON)
-  OPTION(SEARCH_FOR_NMBT "search for model tracker new version." ON)
-  OPTION(SEARCH_FOR_MBT "search for model tracker old version." ON)
+  OPTION(SEARCH_FOR_VISP "search for visual servoing plateform." OFF)
+  OPTION(SEARCH_FOR_NMBT "search for model tracker new version." OFF)
+  OPTION(SEARCH_FOR_MBT "search for model tracker old version." OFF)
+  OPTION(SEARCH_FOR_BTL_SLAM "search for Bristol Visual SLAM." OFF)
 
 #---------------------------------------------------------
 #Set defaut value for the third part libraries
@@ -125,6 +127,7 @@
   SET(LLVS_HAVE_VISP 0)
   SET(LLVS_HAVE_MBT 0)
   SET(LLVS_HAVE_NMBT 0)
+  SET(LLVS_HAVE_BTL_SLAM 0)
 
 
 #---------------------------------------------------------
@@ -170,6 +173,15 @@
      ENDIF(VVV_FOUND)
 	 MESSAGE(STATUS "VVV found: ${VVV_FOUND}")
   ENDIF(SEARCH_FOR_VVV)
+
+#Detect BtlSlam
+	IF (SEARCH_FOR_BTL_SLAM)
+		FIND_PACKAGE(BtlSlam)
+		IF (BTL_SLAM_FOUND)
+			# Add includes and links
+		ENDIF(BTL_SLAM_FOUND)
+		MESSAGE(STATUS "BTL_SLAM found: ${BTL_SLAM_FOUND}")
+	ENDIF(SEARCH_FOR_BTL_SLAM)
 
 #Detect OpenCV config
   IF (SEARCH_FOR_OPENCV)

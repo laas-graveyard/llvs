@@ -102,6 +102,9 @@
 #include "ViSP/ComputeControlLawProcess.h"
 #endif
 
+#if (LLVS_HAVE_BTL_SLAM>0)
+#include "BtlSlam/BtlSlamProcess.h"
+#endif
 
 #include <vector>
 
@@ -569,6 +572,11 @@ namespace llvs
 
 #endif
 
+#if (LLVS_HAVE_BTL_SLAM>0)
+
+			HRP2BtlSlamProcess* m_BtlSlamProcess;
+
+#endif //LLVS_HAVE_BTL_SLAM
 
 #if (LLVS_HAVE_SCENE>0)
       /*! SingleCameraSLAMProcess */
