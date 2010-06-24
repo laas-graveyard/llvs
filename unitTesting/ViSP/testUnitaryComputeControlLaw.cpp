@@ -77,7 +77,7 @@ using namespace std;
 
 #include <ViSP/ComputeControlLawProcess.h>
 
-#include <Debug.h>
+#include <llvs/tools/Debug.h>
 
 
 

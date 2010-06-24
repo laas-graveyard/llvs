@@ -7,7 +7,7 @@
     
     See license file for information on license.
 */
-#include <Debug.h>
+#include <llvs/tools/Debug.h>
 
 #include <math.h>
 
@@ -208,15 +208,15 @@ void  HRP2ComputeControlLawProcess::GetcdMc ( vpHomogeneousMatrix &acdMc)
    {
      m_CTS->ReadHeadRPYSignals(headprpy);
 
-     vpRxyzVector headInFootRxyz(poseHeadInFoot[3],	
-				 poseHeadInFoot[4],
-				 poseHeadInFoot[5]);
+     vpRxyzVector headInFootRxyz(headprpy[3],	
+				 headprpy[4],
+				 headprpy[5]);
 
      vpThetaUVector headInFootThU     (headInFootRxyz);
 
-     vpTranslationVector  headInFootT (poseHeadInFoot[0],
-				       poseHeadInFoot[1],
-				       poseHeadInFoot[2]); 
+     vpTranslationVector  headInFootT (headprpy[0],
+				       headprpy[1],
+				       headprpy[2]); 
 
      vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
      
@@ -535,17 +535,17 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
 }
 
 /*! Test on object plan  Motion */
-bool planMotion(const vpHomogeneousMatrix &afMo)
+bool HRP2ComputeControlLawProcess::planMotion(const vpHomogeneousMatrix &afMo)
 {
   
-  vpHomogeneousMatrix olMo =  m_LastfMo.inverse()* afMo;
-
+  vpHomogeneousMatrix olMo = m_LastfMo.inverse()* afMo;
+ 
   vpThetaUVector olThUo(olMo);
   vpRxyzVector   olRxyzo(olThUo);
   
   if((fabs(olRxyzo[0])< m_RxLimit) &&
      (fabs(olRxyzo[1])< m_RyLimit) &&
-     (fabs(olMo)[2][3])< m_ModelHeightLimit )
+     (fabs(olMo[2][3])< m_ModelHeightLimit ))
  
     {
       return true;
@@ -617,4 +617,5 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
     {
       r=objectOnGround(afMh);
     }
+  return r; 
 }

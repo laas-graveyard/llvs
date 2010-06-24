@@ -170,7 +170,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    double m_RyLimit;
 
    /* Save of the last object pose in foot frame*/
-   vpColVector m_LastfMo;
+   vpHomogeneousMatrix m_LastfMo;
    
    /* Control velocity expressed in the Waist Frame */ 
    vpColVector m_ComputeV;
