@@ -125,7 +125,7 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
   LAMBDA
 
   -------------------------------------*/
-int HRP2ComputeControlLawProcess::SetParameter(std::string aParameter, 
+int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter, 
 					       std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
@@ -135,15 +135,68 @@ int HRP2ComputeControlLawProcess::SetParameter(std::string aParameter,
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
  
-  
+  ODEBUG3("Set parmeter in CCL  ");
+
   if (aParameter=="LAMBDA")
     {
      
       m_Lambda= atof(aValue.c_str());
       
+      ODEBUG("LAMBDA : "<< m_Lambda);
+      
       m_Task.setLambda( m_Lambda);
     }
-  else 
+  else if (aParameter=="MOTION_FREE")
+    { 
+      SetMotionTest(FREE);
+    }
+  else if (aParameter=="MOTION_GROUND")
+    { 
+      int found=0;
+      string tmp;
+      vector<double> limit(3);
+
+      for ( int i=0; i<3;++i)
+	{
+	  found=aValue.find(":");
+	  tmp=aValue.substr(0,found);
+	  aValue.erase(0,found+1);
+	  limit[i]=atof(tmp.c_str());
+	  ODEBUG("limit["<<i<<"] : "<<limit[i]);
+	}
+                 
+      SetMotionTest(ON_GROUND,limit);
+    }
+ else if (aParameter=="MOTION_PLAN")
+    { 
+      int found=0;
+      string tmp;
+      vector<double> limit(3);
+
+      for ( int i=0; i<3;++i)
+	{
+	  
+	  found=aValue.find(":");
+	  tmp=aValue.substr(0,found);
+	  aValue.erase(0,found+1);
+	  limit[i]=atof(tmp.c_str());
+
+	  ODEBUG("limit["<<i<<"] : "<<limit[i]);
+	}
+                 
+      SetMotionTest(PLAN_MOTION,limit);
+    }
+ else if (aParameter=="MOTION_HL")
+    { 
+ 
+      vector<double> limit(1);
+      limit[0]=atof(aValue.c_str());
+
+      ODEBUG("limit[0] : "<<limit[0]);
+                       
+      SetMotionTest(HEIGHT_LIMITED,limit);
+    }
+ else
     {
       cout << "Warning : unknown parameter :"<< aParameter << endl; 
       return -1;
@@ -175,7 +228,7 @@ void HRP2ComputeControlLawProcess::SetConnectionToSot (ConnectionToSot * aCTS)
 void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
 						  const vector<double> &limits)
 {
-  m_MotionTested == aMotion;
+  m_MotionTested = aMotion;
   
   if(m_MotionTested == HEIGHT_LIMITED && limits.size()==1)
     {
@@ -187,6 +240,13 @@ void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
       m_RxLimit = limits[1] ; 
       m_RyLimit = limits[2] ;
     }
+  else if (m_MotionTested == PLAN_MOTION && limits.size()==3 )
+    {
+      m_ModelHeightLimit = limits[0] ;
+      m_RxLimit = limits[1] ; 
+      m_RyLimit = limits[2] ;
+    }
+
   else 
     {
       cout << " The vector<double> size doesn't match with the typeMotion"<<endl;
@@ -282,6 +342,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   m_Task.addFeature(*m_FThU) ;
 
 #if 1
+
   m_Task.print() ;
 #endif
 
