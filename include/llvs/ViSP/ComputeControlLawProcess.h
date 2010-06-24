@@ -98,16 +98,16 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   int pStartProcess();
 
   /*! Test if object is still on the ground  */
-  bool objectOnGround(const vpHomogeneousMatrix &afMh);
+  bool objectOnGround(const vpHomogeneousMatrix &afMo);
 
   /*! Test on object plan  Motion */
-  bool planMotion(const vpHomogeneousMatrix &afMh);
+  bool planMotion(const vpHomogeneousMatrix &afMo);
 
   /*! Test the object high position*/
-  bool heightInLimit(const vpHomogeneousMatrix &afMh);
+  bool heightInLimit(const vpHomogeneousMatrix &afMo);
 
   /*! Test the object Motion */
-  bool TestObjectMotion(const vpHomogeneousMatrix &afMh);
+  bool TestObjectMotion(const vpHomogeneousMatrix &afMo);
  
  public:
    /*!Convert velocity from camera to waist*/
@@ -142,6 +142,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /*Change velocity frame from camera to head*/
    vpTwistMatrix m_hVc;
 
+   /* Current camera pose in the head frame*/
    vpHomogeneousMatrix m_headMcamera;
 
    /* Visual Servoing Task */
@@ -168,8 +169,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
    /* Rotation on X axis limitation for the model */
    double m_RyLimit;
 
-   /* Save of the initial object pose ion foot frame*/
-   vpColVector m_fMoInit;
+   /* Save of the last object pose in foot frame*/
+   vpColVector m_LastfMo;
    
    /* Control velocity expressed in the Waist Frame */ 
    vpColVector m_ComputeV;

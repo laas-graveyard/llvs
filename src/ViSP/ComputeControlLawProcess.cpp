@@ -207,11 +207,20 @@ void  HRP2ComputeControlLawProcess::GetcdMc ( vpHomogeneousMatrix &acdMc)
  if (m_CTS!=0)
    {
      m_CTS->ReadHeadRPYSignals(headprpy);
-     m_CTS->ReadWaistRPYSignals(waistprpy);
-   
-     
-     
 
+     vpRxyzVector headInFootRxyz(poseHeadInFoot[3],	
+				 poseHeadInFoot[4],
+				 poseHeadInFoot[5]);
+
+     vpThetaUVector headInFootThU     (headInFootRxyz);
+
+     vpTranslationVector  headInFootT (poseHeadInFoot[0],
+				       poseHeadInFoot[1],
+				       poseHeadInFoot[2]); 
+
+     vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
+     
+     m_LastfMo = fMh*m_headMcamera*m_cdMc;
      
    }
 
@@ -289,9 +298,9 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 
   aof.open("dumpcommand.dat",ofstream::out);
   aof <<"# cdMo :  "<<cdThUo.t()<< "  "<<cdRxyzo.t() <<endl
-      <<"# TimeStamp (1 value) / Pose cMo(6 value) / Error (1 value)"
-      <<"/ Control in camera Frame(6 value) / Control in wait Frame(6 value)/"
-      <<"/ Control send to SoT (3 value)"<<endl;
+      <<"# TimeStamp (1 value) / Pose cMo(6 values) / Error (1 value)"
+      <<"/ Control in camera Frame(6 values) / Control in wait Frame(6 values)/"
+      <<"/ Control send to SoT (3 values)"<<endl;
   
   aof.close();
 
@@ -477,7 +486,6 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
 						       const double *poseWaistInFoot,
 						       vpHomogeneousMatrix &afMh )
 {
-  
   // test on the input velocity
   if(velCam.getRows()!=6)
     {
@@ -526,6 +534,30 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
   
 }
 
+/*! Test on object plan  Motion */
+bool planMotion(const vpHomogeneousMatrix &afMo)
+{
+  
+  vpHomogeneousMatrix olMo =  m_LastfMo.inverse()* afMo;
+
+  vpThetaUVector olThUo(olMo);
+  vpRxyzVector   olRxyzo(olThUo);
+  
+  if((fabs(olRxyzo[0])< m_RxLimit) &&
+     (fabs(olRxyzo[1])< m_RyLimit) &&
+     (fabs(olMo)[2][3])< m_ModelHeightLimit )
+ 
+    {
+      return true;
+    }
+  else
+    {
+       return false;
+    }
+}
+
+
+
 bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afMo)
 {
   if (heightInLimit(afMo))
@@ -534,7 +566,7 @@ bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afM
       vpRxyzVector   objectInFootRxyz(objectInFootThU);
 
       if((fabs(objectInFootRxyz[0])< m_RxLimit)
-	 || (fabs(objectInFootRxyz[1])< m_RyLimit))
+	 && (fabs(objectInFootRxyz[1])< m_RyLimit))
 	{
 	  return true;
 	}
@@ -567,6 +599,7 @@ bool HRP2ComputeControlLawProcess::heightInLimit(const vpHomogeneousMatrix &afMo
     }
 }
 
+
 /*! Test the object Motion */
 bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &afMh)
 {
@@ -584,5 +617,4 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
     {
       r=objectOnGround(afMh);
     }
-
 }
