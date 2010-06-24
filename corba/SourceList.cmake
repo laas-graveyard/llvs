@@ -24,7 +24,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${common_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${common_Header})
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/common.idl")
@@ -45,7 +44,6 @@ IF(OMNIORB4_FOUND)
   )
   
 	SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${BRep_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${BRep_Header})
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/BRep.idl")
@@ -65,7 +63,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${StereoVision_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${StereoVision_Header})
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/StereoVision.idl")
   #--------------------------------------------------------
@@ -87,7 +84,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${visionsensor_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${visionsensor_Header})
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/visionsensor.idl")
   #--------------------------------------------------------
@@ -107,7 +103,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${Scene_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${Scene_Header})
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/Scene.idl")
@@ -129,7 +124,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${GetGyroAndAccelerometer_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${GetGyroAndAccelerometer_Header})
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/GetGyroAndAccelerometer.idl")
@@ -150,7 +144,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${ServerCommand_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${ServerCommand_Header})
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/ServerCommand.idl")
   #--------------------------------------------------------
@@ -169,7 +162,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${LowLevelVisionSystem_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${LowLevelVisionSystem_Header})
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/LowLevelVisionSystem.idl")
   #--------------------------------------------------------
@@ -189,8 +181,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${ModelTrackerInterface_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${ModelTrackerInterface_Header})
-
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/ModelTrackerInterface.idl")
 
@@ -212,7 +202,6 @@ IF(OMNIORB4_FOUND)
   )
 
   SET(LLVS_SRC_FILES ${LLVS_SRC_FILES} ${PointTrackerInterface_CPP})
-  SET(LLVS_HEADER_FILES ${LLVS_HEADER_FILES} ${PointTrackerInterface_Header})
 
 
   LIST(APPEND IDL_FILES "${LLVS_SOURCE_DIR}/corba/PointTrackerInterface.idl")
