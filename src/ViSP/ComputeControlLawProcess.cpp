@@ -7,7 +7,7 @@
     
     See license file for information on license.
 */
-#include <Debug.h>
+#include <llvs/tools/Debug.h>
 
 #include <math.h>
 
@@ -36,47 +36,7 @@ using namespace llvs;
 HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 {
   m_ProcessName ="ComputeControlLawProcess";
-
-  m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
-  m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
-
-  m_ProcessInitialized = false;
-
-  m_ControlLawComputed = false;
-
-  m_cdMoSet = false;
-
-  m_Lambda = 0.6;
-
-  m_nmbt = 0x0;
-
-  m_CTS=0x0;
-
-  m_ComputeV.resize(6);
-
-  m_ModelHeightLimit =0.9;
-
-  vpHomogeneousMatrix cameraMhead;
-
-	
-  ifstream file;
-
-  string name="./data/ViSP/hrp2CamParam/cMh.3";
-  file.open (name.c_str());
-
-  for(int i=0; i<4; ++i)	
-    {
-      for(int j=0; j<4; ++j)	
-	{
-	  file>>cameraMhead[i][j];
-	}
-    }
-
-  file.close();	
-	
-  m_headMcamera = cameraMhead.inverse();
-    
-  m_hVc.buildFrom(m_headMcamera);
+  init();
 }
 
 
@@ -91,6 +51,70 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
  
 }
 
+
+int HRP2ComputeControlLawProcess::init()
+{
+ 
+  m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
+  m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
+  m_Lambda = 0.6;
+  m_nmbt = 0x0;
+  m_CTS=0x0;
+  m_ProcessInitialized = false;
+  m_ControlLawComputed = false;
+  m_cdMoSet = false;
+
+  /* default motion test*/
+  m_MotionTested=FREE;
+  m_ModelHeightLimit=0;
+  m_RxLimit=0;
+  m_RyLimit=0;
+
+
+  // load 
+  vpHomogeneousMatrix cameraMhead;
+  loadcMh(cameraMhead);
+	
+ 
+  m_headMcamera = cameraMhead.inverse();
+  m_hVc.buildFrom(m_headMcamera);
+   
+  m_ModelHeightLimit =0.9;
+ 
+  return 0 ;
+}
+
+
+int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
+{
+ 
+
+  //TODO : this file name shouldn't be written here
+  ifstream file;
+  string name="./data/ViSP/hrp2CamParam/cMh.3";
+  file.open (name.c_str());
+  
+  try
+    {
+      cMh.load(file);
+    }
+  catch(vpException a) // file doesn't exist
+    { 
+      cout << "---- Open Exception Default---------------"<<endl;
+      cout<<"----Wide camera extrinsic parameters ---- " <<endl;
+      vpCTRACE << endl <<a;
+      cout << "------------------ " <<endl;
+      // fill a defaut matrix
+      cMh[0][0]=0.016937505;   cMh[0][1]=-0.9997821632;  cMh[0][2]= -0.01217327283; cMh[0][3]=-0.05195444004;
+      cMh[1][0]=-0.1698427574; cMh[1][1]=0.009121740254; cMh[1][2]= -0.9854286431;  cMh[1][3]= 0.1036017168 ;
+      cMh[2][0]=0.9853256992 ; cMh[2][1]=0.0187590039;   cMh[2][2]= -0.1696511946;  cMh[2][3]=-0.04729590458 ;
+      cMh[3][0]=0; cMh[3][1]=0;cMh[3][2]= 0;  cMh[3][3]=1 ;
+      return -1;
+    } 
+    
+  file.close();
+  return 0;
+}
 
 
 /*!-------------------------------------
@@ -147,11 +171,60 @@ void HRP2ComputeControlLawProcess::SetConnectionToSot (ConnectionToSot * aCTS)
   m_CTS = aCTS;
 }
 
+ /*! Set the type of test on motion*/
+void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
+						  const vector<double> &limits)
+{
+  m_MotionTested == aMotion;
+  
+  if(m_MotionTested == HEIGHT_LIMITED && limits.size()==1)
+    {
+      m_ModelHeightLimit = limits[0] ;
+    }
+  else if (m_MotionTested == ON_GROUND && limits.size()==3 )
+    {
+      m_ModelHeightLimit = limits[0] ;
+      m_RxLimit = limits[1] ; 
+      m_RyLimit = limits[2] ;
+    }
+  else 
+    {
+      cout << " The vector<double> size doesn't match with the typeMotion"<<endl;
+    }
+}
+
+
 
 /*! Get the cdMc */
 void  HRP2ComputeControlLawProcess::GetcdMc ( vpHomogeneousMatrix &acdMc)
 {
   acdMc=m_cdMc;
+
+ double headprpy[6];
+ double waistprpy[6];
+      
+ // Read nom information from SoT.
+ if (m_CTS!=0)
+   {
+     m_CTS->ReadHeadRPYSignals(headprpy);
+
+     vpRxyzVector headInFootRxyz(headprpy[3],	
+				 headprpy[4],
+				 headprpy[5]);
+
+     vpThetaUVector headInFootThU     (headInFootRxyz);
+
+     vpTranslationVector  headInFootT (headprpy[0],
+				       headprpy[1],
+				       headprpy[2]); 
+
+     vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
+     
+     m_LastfMo = fMh*m_headMcamera*m_cdMc;
+     
+   }
+
+
 }
 
 /*! Get the ComputeV */
@@ -211,12 +284,28 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 #if 1
   m_Task.print() ;
 #endif
+
+  
   
   m_ProcessInitialized =true;
 
+#if 1
+
   ofstream aof;
+  vpTranslationVector cdTo(m_cdMo[0][3],m_cdMo[1][3],m_cdMo[2][3]);
+  vpThetaUVector cdThUo(m_cdMo);
+  vpRxyzVector cdRxyzo (cdThUo);
+
   aof.open("dumpcommand.dat",ofstream::out);
+  aof <<"# cdMo :  "<<cdThUo.t()<< "  "<<cdRxyzo.t() <<endl
+      <<"# TimeStamp (1 value) / Pose cMo(6 values) / Error (1 value)"
+      <<"/ Control in camera Frame(6 values) / Control in wait Frame(6 values)/"
+      <<"/ Control send to SoT (3 values)"<<endl;
+  
   aof.close();
+
+#endif
+
   return 0;
 }
 
@@ -225,49 +314,54 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   -------------------------------------*/
 int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
+  m_ComputeV.resize(6);
   m_ControlLawComputed = false;
   int r;
   ODEBUG("m_nmbt:" << (int)m_nmbt);
+
+
+  // store the velocity in camera frame
+  vpColVector cVelocity(6);
+  
+  // store the velocity in waist frame
+  vpColVector wVelocity(6);
+
+  // store the velocity send to SoT
+  double velref[3];
+
   if (m_nmbt->m_trackerTrackSuccess)
     {
       m_nmbt->GetOutputcMo(m_cMo);
-  
       ODEBUG("m.cMo : "<<m_cMo);
- 
       ODEBUG("m.cdMo : "<<m_cdMo);
-
       m_cdMc = m_cdMo*m_cMo.inverse();
 
-
       ODEBUG("m.cdMc : "<<m_cdMc);
-
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
 
-      vpColVector cVelocity(6);
-      
+  
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
 
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
-      
-      vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
 
+
+      // express the rotation as rx ry rz
+      vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
       vpRxyzVector Vrxyz(VthU);
-
       cVelocity[3]=Vrxyz[0];
       cVelocity[4]=Vrxyz[1];
       cVelocity[5]=Vrxyz[2];
-
-      
 
       r=0;
 
       m_ControlLawComputed = true;
 
-      double headprpy[6];
+      
+       double headprpy[6];
       double waistprpy[6];
       
       // Read nom information from SoT.
@@ -277,77 +371,75 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
 	}
       
-      // Transfer velocity from cemra to waist frame
-      vpRxyzVector headRxyz (headprpy[3],headprpy[4],headprpy[5]);
-      vpRxyzVector waistRxyz(waistprpy[3],waistprpy[4],waistprpy[5]);
+      //Create homogeneousMatrix to store the head position in foot frame   
+      vpHomogeneousMatrix  fMh;
 
-      vpThetaUVector headThU (headRxyz);
-      vpThetaUVector waistThU (waistRxyz);
+
+      // Change the velocity frame from camera to waist
+      changeVelocityFrame(cVelocity,
+			  wVelocity,
+			  headprpy,
+			  waistprpy,
+			  fMh);
       
-
-      vpTranslationVector  headT (headprpy[0],headprpy[1],headprpy[2]);
-      vpTranslationVector  waistT(waistprpy[0],waistprpy[1],waistprpy[2]);
-
-      vpHomogeneousMatrix  fMh (headT ,headThU);
-      vpHomogeneousMatrix  fMw (waistT, waistThU);
-
-      ODEBUG( "headT" << fMh);
-
-      ODEBUG(   "waistT"<<endl << fMw);
-
-      vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
-
-      vpTwistMatrix wVh (wMh);
-
-      
+     //compute the obect  position in foot frame 
       vpHomogeneousMatrix fMo = fMh*m_headMcamera*m_cMo;
 
-      ODEBUG3(  "fMo[2][3]: \n"<<fMo[2][3]);
 
-      if(fMo[2][3]<m_ModelHeightLimit)
+      if(TestObjectMotion(fMh))
 	{
-	  m_ComputeV = wVh*m_hVc *cVelocity;
+	  m_ComputeV = wVelocity;
 	}
       else
 	{
-	  m_ComputeV = 0;
-	  m_ComputeV[0]=0.001;
+	  cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
 	  r=-1;
 	}
     }
   else
     {
- 
-      m_ComputeV = 0;
-      m_ComputeV[0] = 0.001;
-      
+       
+      cerr << "Error in Compute control law >> the tracking failed !!!" << endl; 
       r=-1;
     }
 
   if(r==-1)
-    m_Computing = 0;
+    {
+      m_ComputeV = 0;
+      m_ComputeV[0]=0.001;
+      
+      /*Stop the process*/
+      m_Computing = 0;
+    }
 
-  double velref[3];
-  
-  velref[0]=SATURATE( m_ComputeV[0], 0.2);
-  velref[1]= SATURATE( m_ComputeV[1], 0.1);
-  velref[2]= SATURATE(m_ComputeV[5], 0.18);
+  if (m_CTS!=0)
+    {
+      velref[0]=SATURATE( m_ComputeV[0], 0.2);
+      velref[1]= SATURATE( m_ComputeV[1], 0.1);
+      velref[2]= SATURATE(m_ComputeV[5], 0.18);
 
-
-  m_CTS-> WriteVelocityReference(velref);
-
+      m_CTS-> WriteVelocityReference(velref);
+    }
 
 
   ODEBUG("Staying alive !");
-
 #if 1
+  
+  vpTranslationVector cTo(m_cMo[0][3],m_cMo[1][3],m_cMo[2][3]);
+  vpThetaUVector cThUo(m_cMo);
+  vpRxyzVector cRxyzo (cThUo);
+
   ofstream aof;
   aof.open("dumpcommand.dat",ofstream::app);
   struct timeval atv;
   gettimeofday(&atv,0);
   aof.precision(15);
-  aof << atv.tv_sec + 0.000001 * atv.tv_usec << " " << m_ComputeV.t() << endl;
-  aof<< velref[0]<< "  "<< velref[1]<< "  "<<velref[2]<< endl;
+  aof << atv.tv_sec + 0.000001 * atv.tv_usec << " "
+      << cTo.t()<<"  "<< cRxyzo.t()<<"  "<<m_Error<<"  "
+      << cVelocity[0]<<"  "<<cVelocity[1]<<"  "<<cVelocity[2]<<"  "
+      << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
+      << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<< endl;
+  
   aof.close();
 
 #endif
@@ -357,8 +449,173 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
  
 }
 
+/*
+  Clean up the process
+*/
 int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
 {
     
   return 0;
 } 
+
+/*
+ Change the velocity frame
+ 
+ \brief :
+ The velocituy results from the visual servoing control
+ law. It is basically expressed in the camera frame
+ Using the current measurements, we can compute the
+ transformation between the camera frame in the waist
+ 
+ wMc and the correponding Twist wVc
+ 
+ and use it to change the velocity frame.
+
+ 
+ return : 0  if ok
+          -1 if the input velocity is not of size 6
+          
+  
+ warning : attention nothing garanties the size 
+           of   poseHeadInFoot and poseWaistInFoot
+
+ */
+int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam,
+						       vpColVector& velWaist,
+						       const double *poseHeadInFoot,
+						       const double *poseWaistInFoot,
+						       vpHomogeneousMatrix &afMh )
+{
+  // test on the input velocity
+  if(velCam.getRows()!=6)
+    {
+      return -1;
+    }
+  
+  velWaist.resize(6); 
+  
+  //Express rotation in theta U 
+  vpRxyzVector headInFootRxyz      (poseHeadInFoot[3],
+				    poseHeadInFoot[4],
+				    poseHeadInFoot[5]);
+  vpRxyzVector waistInFootRxyz     (poseWaistInFoot[3],
+				    poseWaistInFoot[4],
+				    poseWaistInFoot[5]);
+  vpThetaUVector headInFootThU     (headInFootRxyz);
+  vpThetaUVector waistInFootThU    (waistInFootRxyz);
+
+  //Create translation vectors      
+  vpTranslationVector  headInFootT (poseHeadInFoot[0],
+				    poseHeadInFoot[1],
+				    poseHeadInFoot[2]);
+  vpTranslationVector  waistInFootT(poseWaistInFoot[0],
+				    poseWaistInFoot[1],
+				    poseWaistInFoot[2]);
+
+  //Create the corresponding homogeneousMatrix    
+  vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
+  vpHomogeneousMatrix  fMw (waistInFootT, waistInFootThU);
+ 
+  afMh=fMh;
+
+  //Compute the position of the head in the waist
+  vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
+ 
+  //Compute the associate twist matrix
+  vpTwistMatrix wVh (wMh);
+ 
+  //The position of the current camera in the head should
+  // have been previously loaded
+  //Change the velocity frame
+  velWaist = wVh*m_hVc*velCam;
+  
+  return 0;
+  
+  
+}
+
+/*! Test on object plan  Motion */
+bool HRP2ComputeControlLawProcess::planMotion(const vpHomogeneousMatrix &afMo)
+{
+  
+  vpHomogeneousMatrix olMo = m_LastfMo.inverse()* afMo;
+ 
+  vpThetaUVector olThUo(olMo);
+  vpRxyzVector   olRxyzo(olThUo);
+  
+  if((fabs(olRxyzo[0])< m_RxLimit) &&
+     (fabs(olRxyzo[1])< m_RyLimit) &&
+     (fabs(olMo[2][3])< m_ModelHeightLimit ))
+ 
+    {
+      return true;
+    }
+  else
+    {
+       return false;
+    }
+}
+
+
+
+bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afMo)
+{
+  if (heightInLimit(afMo))
+    {
+      vpThetaUVector objectInFootThU(afMo);
+      vpRxyzVector   objectInFootRxyz(objectInFootThU);
+
+      if((fabs(objectInFootRxyz[0])< m_RxLimit)
+	 && (fabs(objectInFootRxyz[1])< m_RyLimit))
+	{
+	  return true;
+	}
+      else
+	{
+	  return false;
+	}
+    }
+  else
+    {
+      return false; 
+    }
+
+}
+
+
+bool HRP2ComputeControlLawProcess::heightInLimit(const vpHomogeneousMatrix &afMo)
+{
+  
+ 
+  ODEBUG3(  "afMo[2][3]: \n"<<afMo[2][3]);
+
+  if(afMo[2][3]<m_ModelHeightLimit)
+    {
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
+
+
+/*! Test the object Motion */
+bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &afMh)
+{
+  bool r = false;
+
+  if (m_MotionTested == FREE)
+    {
+      r =true;
+    }
+  else if(m_MotionTested == HEIGHT_LIMITED)
+    {
+      r=heightInLimit(afMh);
+    }
+  else if (m_MotionTested == ON_GROUND)
+    {
+      r=objectOnGround(afMh);
+    }
+  return r; 
+}

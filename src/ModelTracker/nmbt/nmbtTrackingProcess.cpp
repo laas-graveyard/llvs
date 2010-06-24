@@ -669,11 +669,11 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
       catch(std::string a) // tracking got lost
 	{
 	  
-#if 1
+
 	  std::cerr << std::endl;
 	  std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
 	  std::cerr << std::endl;
-#endif
+
 	  
 	  // set the tracking flag
 	  m_trackerTrackSuccess= false;

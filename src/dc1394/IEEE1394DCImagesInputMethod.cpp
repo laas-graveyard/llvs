@@ -1002,6 +1002,8 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
       IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters[CameraNb];
       
+      if (aCam->GetFPS()== "60fps")
+	fps = DC1394_FRAMERATE_60;      
       if (aCam->GetFPS()== "30fps")
 	fps = DC1394_FRAMERATE_30;
       else if (aCam->GetFPS()== "15fps")
