@@ -18,6 +18,15 @@ SET(LLVS_HEADER_FILES_1
 	./Simu/FileImagesInputMethod.h 
 	./dc1394/IEEE1394DCImagesInputMethod.h	)
 
+IF (BTL_SLAM_FOUND)
+	SET(LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
+		./BtlSlam/BtlSlamProcess.cpp
+	)
+	SET(LLVS_HEADER_FILES_1 ${LLVS_HEADER_FILES_1}
+		./BtlSlam/BtlSlamProcess.h
+	)
+ENDIF (BTL_SLAM_FOUND)
+
 IF (libdc1394-2_FOUND)
      SET (LLVS_SRC_FILES_1 ${LLVS_SRC_FILES_1}
 	./dc1394/IEEE1394DCCameraParameters.cpp

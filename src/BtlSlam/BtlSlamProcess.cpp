@@ -6,18 +6,22 @@
  *  \creation 24/06/2010
  * ---------------------------------------------------- */
 
-#include "BtlSlam/BtlSlam.h"
-
 #if (LLVS_HAVE_BTL_SLAM>0)
 
-#include <sstream>
+/*! Includes slam specific */
+#include "BtlSlam/BtlSlam.h"
+#include <vslam_app.h>
+
+/*! Includes llvs tools */
+#include <llvs/tools/Debug.h>
 
 /* ---------------------------------------------------
  * Initialization / Destruction
  * --------------------------------------------------- */
 
 HRP2BtlSlamProcess::HRP2BtlSlamProcess()
-	:m_pImageContainer(0)
+	:m_pImageContainer(0),
+	m_ProcessName("BtlSlamProcess")
 {
 }
 
@@ -33,30 +37,35 @@ HRP2BtlSlamProcess::~HRP2BtlSlamProcess()
 int
 HRP2BtlSlamProcess::pInitializeTheProcess()
 {
+	ODEBUG3("[BtlSlam] Initialize");
 	return BTL_SLAM_RESULT_OK;
 }
 
 int
 HRP2BtlSlamProcess::pRealizeTheProcess()
 {
+	ODEBUG3("[BtlSlam] Realize");
 	return BTL_SLAM_RESULT_OK;
 }
 
 int
 HRP2BtlSlamProcess::pCleanUpTheProcess()
 {
+	ODEBUG3("[BtlSlam] CleanUp");
 	return BTL_SLAM_RESULT_OK;
 }
 
 int
 HRP2BtlSlamProcess::pStartProcess()
 {
+	ODEBUG3("[BtlSlam] Start");
 	return BTL_SLAM_RESULT_OK;
 }
 
 int
 HRP2BtlSlamProcess::pStopProcess()
 {
+	ODEBUG3("[BtlSlam] Stop");
 	return BTL_SLAM_RESULT_OK;
 }
 
@@ -67,6 +76,7 @@ HRP2BtlSlamProcess::pStopProcess()
 void
 HRP2BtlSlamProcess::setInputImages(unsigned char** pImageContainer)
 {
+	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer);
 	m_pImageContainer = pImageContainer;
 }
 
