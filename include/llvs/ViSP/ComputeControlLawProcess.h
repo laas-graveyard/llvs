@@ -162,6 +162,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    /* Heiht limitation for the model*/
    double m_ModelHeightLimit;
+   
+   /* Store the initial  model height */
+   double m_IninitHeight;
 
    /* Rotation on X axis limitation for the model */
    double m_RxLimit;
