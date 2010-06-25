@@ -55,7 +55,6 @@
 #set intern lib dir
   SET(LLVS_INTERN_LINK_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 #The location in which to install Example libraries.
-#  SET(LIBRARY_OUTPUT_PATH ${LLVS_SOURCE_DIR}/lib)
    SET(LIBRARY_OUTPUT_PATH lib)
 #---------------------------------------------------
 # Specify the cmake path and option
@@ -82,7 +81,6 @@
 		localization
 	)
 	FIND_PACKAGE(LLVT)
-	INCLUDE_DIRECTORIES(${LLVT_INCLUDE_DIRS})
   INCLUDE(CheckLibraryExists)
 
 #---------------------------------------------------------
@@ -174,23 +172,6 @@
 	 MESSAGE(STATUS "VVV found: ${VVV_FOUND}")
   ENDIF(SEARCH_FOR_VVV)
 
-#Detect BtlSlam
-	IF (SEARCH_FOR_BTL_SLAM)
-		FIND_PACKAGE(BtlSlam)
-		IF (BTL_SLAM_FOUND)
-			FOREACH(_include_dir ${BTL_SLAM_INCLUDE_DIRS})
-				SET(LLVS_CXX_FLAGS "${LLVS_CXX_FLAGS} -I${_include_dir}")
-			ENDFOREACH(_include_dir ${BTL_SLAM_INCLUDE_DIRS})
-			FOREACH(_link_dir ${BTL_SLAM_LIBRARY_DIRS})
-				SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} -L${_link_dir}")
-			ENDFOREACH(_link_dir ${BTL_SLAM_LIBRARY_DIRS})
-			FOREACH(_library ${BTL_SLAM_LIBRARIES})
-				SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} -l${_library}")
-			ENDFOREACH(_library ${BTL_SLAM_LIBRARIES})
-		ENDIF(BTL_SLAM_FOUND)
-		MESSAGE(STATUS "BTL_SLAM found: ${BTL_SLAM_FOUND}")
-	ENDIF(SEARCH_FOR_BTL_SLAM)
-
 #Detect OpenCV config
   IF (SEARCH_FOR_OPENCV)
      INCLUDE(FindOpenCV)
@@ -257,7 +238,6 @@
          LIST(APPEND LLVS_EXTERN_INCLUDE_DIR ${VISP_INCLUDE_DIR}) 
       	 LIST(APPEND LLVS_EXTERN_LINK_DIR ${VISP_LINK_DIRECTORIES})
     ENDIF(VISP_FOUND)
-    #MESSAGE (STATUS "VISP LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
 	MESSAGE(STATUS "VISP found: ${VISP_FOUND}")
   ENDIF(SEARCH_FOR_VISP)
 
@@ -276,9 +256,30 @@
       	  LIST(APPEND LLVS_EXTERN_LINK_DIR ${NMBT_LINK_DIRECTORIES})
        ENDIF (NMBT_FOUND)
      ENDIF(NOT VISP_FOUND)
-     #MESSAGE(STATUS "NMBT LLVS_EXTERN_INCLUDE_DIR : ${LLVS_EXTERN_INCLUDE_DIR}")
 	 MESSAGE(STATUS "NMBT found: ${NMBT_FOUND}")
   ENDIF(SEARCH_FOR_NMBT)
+
+#Detect BtlSlam
+# Important note: SLAM uses a different boost library version than
+# the one provided by robotpkg. The only way to avoid wrong boost
+# inclusion for now is to put boost includes first in the gcc
+# command line.
+	IF (SEARCH_FOR_BTL_SLAM)
+		FIND_PACKAGE(BtlSlam)
+		IF (BTL_SLAM_FOUND)
+			SET(LLVS_HAVE_BTL_SLAM 1)
+			FOREACH(_include_dir ${BTL_SLAM_INCLUDE_DIRS})
+				SET(LLVS_CXX_FLAGS "-I${_include_dir} ${LLVS_CXX_FLAGS}")
+			ENDFOREACH(_include_dir ${BTL_SLAM_INCLUDE_DIRS})
+			FOREACH(_link_dir ${BTL_SLAM_LIBRARY_DIRS})
+				SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} -L${_link_dir}")
+			ENDFOREACH(_link_dir ${BTL_SLAM_LIBRARY_DIRS})
+			FOREACH(_library ${BTL_SLAM_LIBRARIES})
+				SET(LLVS_LINK_FLAGS "${LLVS_LINK_FLAGS} -l${_library}")
+			ENDFOREACH(_library ${BTL_SLAM_LIBRARIES})
+		ENDIF(BTL_SLAM_FOUND)
+		MESSAGE(STATUS "BTL_SLAM found: ${BTL_SLAM_FOUND}")
+	ENDIF(SEARCH_FOR_BTL_SLAM)
 
 
 # Display the compilation and linker options once and for all
@@ -298,16 +299,13 @@ MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
 #------------------------------------------------------------
 # Concatenate intern and third party include dirs
 #------------------------------------------------------------
- 
- 
  LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_INTERN_INCLUDE_DIR}")
  LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_EXTERN_INCLUDE_DIR}")
- INCLUDE_DIRECTORIES(${LLVS_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Add library path
 #------------------------------------------------------------
- SET (${LLVS_LINK_DIR} "")
+ SET (LLVS_LINK_DIR)
  LIST(APPEND LLVS_LINK_DIR "${LLVS_INTERN_LINK_DIR}")
  LIST(APPEND LLVS_LINK_DIR "${LLVS_EXTERN_LINK_DIR}")
  LINK_DIRECTORIES(${LLVS_LINK_DIR})
@@ -350,10 +348,14 @@ MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
   TARGET_LINK_LIBRARIES(${binary} 
     ${LLVS_INTERN_LIBS} ${LLVS_EXTERN_LIBS})
   
-  SET_TARGET_PROPERTIES(LLVS_server PROPERTIES COMPILE_FLAGS 
-  "${LLVS_server_CXX_FLAGS} ${LLVS_CXX_FLAGS}"
-  LINK_FLAGS 
-  "${LLVS_server_LINK_FLAGS} ${LLVS_LINK_FLAGS}  -Llib -lllvs-0 ")
+  SET_TARGET_PROPERTIES(
+	LLVS_server 
+	PROPERTIES
+		COMPILE_FLAGS 
+	  	"${LLVS_CXX_FLAGS} ${LLVS_server_CXX_FLAGS}"
+	  LINK_FLAGS 
+	 	 "${LLVS_server_LINK_FLAGS} ${LLVS_LINK_FLAGS}  -Llib -lllvs-0 "
+	)
 
 ADD_DEPENDENCIES(LLVS_server ${LLVS_INTERN_LIBS})
   

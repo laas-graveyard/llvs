@@ -9,7 +9,9 @@
 #ifndef _HRP2_BTL_SLAM_PROCESS_H_
 #define _HRP2_BTL_SLAM_PROCESS_H_
 
-#if LLVS_HAVE_BTL_SLAM
+#include "llvsConfig.h"
+
+#if (LLVS_HAVE_BTL_SLAM>0)
 
 #include "VisionBasicProcess.h"
  
@@ -21,8 +23,8 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		static const int BTL_SLAM_RESULT_OK = 0;
 
 		/*! Constructor/Destructor */
-		BtlSlamProcess();
-		virtual ~BtlSlamProcess();
+		HRP2BtlSlamProcess();
+		virtual ~HRP2BtlSlamProcess();
 
 		/*! Generic process interface */
 		int pInitializeTheProcess();
@@ -32,7 +34,7 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		int pStopProcess();
 
 		/*! Specific interface */
-		void setInputImages(unsigned char** pImageContainer);
+		void SetInputImages(unsigned char** pImageContainer);
 
 	protected:
 		unsigned char** m_pImageContainer;

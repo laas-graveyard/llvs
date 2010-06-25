@@ -6,10 +6,12 @@
  *  \creation 24/06/2010
  * ---------------------------------------------------- */
 
+#include "BtlSlam/BtlSlamProcess.h"
+
 #if (LLVS_HAVE_BTL_SLAM>0)
 
+#include <boost/serialization/extended_type_info.hpp>
 /*! Includes slam specific */
-#include "BtlSlam/BtlSlam.h"
 #include <vslam_app.h>
 
 /*! Includes llvs tools */
@@ -20,9 +22,9 @@
  * --------------------------------------------------- */
 
 HRP2BtlSlamProcess::HRP2BtlSlamProcess()
-	:m_pImageContainer(0),
-	m_ProcessName("BtlSlamProcess")
+	:m_pImageContainer(0)
 {
+	m_ProcessName = "BtlSlamProcess";
 }
 
 HRP2BtlSlamProcess::~HRP2BtlSlamProcess()
@@ -74,7 +76,7 @@ HRP2BtlSlamProcess::pStopProcess()
  * --------------------------------------------------- */
 
 void
-HRP2BtlSlamProcess::setInputImages(unsigned char** pImageContainer)
+HRP2BtlSlamProcess::SetInputImages(unsigned char** pImageContainer)
 {
 	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer);
 	m_pImageContainer = pImageContainer;
