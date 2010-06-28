@@ -109,12 +109,13 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Test the object Motion */
   bool TestObjectMotion(const vpHomogeneousMatrix &afMo);
 
+public:
 
   /*! Velocity saturation*/
   int VelocitySaturation(const vpColVector &RawVel,double *SatVel);
 
  
- public:
+ 
    /*!Convert velocity from camera to waist*/
    int changeVelocityFrame(const vpColVector&velCam,
 			   vpColVector&velWaist,

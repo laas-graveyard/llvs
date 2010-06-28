@@ -18,6 +18,8 @@ testvispUndistort.cpp
 testComputeControlLaw.cpp
 testUnitaryComputeControlLaw.cpp
 testVelocityFrame.cpp
+testSaturation.cpp
+
 )
 
 # rule for binary build

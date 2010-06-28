@@ -217,11 +217,11 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 	  aValue.erase(0,found+1);
 	  m_Velmax[i]=atof(tmp.c_str());
 
-	  ODEBUG("Velmax["<<i<<"] : "<<limit[i]);
+	  ODEBUG3("Velmax["<<i<<"] : "<< m_Velmax[i]);
 	}
              
     }
-
+ else
     {
       cout << "Warning : unknown parameter :"<< aParameter << endl; 
       return -1;
