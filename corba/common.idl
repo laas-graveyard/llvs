@@ -1,6 +1,9 @@
 #ifndef __COMMON_IDL__
 #define __COMMON_IDL__
 
+//FIXME: URGENT! Wrap all those definition into 
+// a namespace (interface).
+
 /**
  * OpenHRP Common IDL
  * 2001.01.09	Ichitaro Kohara, MSTC
