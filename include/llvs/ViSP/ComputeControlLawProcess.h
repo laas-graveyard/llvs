@@ -56,7 +56,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   virtual ~HRP2ComputeControlLawProcess();
 
   /*! Set a parameter */
-  int SetParameter(string aParameter, string aValue);
+  int pSetParameter(string aParameter, string aValue);
    
   /*! Set the nmbt tracker pointer */
   void SetTracker(HRP2nmbtTrackingProcess* anmbt);
@@ -162,6 +162,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    /* Heiht limitation for the model*/
    double m_ModelHeightLimit;
+   
+   /* Store the initial  model height */
+   double m_IninitHeight;
 
    /* Rotation on X axis limitation for the model */
    double m_RxLimit;
