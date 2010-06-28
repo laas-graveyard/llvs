@@ -301,6 +301,7 @@ MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
 #------------------------------------------------------------
  LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_INTERN_INCLUDE_DIR}")
  LIST(APPEND LLVS_INCLUDE_DIR "${LLVS_EXTERN_INCLUDE_DIR}")
+ INCLUDE_DIRECTORIES(${LLVS_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Add library path
@@ -339,7 +340,6 @@ MESSAGE(STATUS "LLVS_EXTERN_LIBS : ${LLVS_EXTERN_LIBS}")
   SET_TARGET_PROPERTIES(${LLVS_INTERN_LIBS} PROPERTIES 
     COMPILE_FLAGS "${LLVS_CXX_FLAGS}"
     LINK_FLAGS " ${LLVS_LINK_FLAGS} ")
-
  
 #----------------------------------------------------
 # Create the server.
