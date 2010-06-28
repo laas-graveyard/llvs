@@ -78,6 +78,7 @@
 		COMPONENTS
 		image
 		architecture
+		middleware	
 	)
 	FIND_PACKAGE(LLVT)
 	INCLUDE_DIRECTORIES(${LLVT_INCLUDE_DIRS})

@@ -108,6 +108,11 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
   /*! Test the object Motion */
   bool TestObjectMotion(const vpHomogeneousMatrix &afMo);
+
+
+  /*! Velocity saturation*/
+  int VelocitySaturation(const vpColVector &RawVel,double *SatVel);
+
  
  public:
    /*!Convert velocity from camera to waist*/
@@ -116,6 +121,8 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 			   const double *poseHeadInFoot,
 			   const double *poseWaistInFoot,
 			   vpHomogeneousMatrix & afMh);
+
+
 
  protected:
    /*!Init the parameters*/
@@ -171,6 +178,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
    /* Rotation on X axis limitation for the model */
    double m_RyLimit;
+
+   /* Velocity maximun send to Robot*/
+   vpColVector m_Velmax;
 
    /* Save of the last object pose in foot frame*/
    vpHomogeneousMatrix m_LastfMo;

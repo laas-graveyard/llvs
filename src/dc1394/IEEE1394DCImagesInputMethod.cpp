@@ -40,6 +40,7 @@
 
 /*! Includes system */
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 
 #include <dc1394/conversions.h>
@@ -1070,7 +1071,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameter
   else if (CamId==3)
     iCamera = "WIDE";
 
-  ostringstream oss;
+  std::ostringstream oss;
 
 
   aFeature="BRIGHTNESS"; 
@@ -1128,7 +1129,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras() throw(const char*)
 
   for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++) 
     {
-      ostringstream oss;
+      std::ostringstream oss;
       
       oss << "0x";
       oss.flags(ios::hex | ios::fixed);

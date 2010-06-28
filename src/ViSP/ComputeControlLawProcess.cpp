@@ -24,7 +24,8 @@
 #include <visp/vpRxyzVector.h>
 #include <visp/vpTranslationVector.h>
 
-#define SATURATE(x, s) (fabs(x) > s ? (x < 0 ? -s : s) : x)
+inline double min (double a, double b)
+{ return (a < b ? a : b); }
 
 
 using namespace std;
@@ -70,6 +71,8 @@ int HRP2ComputeControlLawProcess::init()
   m_RxLimit=0;
   m_RyLimit=0;
 
+  m_Velmax.resize(3);
+  m_Velmax=0.1;
 
   // load 
   vpHomogeneousMatrix cameraMhead;
@@ -124,7 +127,12 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
 
   LAMBDA
 
-  -------------------------------------*/
+  MOTION_FREE
+  MOTION_GROUND
+  MOTION_PLAN
+
+  VEL_MAX
+-------------------------------------*/
 int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter, 
 					       std::string aValue)
 {
@@ -196,7 +204,24 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
                        
       SetMotionTest(HEIGHT_LIMITED,limit);
     }
- else
+ else if (aParameter=="VEL_MAX")
+    { 
+      int found=0;
+      string tmp;
+      
+      for ( int i=0; i<3;++i)
+	{
+	  
+	  found=aValue.find(":");
+	  tmp=aValue.substr(0,found);
+	  aValue.erase(0,found+1);
+	  m_Velmax[i]=atof(tmp.c_str());
+
+	  ODEBUG("Velmax["<<i<<"] : "<<limit[i]);
+	}
+             
+    }
+
     {
       cout << "Warning : unknown parameter :"<< aParameter << endl; 
       return -1;
@@ -383,7 +408,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   m_ControlLawComputed = false;
   int r;
   ODEBUG("m_nmbt:" << (int)m_nmbt);
-
+  
 
   // store the velocity in camera frame
   vpColVector cVelocity(6);
@@ -406,15 +431,15 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       ODEBUG("m.cdMc : "<<m_cdMc);
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
-
+      
   
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
-
+      
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
-
-
+      
+      
       // express the rotation as rx ry rz
       vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
@@ -428,7 +453,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_ControlLawComputed = true;
 
       
-       double headprpy[6];
+      double headprpy[6];
       double waistprpy[6];
       
       // Read nom information from SoT.
@@ -473,7 +498,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   if(r==-1)
     {
       m_ComputeV = 0;
-      m_ComputeV[0]=0.001;
+      m_ComputeV[0]=0.00001;
       
       /*Stop the process*/
       m_Computing = 0;
@@ -481,10 +506,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   if (m_CTS!=0)
     {
-      velref[0]=SATURATE( m_ComputeV[0], 0.2);
-      velref[1]= SATURATE( m_ComputeV[1], 0.1);
-      velref[2]= SATURATE(m_ComputeV[5], 0.18);
-
+      VelocitySaturation(m_ComputeV,velref);
+      
       m_CTS-> WriteVelocityReference(velref);
     }
 
@@ -692,4 +715,41 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
       r=objectOnGround(afMh);
     }
   return r; 
+}
+  /*! Velocity saturation*/
+int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
+
+{
+  vpColVector dv(0.05*m_Velmax);
+ 
+  vpColVector Vinf  = m_Velmax-dv;
+  vpColVector Vsup  = m_Velmax+dv;
+ 
+  double absRawVel;
+
+  // for all the coeff
+  double fac = 1;
+  
+  for (int i=0; i<3;++i)
+    {   
+      absRawVel=fabs(RawVel[i]);
+      
+      fac = min(fabs(fac),m_Velmax[i]/(absRawVel+0.00001));
+  
+      // to prevent from discontinuities
+      if( (Vinf[i]<=absRawVel) & (absRawVel <= Vsup[i]) )
+	{
+	  double newfac = 1/(2*dv[i]*absRawVel)*
+	    ((absRawVel-Vinf[i])*m_Velmax[i]
+	     +(Vsup[i]-absRawVel)*Vinf[i]);
+
+	  fac  = min(fabs(fac),fabs(newfac));
+	}
+    }
+  
+for (int i=0; i<3;++i)
+    {   
+      VelRef[i]=RawVel[i]*fac;
+    }
+ return 0;
 }
