@@ -54,6 +54,14 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		void SetInputImages(unsigned char** pImageContainer);
 
 	protected:
+	
+		/*! Write current RGB image into a <filename> file */
+		bool writeImageIntoFile(const char* rgbFrame, 
+                            const std::string& filename) const;
+
+		/*! Defined for user convenience only.
+		 *  This a short way to use shared data type between process
+		 *  and slam engine */
 		typedef CVD::SharedLLVSBuffer<CVD::Rgb<CVD::byte> >::LLVSBuffer ImageType;
 
 		/*! Formatted configuration after a setSlamConfig call */

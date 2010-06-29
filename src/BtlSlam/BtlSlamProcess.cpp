@@ -27,6 +27,8 @@
 #define BTL_SLAM_CAMERA_WIDTH	      240
 #define BTL_SLAM_CAMERA_DEPTH       3
 #define BTL_SLAM_SHARED_MEMORY_SIZE 65536
+#define BTL_SLAM_RGB_SIZE           "255"
+#define BTL_SLAM_PPM_FORMAT         "P6"
 
 /* ---------------------------------------------------
  * Initialization / Destruction
@@ -261,6 +263,37 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 	
 	return BTL_SLAM_RESULT_OK;
 }
+
+/* ---------------------------------------------------
+ * For debug
+ * --------------------------------------------------- */
+
+bool
+HRP2BtlSlamProcess::writeImageIntoFile(const char* rgbFrame,
+                                       const std::string& filename)
+const
+{
+	// Write the image on disk for check 
+	std::ofstream aofstream(filename.c_str(), std::ofstream::out); 
+	if (!aofstream.is_open())
+	{
+		return false;
+	}
+	unsigned int imageSize =  BTL_SLAM_CAMERA_WIDTH
+						                * BTL_SLAM_CAMERA_HEIGHT
+								            * BTL_SLAM_CAMERA_DEPTH; 
+	aofstream << BTL_SLAM_PPM_FORMAT << std::endl; 
+	aofstream << BTL_SLAM_CAMERA_WIDTH << " " 
+						<< BTL_SLAM_CAMERA_HEIGHT << std::endl; 
+	aofstream << BTL_SLAM_RGB_SIZE <<std::endl; 
+	for(unsigned int i=0; i < imageSize; ++i) 
+	{ 
+		aofstream << rgbFrame[ i ]; 
+	} 
+	aofstream.close(); 
+	return true;
+}
+
 
 /* ---------------------------------------------------
  * Atomic clean up methods
