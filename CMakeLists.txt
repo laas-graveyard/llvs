@@ -51,7 +51,6 @@
 	ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
 	ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib.")
 	ADD_LLV_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
-	ADD_LLV_OPTION(OpenCV DESCRIPTION OUTPUT_VAR OPENCV)
 	ADD_LLV_OPTION(MMX DESCRIPTION DISABLED)
 	ADD_LLV_OPTION(NMBT DESCRIPTION "Search for model tracker new version." DISABLED)
 	ADD_LLV_OPTION(MBT DESCRIPTION "Search for original model tracker version." DISABLED)
@@ -63,7 +62,17 @@
 #------------------------------------------------------------------------------
 	ADD_LLV_PACKAGES(
 		OpenHRP
+		OpenCV
 	)
+
+#------------------------------------------------------------------------------
+# FIXME: Optional to required library transition
+#------------------------------------------------------------------------------
+# OpenCV had been for a long time an optional library and used LLVS_HAVE_OPENCV
+# macro to enable/disable some code parts. Now the library became required for
+# anything to work. All macros have to be removed from code. Then cmake
+# compatibility lines below can be deleted.
+	set(LLVS_HAVE_OPENCV 1)
 
 #------------------------------------------------------------------------------
 # Propagation in sub dirs
@@ -78,3 +87,9 @@
 	if(COMPILE_UNIT_TESTS)
 		add_subdirectory(unitTesting)
 	endif(COMPILE_UNIT_TESTS)
+
+#------------------------------------------------------------------------------
+# Add uninstall target
+#------------------------------------------------------------------------------
+	include(install-toolbox)
+	ADD_UNINSTALL_TARGET()
