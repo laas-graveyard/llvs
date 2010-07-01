@@ -74,6 +74,8 @@ int HRP2ComputeControlLawProcess::init()
 
   m_Velmax.resize(3);
   m_Velmax=0.1;
+  m_Velzero.resize(3);
+  m_Velzero=0.02;
 
   // load 
   vpHomogeneousMatrix cameraMhead;
@@ -219,6 +221,23 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 	  m_Velmax[i]=atof(tmp.c_str());
 
 	  ODEBUG3("Velmax["<<i<<"] : "<< m_Velmax[i]);
+	}
+             
+    }
+ else if (aParameter=="VEL_ZERO")
+    { 
+      int found=0;
+      string tmp;
+      
+      for ( int i=0; i<3;++i)
+	{
+	  
+	  found=aValue.find(":");
+	  tmp=aValue.substr(0,found);
+	  aValue.erase(0,found+1);
+	  m_Velzero[i]=atof(tmp.c_str());
+
+	  ODEBUG3("Velzero["<<i<<"] : "<< m_Velmax[i]);
 	}
              
     }
@@ -496,6 +515,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       r=-1;
     }
 
+
   if(r==-1 ||  m_RealiseControlLaw==false)
     {
       m_ComputeV = 0;
@@ -506,12 +526,17 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       /*Stop the process*/
       // m_Computing = 0;
     }
+  else
+    {
+      VelocitySaturation(m_ComputeV,velref);
+      
+      ZeroVelocity(velref);
+    }
+
 
   double waistcom[3];
   if (m_CTS!=0)
     {
-      VelocitySaturation(m_ComputeV,velref);
-      
       m_CTS-> WriteVelocityReference(velref);
 
       m_CTS-> ReadWaistComSignals(waistcom);
@@ -723,9 +748,9 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
     }
   return r; 
 }
-  /*! Velocity saturation*/
-int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
 
+/*! Velocity saturation*/
+int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
 {
   vpColVector dv(0.05*m_Velmax);
  
@@ -759,4 +784,30 @@ for (int i=0; i<3;++i)
       VelRef[i]=RawVel[i]*fac;
     }
  return 0;
+}
+
+/*! Put Velocity value at zero when lower than 0.02  */
+int HRP2ComputeControlLawProcess::ZeroVelocity(double * VelRef)
+{
+
+  if(VelRef[0]< m_Velzero[0] && VelRef[1]<m_Velzero[1] && VelRef[2]<m_Velzero[2])
+    {
+      VelRef[0]=0.00001;
+      VelRef[1]=0;
+      VelRef[2]=0;
+    }
+  else if (VelRef[0]<m_Velzero[0])
+    {
+      VelRef[0]=0;
+    }
+  else if (VelRef[1]<m_Velzero[1])
+    {
+      VelRef[1]=0;
+    }
+  else if (VelRef[2]<m_Velzero[2])
+    {
+      VelRef[2]=0;
+    }
+  
+  return 0;
 }

@@ -109,6 +109,9 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Test the object Motion */
   bool TestObjectMotion(const vpHomogeneousMatrix &afMo);
 
+  /*! Put Velocity value at zero when lower than 0.02  */
+  int ZeroVelocity(double * VelRef);
+
 public:
 
   /*! Velocity saturation*/
@@ -182,6 +185,9 @@ public:
 
    /* Velocity maximun send to Robot*/
    vpColVector m_Velmax;
+
+   /* Velocity value for puting it to zero*/
+   vpColVector m_Velzero;
 
    /* Save of the last object pose in foot frame*/
    vpHomogeneousMatrix m_LastfMo;
