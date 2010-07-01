@@ -63,6 +63,7 @@ int HRP2ComputeControlLawProcess::init()
   m_CTS=0x0;
   m_ProcessInitialized = false;
   m_ControlLawComputed = false;
+  m_RealiseControlLaw= true;
   m_cdMoSet = false;
 
   /* default motion test*/
@@ -390,7 +391,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
       <<"# TimeStamp (1 value) / Pose cMo(6 values)/ |Error| (1 value)"
       <<" / Error Vectot (6 values)/ Pose fMo(6 values) "
       <<"/ Control in camera Frame(6 values) / Control in waist Frame(6 values)"
-      <<"/ Control send to SoT (3 values)"<<endl;
+      <<"/ Control send to SoT (3 values) / Control from SoT (2 values) "<<endl;
   
   aof.close();
 
@@ -421,7 +422,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   vpHomogeneousMatrix fMo;
 
-  if (m_nmbt->m_trackerTrackSuccess)
+  if (m_nmbt->m_trackerTrackSuccess )
     {
       m_nmbt->GetOutputcMo(m_cMo);
       ODEBUG("m.cMo : "<<m_cMo);
@@ -495,20 +496,25 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       r=-1;
     }
 
-  if(r==-1)
+  if(r==-1 ||  m_RealiseControlLaw==false)
     {
       m_ComputeV = 0;
       m_ComputeV[0]=0.00001;
       
+      m_RealiseControlLaw=false;
+      r=-1;
       /*Stop the process*/
-      m_Computing = 0;
+      // m_Computing = 0;
     }
 
+  double waistcom[3];
   if (m_CTS!=0)
     {
       VelocitySaturation(m_ComputeV,velref);
       
       m_CTS-> WriteVelocityReference(velref);
+
+      m_CTS-> ReadWaistComSignals(waistcom);
     }
 
 
@@ -529,14 +535,15 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   struct timeval atv;
   gettimeofday(&atv,0);
   aof.precision(15);
-  aof << atv.tv_sec + 0.000001 * atv.tv_usec << " "
+  aof << atv.tv_sec + 0.000001 * atv.tv_usec << "  "
       << cTo.t()<<"  "<< cRxyzo.t()<<"  "<<m_Error<<"  "
       <<  m_Task.error.t() << fTo.t()<<"  "<< fRxyzo.t()<<"  "
       << cVelocity[0]<<"  "<<cVelocity[1]<<"  "<<cVelocity[2]<<"  "
       << cVelocity[3]<<"  "<<cVelocity[4]<<"  "<<cVelocity[5]<<"  "
       << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
-      << wVelocity[3]<<"  "<<wVelocity[5]<<"  "<<wVelocity[5]<<"  "
-      << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<< endl;
+      << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
+      << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
+      << waistcom[0] <<"  " << waistcom[1] <<endl;
   
   aof.close();
 

@@ -200,6 +200,9 @@ public:
 
    /*Flag to check if the control law is computed*/
    bool m_ControlLawComputed;
+
+   /*Flag to check if the control law must be computed*/
+   bool m_RealiseControlLaw;
    
 };
 

@@ -70,6 +70,10 @@ namespace llvs
       /*! \brief Read waist values.*/
       void ReadWaistRPYSignals(double headposerpy[6]);
 
+      /*! \brief Read waist velocity values from pg .*/
+      void ReadWaistComSignals(double waistcom[2]);
+
+      /*! \brief Write waist velocity commande.*/
       void WriteVelocityReference(double velref[3]);
 
       /*! \brief Create the signals, and plkug them. */
@@ -108,6 +112,9 @@ namespace llvs
       CORBA::Long m_WaistPRPYSignalRank;
 
       CORBA::Long m_VelRefSignalRank;
+
+      /*! \brief Store the rank of waist command signal. */
+      CORBA::Long m_WaistComSignalRank;
 
       /*! \brief Boolean value to go out of the thread */
       bool m_EndOfThreadLoop;

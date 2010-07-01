@@ -312,7 +312,30 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
   ODEBUG("Go out of  ReadWaistRPYSignals ");
 }
 
+void ConnectionToSot::ReadWaistComSignals(double waistcom[3])
+{
+  ODEBUG("Enter ReadComSignals ");
 
+  try
+    {
+      struct timeval ats;
+	    
+
+      hppCorbaServer::DoubleSeq_var DSwaistcom;
+      m_SOT_Server_Command->readInputVectorSignal(m_WaistComSignalRank,
+						  DSwaistcom);
+      
+      if (DSwaistcom->length()==3)
+	for(unsigned int li=0;li<3;li++)
+	  waistcom[li]= DSwaistcom[li];
+    }
+  catch(...)
+    {
+      cout << "Unable to read waist rpy signals. "<< endl;
+      
+    }
+  ODEBUG("Go out of  ReadWaistRPYSignals ");
+}
 bool ConnectionToSot::Init()
 {
   bool status;
@@ -329,14 +352,15 @@ bool ConnectionToSot::Init()
       return false;
     }
 
-  string CstSignaux[4]={"waistpositionabsolute",
+  string CstSignaux[5]={"waistpositionabsolute",
 			"waistattitudeabsolute",
 			"Head",
-			"Waist"};
+			"Waist",
+                        "Waistcom"};
 
   string OutSignal[1] = {"VelRef"};
   ODEBUG("Before creating the signals: " << status);
-  for(unsigned int li=0;li<4;li++)
+  for(unsigned int li=0;li<5;li++)
     {
 
       /*      
@@ -353,7 +377,8 @@ bool ConnectionToSot::Init()
 	  m_HeadPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
 	else if (li==3)
 	  m_WaistPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
-
+	else if (li==4)
+	  m_WaistComSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
       }
       catch(...)
 	{
@@ -390,8 +415,8 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 13
-  string SotCommand[13]= {
+#define NBCOMMANDS 14
+  string SotCommand[14]= {
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",
     "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
@@ -404,7 +429,8 @@ bool ConnectionToSot::Init()
     "plug dwhtp.out coshell.Waist",
     "OpenHRP.periodicCall addSignal dhhtp.out",
     "OpenHRP.periodicCall addSignal dwhtp.out",
-    "plug coshell.VelRef pg.velocitydes"
+    "plug coshell.VelRef pg.velocitydes",
+    "plug pg.dcomref coshell.Waistcom"
   };
 #endif
 
