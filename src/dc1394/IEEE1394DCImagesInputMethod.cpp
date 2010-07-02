@@ -42,7 +42,12 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <strings.h>   //bzero
+#include <string.h>    //strcmp
+#include <stdlib.h>    //atoi
+#include <sstream>     //stringstream
 
+/*! Includes dc1394 library */
 #include <dc1394/conversions.h>
 
 /*! Debug macros */

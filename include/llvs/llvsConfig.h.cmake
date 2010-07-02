@@ -32,4 +32,7 @@
 /* Define to 1 if the new model tracker of the lagadic team is installed */ 
 #define LLVS_HAVE_NMBT ${LLVS_HAVE_NMBT}
 
+/* Define to 1 if Bristol Visual SLAM is installed */ 
+#define LLVS_HAVE_BTL_SLAM ${LLVS_HAVE_BTL_SLAM}
+
 #endif /* _LLVS_CONFIG_H_IN_ */

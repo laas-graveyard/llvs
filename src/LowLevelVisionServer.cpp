@@ -472,6 +472,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
 #endif
 
+#if (LLVS_HAVE_BTL_SLAM>0)
+
+	m_BtlSlamProcess = new HRP2BtlSlamProcess();
+  m_BtlSlamProcess->SetInputImages(&m_BinaryImages[CAMERA_WIDE]);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_BtlSlamProcess);
+
+#endif //LLVS_HAVE_BTL_SLAM
 
   /* Set the framegrabber trigger to zero. */
   m_SynchroTrigger = false;
