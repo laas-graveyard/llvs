@@ -47,14 +47,14 @@
 	# Note that for boost inclusion reason, BtlSlam must be first included.
 	ADD_LLV_OPTION(BtlSlam DESCRIPTION "Search for Bristol Visual SLAM." DISABLED)
 	ADD_LLV_OPTION(VISP DESCRIPTION "Search for visual servoing plateform." DISABLED)
-	ADD_LLV_OPTION(VW)
+	ADD_LLV_OPTION(VW DISABLED)
 	ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
-	ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib.")
+	ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib." DISABLED)
 	ADD_LLV_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
 	ADD_LLV_OPTION(MMX DESCRIPTION DISABLED)
 	ADD_LLV_OPTION(NMBT DESCRIPTION "Search for model tracker new version." DISABLED)
 	ADD_LLV_OPTION(MBT DESCRIPTION "Search for original model tracker version." DISABLED)
-	ADD_LLV_OPTION(DC1394_V2 DESCRIPTION "Seach for firewire dc1394 library version 2."
+	ADD_LLV_OPTION(DC1394_V2 DESCRIPTION "Search for firewire dc1394 library version 2."
 		             OUTPUT_VAR DC1394_V2)
 
 #------------------------------------------------------------------------------
