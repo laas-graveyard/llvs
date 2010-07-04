@@ -1,6 +1,6 @@
 /*! ----------------------------------------------------
  *  Copyright 2010, CNRS-AIST JRL
- * 
+ *
  *  \brief  Btl Slam for LLVS
  *  \author Clement Petit
  *  \creation 24/06/2010
@@ -8,7 +8,7 @@
 
 #include "BtlSlam/BtlSlamProcess.h"
 
-#if (LLVS_HAVE_BTL_SLAM>0)
+#if (LLVS_HAVE_HRP_BTL_SLAM>0)
 
 /*! Includes system */
 #include <sstream>
@@ -23,8 +23,8 @@
 
 /*! Parameters */
 //FIXME: Remove those hard-coded values
-#define BTL_SLAM_CAMERA_HEIGHT      320
-#define BTL_SLAM_CAMERA_WIDTH	      240
+#define BTL_SLAM_CAMERA_WIDTH	      320
+#define BTL_SLAM_CAMERA_HEIGHT      240
 #define BTL_SLAM_CAMERA_DEPTH       3
 #define BTL_SLAM_SHARED_MEMORY_SIZE 65536
 #define BTL_SLAM_RGB_SIZE           "255"
@@ -83,14 +83,14 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 				boost::interprocess::create_only,
 				m_slamConfig.server.c_str(),
 				BTL_SLAM_SHARED_MEMORY_SIZE
-				); 
+				);
 	}
 	catch (boost::interprocess::interprocess_exception &ex)
 	{
 		ODEBUG3("[BtlSlam] Segment read error : " << ex.what() );
 		throw(ex);
 	}
-	m_pSharedBuffer = m_pSharedSegment->construct<ImageType>(
+	m_pSharedBuffer = m_pSharedSegment->construct<CVD::LLVSBuffer>(
 			m_slamConfig.camera.c_str()
 			)();
 
@@ -100,7 +100,7 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 		int imageSize = BTL_SLAM_CAMERA_HEIGHT * BTL_SLAM_CAMERA_WIDTH * BTL_SLAM_CAMERA_DEPTH;
 		m_pSharedBuffer->image = new unsigned char[imageSize];
 		std::memcpy(
-				m_pSharedBuffer->image, 
+				m_pSharedBuffer->image,
 				*m_pImageContainer,
 				imageSize
 				);
@@ -115,7 +115,7 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 				true
 				);
 	}
-	catch(Exception ex)
+	catch(VSLAM_Common::Exception ex)
 	{
 		ODEBUG3("Exception caught : " << ex.msg);
 		ODEBUG3("Error code : " << ex.code);
@@ -143,7 +143,7 @@ HRP2BtlSlamProcess::pCleanUpTheProcess()
 
 	// Clear configuration variable
 	cleanUpConfig();
-	
+
 	return BTL_SLAM_RESULT_OK;
 }
 
@@ -198,7 +198,8 @@ HRP2BtlSlamProcess::pSetParameter(std::string aParameter, std::string aValue)
 void
 HRP2BtlSlamProcess::SetInputImages(unsigned char** pImageContainer)
 {
-	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer);
+	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer
+			<< " currently pointing " << (void*)*pImageContainer);
 	m_pImageContainer = pImageContainer;
 }
 
@@ -236,7 +237,7 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 		m_slamConfig.options[ i ] = new char[buffer.size() + 1];
 		buffer.copy(m_slamConfig.options[ i ], buffer.size());
 		m_slamConfig.options[ i ][ buffer.size() ] = '\0';
-		
+
 		// Look up for shared memory location
 		found = buffer.find("shared:");
 		if( found != std::string::npos )
@@ -244,8 +245,8 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 			size_t found_server;
 			found = buffer.rfind(".");
 			found_server = buffer.rfind("/");
-			if(   (found == std::string::npos) 
-					||(found_server == std::string::npos) 
+			if(   (found == std::string::npos)
+					||(found_server == std::string::npos)
 					||(found - found_server - 1 <= 0))
 			{
 				m_slamConfig.size = i + 1;
@@ -255,12 +256,12 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 			else
 			{
 				m_slamConfig.camera = buffer.substr(found + 1);
-				m_slamConfig.server = buffer.substr(found_server + 1, 
+				m_slamConfig.server = buffer.substr(found_server + 1,
 				                                   found - found_server - 1);
 			}
 		}
 	}
-	
+
 	return BTL_SLAM_RESULT_OK;
 }
 
@@ -269,28 +270,28 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
  * --------------------------------------------------- */
 
 bool
-HRP2BtlSlamProcess::writeImageIntoFile(const char* rgbFrame,
+HRP2BtlSlamProcess::writeImageIntoFile(const unsigned char* rgbFrame,
                                        const std::string& filename)
 const
 {
-	// Write the image on disk for check 
-	std::ofstream aofstream(filename.c_str(), std::ofstream::out); 
+	// Write the image on disk for check
+	std::ofstream aofstream(filename.c_str(), std::ofstream::out);
 	if (!aofstream.is_open())
 	{
 		return false;
 	}
 	unsigned int imageSize =  BTL_SLAM_CAMERA_WIDTH
 						                * BTL_SLAM_CAMERA_HEIGHT
-								            * BTL_SLAM_CAMERA_DEPTH; 
-	aofstream << BTL_SLAM_PPM_FORMAT << std::endl; 
-	aofstream << BTL_SLAM_CAMERA_WIDTH << " " 
-						<< BTL_SLAM_CAMERA_HEIGHT << std::endl; 
-	aofstream << BTL_SLAM_RGB_SIZE <<std::endl; 
-	for(unsigned int i=0; i < imageSize; ++i) 
-	{ 
-		aofstream << rgbFrame[ i ]; 
-	} 
-	aofstream.close(); 
+								            * BTL_SLAM_CAMERA_DEPTH;
+	aofstream << BTL_SLAM_PPM_FORMAT << std::endl;
+	aofstream << BTL_SLAM_CAMERA_WIDTH << " "
+						<< BTL_SLAM_CAMERA_HEIGHT << std::endl;
+	aofstream << BTL_SLAM_RGB_SIZE <<std::endl;
+	for(unsigned int i=0; i < imageSize; ++i)
+	{
+		aofstream << rgbFrame[ i ];
+	}
+	aofstream.close();
 	return true;
 }
 
@@ -319,11 +320,11 @@ HRP2BtlSlamProcess::cleanUpSharedMemory()
 {
 	if( m_pSharedSegment )
 	{
-		m_pSharedSegment->destroy<ImageType>(m_slamConfig.camera.c_str());
+		m_pSharedSegment->destroy<CVD::LLVSBuffer>(m_slamConfig.camera.c_str());
 		delete m_pSharedSegment;
 	}
 	boost::interprocess::shared_memory_object::remove(m_slamConfig.server.c_str());
 }
 
 
-#endif // LLVS_HAVE_BTL_SLAM
+#endif // LLVS_HAVE_HRP_BTL_SLAM

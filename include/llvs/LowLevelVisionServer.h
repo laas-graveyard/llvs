@@ -2,31 +2,31 @@
     Low Level Vision on the HRP-2 Vision processor.
 
 
-   Copyright (c) 2003-2008, 
+   Copyright (c) 2003-2008,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _HRP2_VISION_SERVER_
@@ -102,7 +102,7 @@
 #include "ViSP/ComputeControlLawProcess.h"
 #endif
 
-#if (LLVS_HAVE_BTL_SLAM>0)
+#if (LLVS_HAVE_HRP_BTL_SLAM>0)
 #include "BtlSlam/BtlSlamProcess.h"
 #endif
 
@@ -115,15 +115,15 @@ namespace llvs
 
   class Camera_impl ;
 
-  typedef struct 
+  typedef struct
   {
     unsigned int Width, Height;
   } ImageSize;
 
   /**! LowLevelVisionServer: Corba Server for Low Level Vision processing.
      This includes:
-     Image acquistion, 
-     Loading of the calibration parameters, 
+     Image acquistion,
+     Loading of the calibration parameters,
      Image rectification,
      Optical Flow, and Disparity.
      The optical flow are the Lucas and Kanade method modified by Simoncelli.
@@ -145,12 +145,12 @@ namespace llvs
        * SIMULATION: take the images from simulation.
        * \param filename: filename or directory depending on the
        * choosen value for MethodForInputImages.
-       * 
+       *
        */
-      LowLevelVisionServer(LowLevelVisionSystem::InputMode MethodForInputImages, 
-			   LowLevelVisionSystem::SynchroMode SynchroMethodForInputImages, 
-			   string filename, 
-			   CORBA::ORB_var orb, 
+      LowLevelVisionServer(LowLevelVisionSystem::InputMode MethodForInputImages,
+			   LowLevelVisionSystem::SynchroMode SynchroMethodForInputImages,
+			   string filename,
+			   CORBA::ORB_var orb,
 			   int Verbosity,
 			   string lCalibdir) throw(const char*);
 
@@ -161,7 +161,7 @@ namespace llvs
       CORBA::Long GetVersion() throw(CORBA::SystemException) ;
 
       /*! Start the low level data-flow process */
-      CORBA::Long StartMainProcess() throw(CORBA::SystemException) ; 
+      CORBA::Long StartMainProcess() throw(CORBA::SystemException) ;
 
       /*! Stop the low level data-flow process */
       CORBA::Long StopMainProcess() throw(CORBA::SystemException);
@@ -173,7 +173,7 @@ namespace llvs
       /*! Stop a low level data-flow process */
       CORBA::Long StopProcess(const char *aProcessName)
 	throw(CORBA::SystemException);
- 
+
 
       /*! Load Calibration information */
       CORBA::Long LoadCalibrationInformation();
@@ -181,7 +181,7 @@ namespace llvs
       /*! Load image size used during calibration */
       CORBA::Long CalibLoadSize(const char *file, long int *width, long int *height);
 
-      /*! Set the grabbed image size 
+      /*! Set the grabbed image size
        * Because of some algorithms used, right now this size is used for ALL the cameras
        * of the system.
        */
@@ -197,9 +197,9 @@ namespace llvs
 
       /*! Applies the flow of operations */
       CORBA::Long ApplyingProcess();
- 
+
       /*! Interface: Trigger the grabbing of an image */
-      CORBA::Long TriggerSynchro() 
+      CORBA::Long TriggerSynchro()
 	throw(CORBA::SystemException);
 
       /*! Dumping to epbm */
@@ -207,7 +207,7 @@ namespace llvs
 			    const FloatBuffer &Informations,
 			    CORBA::Long SizeOfInformations)
 	throw(CORBA::SystemException);
- 
+
       /*! Get the dumping image mode */
       LowLevelVisionSystem::DumpImageMode  GetDumpImageMode(void)
 	throw(CORBA::SystemException);
@@ -220,17 +220,17 @@ namespace llvs
       /*! Interface : returns the synchronization mode */
       LowLevelVisionSystem::InputMode GetInputMode()
 	throw(CORBA::SystemException) ;
- 
+
       /*! Interface : returns the synchronization mode */
       LowLevelVisionSystem::SynchroMode SynchronizationMode()
 	throw(CORBA::SystemException) ;
-      
+
       /*! Interface : set the synchronization mode and allows to switch between
 	still images and data flow. */
       void SetSynchronizationMode(LowLevelVisionSystem::SynchroMode aSynchronizationMode)
 	throw(CORBA::SystemException);
 
-      
+
       /*! Set the image */
       CORBA::Long SetImage(const ColorBuffer & cbuf, CORBA::Long CameraID, CORBA::Long aWidth, CORBA::Long aHeight)
 	throw(CORBA::SystemException) ;
@@ -258,7 +258,7 @@ namespace llvs
 
       /*! Get the direct access to the image memory */
       void GetImageMemory(vector<unsigned char *> & BinaryImages);
- 
+
       /*! Get the direct access for one image */
       unsigned char * GetImageMemory(unsigned int CameraID);
 
@@ -278,7 +278,7 @@ namespace llvs
       CORBA::Long getRangeMap(RangeMap_out RangeMap, char *&Format)
 	throw(CORBA::SystemException);
 
-      /*! Interface: Get image derivative 
+      /*! Interface: Get image derivative
        * \param CameraID: Identifier of the camera from which the derivative is extracted.
        * \param DerivativeID: To be of the identifier specified in the LowLevelVisionSystem IDL.
        * \param ImageDerivative: The FloatBuffer_var in which the data are provided. They are given
@@ -317,7 +317,7 @@ namespace llvs
 				     CORBA::Long aWidth, CORBA::Long aHeight)
 	throw(CORBA::SystemException);
 
-      /*! Destruction */  
+      /*! Destruction */
       virtual void destroy() throw (CORBA::SystemException);
 
       /*! Returns the object related to the asked camera */
@@ -342,13 +342,13 @@ namespace llvs
       CORBA::Long ProcessStatus(const char *aProcessName)
 	throw (CORBA::SystemException);
 
-      /*! Interface: Returns the matrix to project visual information in the head 
-       * reference frame. 
+      /*! Interface: Returns the matrix to project visual information in the head
+       * reference frame.
        */
       CORBA::Long GetMatrixHeadTOrg(DoubleBuffer_out HeadTOrg)
 	throw (CORBA::SystemException);
 
-      /*! Returns the matrix Head frame - Original Vision frame 
+      /*! Returns the matrix Head frame - Original Vision frame
        * @param HeadTOrg : pointer to an array of double.
        */
       void GetMatrixHeadTOrg(double *HeadTOrg);
@@ -358,31 +358,31 @@ namespace llvs
       void DisplayProcessesNames();
 
       /*! Set the parameter of a visual process given by its name */
-      void SetAProcessParameterAndValue(string aProcessName, 
-					string aParameter, 
+      void SetAProcessParameterAndValue(string aProcessName,
+					string aParameter,
 					string aValue);
 
       /*! Set the parameter of a visual process given by its name */
-      void SetAProcessParameterAndValue(const char * aProcessName, 
-					const char * aParameter, 
+      void SetAProcessParameterAndValue(const char * aProcessName,
+					const char * aParameter,
 					const char * aValue)
 	throw (CORBA::SystemException);
 
-      /*! If set to one dump the entry images 
+      /*! If set to one dump the entry images
        *  in /tmp/REALcheck*.pgm
        */
       void SetCheckEntry(unsigned char ADumpMode);
 
       /*! Return dump mode */
       unsigned char GetCheckEntry(void);
- 
+
       /*! Get the Vision process sequence */
       CORBA::Long getLowLevelVisionProcesses(HRP2LowLevelVisionProcessesSeq_out ProcessesSeq)
 	throw (CORBA::SystemException);
 
       /*! Check the image format asked by the user, and put the appropriate on inside Format */
       void CheckImageFormat(char *& Format);
- 
+
       /*! Check the range map format asked by the user, and put the appropriate on inside Format */
       void CheckRangeMapFormat(char *& Format);
 
@@ -391,7 +391,7 @@ namespace llvs
 
       /*! Set the robot vision calibration directory */
       void SetRobotVisionCalibrationDirectory(string lRVCalibDir);
- 
+
       /* ! Undistorted the image */
       void LensDistorsionCorrection();
 
@@ -414,7 +414,7 @@ namespace llvs
       /* ! Interface: Get the scene object of the Single Camera Visual process */
       CORBA::Long GetSceneObject(SceneObject_out aSceneObject)
 	throw (CORBA::SystemException);
- 
+
       /* ! Interface: Delete a feature nside the Single Camera Visual process */
       void SceneDeleteFeature(CORBA::Long FeatureLabel)
 	throw (CORBA::SystemException);
@@ -424,16 +424,16 @@ namespace llvs
 	throw (CORBA::SystemException);
 
       /* ! Interface: Returns the reference of the stereo vision object */
-      StereoVision_ptr getStereoVision() 
+      StereoVision_ptr getStereoVision()
 	throw (CORBA::SystemException);
 
       /* ! Interface: Returns the reference of the Model Tracker object */
-      ModelTrackerInterface_ptr getModelTracker() 
+      ModelTrackerInterface_ptr getModelTracker()
 	throw (CORBA::SystemException);
 
 
       /* ! Interface: Returns the reference of the Point Tracker object */
-      PointTrackerInterface_ptr getPointTracker() 
+      PointTrackerInterface_ptr getPointTracker()
 	throw (CORBA::SystemException);
 
       /* ! Get Object reference */
@@ -452,7 +452,7 @@ namespace llvs
 
 #if (LLVS_HAVE_VVV>0)
 
-      /*! \name Interface specific to VVV. 
+      /*! \name Interface specific to VVV.
 	@{ */
 
       /*! Image rectification using a small modification */
@@ -470,7 +470,7 @@ namespace llvs
 
       /* @} */
 #endif
-      
+
       /*! \brief Cleanup the grabbing. */
       void CleanUpGrabbing();
 
@@ -492,25 +492,25 @@ namespace llvs
 
       /*! Circular Buffer */
       CircularModelTrackerData * m_CBonNMBT;
-      
+
 
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
-    
+
       /*! Compute Control Law process. */
       HRP2ComputeControlLawProcess *m_ComputeControlLawProcess;
-  
+
     private:
       /*! Corba object handling Tracker requests.*/
-      ModelTrackerInterface_impl *  
+      ModelTrackerInterface_impl *
 	m_ModelTrackerCorbaRequestProcess_impl;
-    
+
       /* struct save in Circular Buffer*/
       CBTrackerData*           m_CBTrackerData;
-      
+
 #endif
 
-      
+
     protected:
 #if (LLVS_HAVE_VVV>0)
       /*! Initial image in the VVV formalism. */
@@ -537,7 +537,7 @@ namespace llvs
       /*! Mire detection process. */
       HRP2MireDetectionProcess *m_MireDetectionProcess;
 
-     
+
       /*! Optical Flow Process */
       HRP2OpticalFlowProcess *m_OP;
 
@@ -551,7 +551,7 @@ namespace llvs
       HRP2BRepDetectionProcess * m_BRepDetection;
 
       /*! FindFeaturesProcess */
-      HRP2FindFeaturesInImage * m_FFII; 
+      HRP2FindFeaturesInImage * m_FFII;
 
       /*! Image Difference */
       HRP2ImageDifferenceProcess * m_ImgDiff;
@@ -563,7 +563,7 @@ namespace llvs
 
       /*! Camera parameter */
       EPBM_PinHoleParameter m_PinHoleParameter[4];
- 
+
       /*! Intensity parameters */
       EPBM_IntensityParameter m_IntensityParameter[4];
 
@@ -572,11 +572,11 @@ namespace llvs
 
 #endif
 
-#if (LLVS_HAVE_BTL_SLAM>0)
+#if (LLVS_HAVE_HRP_BTL_SLAM>0)
 
 			HRP2BtlSlamProcess* m_BtlSlamProcess;
 
-#endif //LLVS_HAVE_BTL_SLAM
+#endif //LLVS_HAVE_HRP_BTL_SLAM
 
 #if (LLVS_HAVE_SCENE>0)
       /*! SingleCameraSLAMProcess */
@@ -594,12 +594,12 @@ namespace llvs
 
     private:
       /*! Corba object handling Point Tracker requests.*/
-      PointTrackerInterface_impl * 
+      PointTrackerInterface_impl *
 	m_PointTrackerCorbaRequestProcess_impl;
-   
+
       /* struct save in Circular Buffer*/
       CBPointTrackerData*   m_CBPointTrackerData;
- 
+
     protected:
       /*Visp grey undistorded image for wide cam*/
       vpImage<unsigned char>* m_Widecam_image_undistorded;
@@ -609,10 +609,10 @@ namespace llvs
 
       /* Vision Process to undistort images using ViSP*/
       HRP2vispUndistordedProcess* m_vispUndistordedProcess;
-      
+
       /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
- 
+
 #endif
 
       /*! Binary maps of the images */
@@ -672,7 +672,7 @@ namespace llvs
       /*! Boolean on the Framegrabber's trigger. */
       bool m_SynchroTrigger;
 
-      /* Matrix from Vision reference Frame to HEAD_JOINT1 
+      /* Matrix from Vision reference Frame to HEAD_JOINT1
 	 reference frame */
       double m_headTorg[16];
 
@@ -686,7 +686,7 @@ namespace llvs
       /*! Local Image Format */
       string m_ImageFormat;
 
- 
+
       unsigned char *m_StoredImages;
       struct timeval *m_StoredTimeStamp;
       double * m_SideOfTheImage;

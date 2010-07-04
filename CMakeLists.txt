@@ -45,7 +45,7 @@
 # Optional libraries
 #------------------------------------------------------------------------------
 	# Note that for boost inclusion reason, BtlSlam must be first included.
-	ADD_LLV_OPTION(BtlSlam DESCRIPTION "Search for Bristol Visual SLAM." DISABLED)
+	ADD_LLV_OPTION(HrpBtlSlam DESCRIPTION "Search for Bristol Visual SLAM for HRP2." DISABLED)
 	ADD_LLV_OPTION(VISP DESCRIPTION "Search for visual servoing plateform." DISABLED)
 	ADD_LLV_OPTION(VW DISABLED)
 	ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
