@@ -29,6 +29,9 @@
 #define BTL_SLAM_SHARED_MEMORY_SIZE 65536
 #define BTL_SLAM_RGB_SIZE           "255"
 #define BTL_SLAM_PPM_FORMAT         "P6"
+#define BTL_SLAM_IMAGE_SIZE           BTL_SLAM_CAMERA_WIDTH \
+	                                  * BTL_SLAM_CAMERA_HEIGHT \
+                                    * BTL_SLAM_CAMERA_DEPTH
 
 /* ---------------------------------------------------
  * Initialization / Destruction
@@ -90,21 +93,22 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 		ODEBUG3("[BtlSlam] Segment read error : " << ex.what() );
 		throw(ex);
 	}
-	m_pSharedBuffer = m_pSharedSegment->construct<CVD::LLVSBuffer>(
+	m_pSharedBuffer = m_pSharedSegment->construct<ImageType>(
 			m_slamConfig.camera.c_str()
 			)();
 
-	// Push an image
+	// Allocate space for image
 	{
 		boost::interprocess::scoped_lock<boost::interprocess::interprocess_recursive_mutex> lock(m_pSharedBuffer->mutex);
-		int imageSize = BTL_SLAM_CAMERA_HEIGHT * BTL_SLAM_CAMERA_WIDTH * BTL_SLAM_CAMERA_DEPTH;
-		m_pSharedBuffer->image = new unsigned char[imageSize];
-		std::memcpy(
-				m_pSharedBuffer->image,
-				*m_pImageContainer,
-				imageSize
-				);
+		m_pSharedBuffer->image = new unsigned char[BTL_SLAM_IMAGE_SIZE];
 	}
+
+
+	//FIXME: We may change m_pImageContainer to point on the
+	// whole m_Binaries table of LLVS. Then we can deliver
+	// the right camera stream according to "SlamConfig::camera"
+	// We need first to standardize/centralize in an idl
+	// camera semantics of llvs (in enum and string form)
 
 	// Initialize the slam engine
 	try
@@ -130,6 +134,15 @@ int
 HRP2BtlSlamProcess::pRealizeTheProcess()
 {
 	ODEBUG3("[BtlSlam] Realize");
+	if( m_isAlreadyStarted )
+	{
+		pushImage();
+	}
+	else
+	{
+		ODEBUG3("[BtlSlam] Slam is not started.");
+		return BTL_SLAM_ERROR_PROCESS_NOT_STARTED;
+	}
 	return BTL_SLAM_RESULT_OK;
 }
 
@@ -201,6 +214,17 @@ HRP2BtlSlamProcess::SetInputImages(unsigned char** pImageContainer)
 	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer
 			<< " currently pointing " << (void*)*pImageContainer);
 	m_pImageContainer = pImageContainer;
+}
+
+void
+HRP2BtlSlamProcess::pushImage(void)
+{
+	boost::interprocess::scoped_lock<boost::interprocess::interprocess_recursive_mutex> lock(m_pSharedBuffer->mutex);
+	std::memcpy(
+			m_pSharedBuffer->image,
+			*m_pImageContainer,
+			BTL_SLAM_IMAGE_SIZE
+	);
 }
 
 int
@@ -280,14 +304,11 @@ const
 	{
 		return false;
 	}
-	unsigned int imageSize =  BTL_SLAM_CAMERA_WIDTH
-						                * BTL_SLAM_CAMERA_HEIGHT
-								            * BTL_SLAM_CAMERA_DEPTH;
 	aofstream << BTL_SLAM_PPM_FORMAT << std::endl;
 	aofstream << BTL_SLAM_CAMERA_WIDTH << " "
 						<< BTL_SLAM_CAMERA_HEIGHT << std::endl;
 	aofstream << BTL_SLAM_RGB_SIZE <<std::endl;
-	for(unsigned int i=0; i < imageSize; ++i)
+	for(unsigned int i=0; i < BTL_SLAM_IMAGE_SIZE; ++i)
 	{
 		aofstream << rgbFrame[ i ];
 	}
@@ -320,7 +341,7 @@ HRP2BtlSlamProcess::cleanUpSharedMemory()
 {
 	if( m_pSharedSegment )
 	{
-		m_pSharedSegment->destroy<CVD::LLVSBuffer>(m_slamConfig.camera.c_str());
+		m_pSharedSegment->destroy<ImageType>(m_slamConfig.camera.c_str());
 		delete m_pSharedSegment;
 	}
 	boost::interprocess::shared_memory_object::remove(m_slamConfig.server.c_str());

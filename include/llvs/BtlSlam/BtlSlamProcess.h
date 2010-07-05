@@ -27,12 +27,13 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 	public:
 
 		/*! Error codes */
-		static const int BTL_SLAM_RESULT_OK                     = 0;
+		static const int BTL_SLAM_RESULT_OK                     =  0;
 		static const int BTL_SLAM_ERROR_UNKNOWN_PARAMETER       = -1;
 		static const int BTL_SLAM_ERROR_CONFIG_MISSING          = -2;
 		static const int BTL_SLAM_ERROR_INITIALIZATION_FAILED   = -3;
 		static const int BTL_SLAM_ERROR_PROCESS_ALREADY_STARTED = -4;
-		static const int BTL_SLAM_ERROR_BAD_SOURCE_SYNTAX       = -5;
+		static const int BTL_SLAM_ERROR_PROCESS_NOT_STARTED     = -5;
+		static const int BTL_SLAM_ERROR_BAD_SOURCE_SYNTAX       = -6;
 
 		/*! Constructor/Destructor */
 		HRP2BtlSlamProcess();
@@ -51,14 +52,16 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 
 	protected:
 
+		/*! Push latest image into shared memory */
+		void pushImage();
+
 		/*! Write current RGB image into a <filename> file */
 		bool writeImageIntoFile(const unsigned char* rgbFrame,
                             const std::string& filename) const;
 
 		/*! Defined for user convenience only.
-		 *  This a short way to use shared data type between process
-		 *  and slam engine */
-		CVD::LLVSBuffer ImageType;
+		 *  Data type shared among Btl processes and LLVS engine */
+		typedef CVD::LLVSBuffer ImageType;
 
 		/*! Formatted configuration after a setSlamConfig call */
 		struct SlamConfig
