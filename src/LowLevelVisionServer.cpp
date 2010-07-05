@@ -920,7 +920,11 @@ LowLevelVisionServer::ApplyingProcess()
 	}
       while((!m_SynchroTrigger) ||
 	    (ResFromGIFF==-1) );
-      m_SynchroTrigger = false;
+			// Check if the trigger is due to a change of mode
+			if(m_TypeOfSynchro == LowLevelVisionSystem::SYNCHRO_TRIGGER)
+			{
+	      m_SynchroTrigger = false;
+			}
     }
   else
     {
@@ -969,7 +973,11 @@ LowLevelVisionServer::ApplyingProcess()
 	    }
 	  while(GoIn) ;
 	}
-      m_SynchroTrigger = false;
+			// Check if the trigger is due to a change of mode
+			if(m_TypeOfSynchro == LowLevelVisionSystem::SYNCHRO_FLOW)
+			{
+      	m_SynchroTrigger = false;
+			}
       FirstTime = 0;
     }
 
