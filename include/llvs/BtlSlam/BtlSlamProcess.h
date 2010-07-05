@@ -34,6 +34,9 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		static const int BTL_SLAM_ERROR_PROCESS_ALREADY_STARTED = -4;
 		static const int BTL_SLAM_ERROR_PROCESS_NOT_STARTED     = -5;
 		static const int BTL_SLAM_ERROR_BAD_SOURCE_SYNTAX       = -6;
+		static const int BTL_SLAM_ERROR_UNKNOWN_DISPLAY_OPTION  = -7;
+		static const int BTL_SLAM_ERROR_UNKNOWN_ENGINE_OPTION   = -8;
+		static const int BTL_SLAM_ERROR_UNKNOWN_PROCESS_OPTION  = -9;
 
 		/*! Constructor/Destructor */
 		HRP2BtlSlamProcess();
@@ -84,6 +87,11 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 
 		/*! Process status */
 		bool m_isAlreadyStarted;
+
+		/*! States handling */
+		int setDisplayState(const std::string& state);
+		int setEngineState(const std::string& state);
+		int setProcessState(const std::string& state);
 
 	private:
 		/*! Set <m_slamConfig> parsing the given <config> string.

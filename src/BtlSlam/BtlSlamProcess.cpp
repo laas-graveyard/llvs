@@ -186,6 +186,7 @@ HRP2BtlSlamProcess::pStopProcess()
 {
 	m_isAlreadyStarted = false;
 	ODEBUG3("[BtlSlam] Stop");
+	VSLAM_App::Instance().exit();
 	return BTL_SLAM_RESULT_OK;
 }
 
@@ -196,6 +197,18 @@ HRP2BtlSlamProcess::pSetParameter(std::string aParameter, std::string aValue)
 	if(	aParameter == "config" )
 	{
 		return setSlamConfig(aValue);
+	}
+	else if( aParameter == "display" )
+	{
+		return setDisplayState(aValue);
+	}
+	else if( aParameter == "engine" )
+	{
+		return setEngineState(aValue);
+	}
+	else if( aParameter == "process" )
+	{
+		return setProcessState(aValue);
 	}
 	else
 	{
@@ -286,6 +299,67 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 		}
 	}
 
+	return BTL_SLAM_RESULT_OK;
+}
+
+/* ---------------------------------------------------
+ * For states handling
+ * --------------------------------------------------- */
+
+int
+HRP2BtlSlamProcess::setDisplayState(const std::string& state)
+{
+	if( state == "pause" )
+	{
+		VSLAM_App::Instance().camera_pause();
+	}
+	else if( state == "start" )
+	{
+		VSLAM_App::Instance().camera_start();
+	}
+	else
+	{
+		ODEBUG3("[BtlSlam] Unknown option: " << state << ".");
+		return BTL_SLAM_ERROR_UNKNOWN_DISPLAY_OPTION;
+	}
+	return BTL_SLAM_RESULT_OK;
+}
+
+int
+HRP2BtlSlamProcess::setEngineState(const std::string& state)
+{
+	if( state == "pause" )
+	{
+		VSLAM_App::Instance().engine_pause();
+	}
+	else if( state == "start" )
+	{
+		VSLAM_App::Instance().engine_start();
+	}
+	else
+	{
+		ODEBUG3("[BtlSlam] Unknown option: " << state << ".");
+		return BTL_SLAM_ERROR_UNKNOWN_ENGINE_OPTION;
+	}
+	return BTL_SLAM_RESULT_OK;
+}
+
+int
+HRP2BtlSlamProcess::setProcessState(const std::string& state)
+{
+	if( state == "pause" )
+	{
+		VSLAM_App::Instance().pause();
+	}
+	else if( state == "start" )
+	{
+		VSLAM_App::Instance().start();
+	}
+	else
+	{
+		ODEBUG3("[BtlSlam] Unknown option: " << state << ".");
+		return BTL_SLAM_ERROR_UNKNOWN_PROCESS_OPTION;
+	}
 	return BTL_SLAM_RESULT_OK;
 }
 
