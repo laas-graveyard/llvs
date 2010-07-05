@@ -66,6 +66,7 @@
 			IEEE1394DCCameraParameters.h
 	    # ModelTracker
 			nmbtTrackingProcess.h
+			kalmanOnNMBTProcess.h
 	    # MonoSlam
 			hrp_model_creators.h
 			models_camera_height.h

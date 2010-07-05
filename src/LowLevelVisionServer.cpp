@@ -446,7 +446,14 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
+
+  bool useKalmanFilter=true;
+#if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER)
+  m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
+#else
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
+#endif
+
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);

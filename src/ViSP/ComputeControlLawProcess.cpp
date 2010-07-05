@@ -519,7 +519,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   if(r==-1 ||  m_RealiseControlLaw==false)
     {
       m_ComputeV = 0;
-      m_ComputeV[0]=0.00001;
+      // m_ComputeV[0]=0.00001;
       
       m_RealiseControlLaw=false;
       r=-1;
@@ -530,7 +530,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
     {
       VelocitySaturation(m_ComputeV,velref);
       
-      ZeroVelocity(velref);
+      // ZeroVelocity(velref);
     }
 
 

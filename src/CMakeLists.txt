@@ -44,6 +44,7 @@
 			OpenCV/MireDetectionProcess.cpp
 		NMBT
 			ModelTracker/nmbt/nmbtTrackingProcess.cpp
+			ModelTracker/nmbt/kalmanOnNMBTProcess.cpp
 		VISP
 			ViSP/vispConvertImageProcess.cpp
 			ViSP/CircularBufferTrackerData.cpp 
@@ -87,7 +88,7 @@
 		LINK_WITH
 			${${PROJECT_NAME}_LIBRARY_NAME}
 		COMPILE_FLAGS
-			"-g -c  -Wall -Wno-unused -fexceptions -Wfatal-errors"
+			"-g -c  -Wall -Wno-unused -fexceptions" 
 	)
 
 #------------------------------------------------------------------------------
