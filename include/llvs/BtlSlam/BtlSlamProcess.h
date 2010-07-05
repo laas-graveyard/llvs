@@ -37,18 +37,28 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		static const int BTL_SLAM_ERROR_UNKNOWN_DISPLAY_OPTION  = -7;
 		static const int BTL_SLAM_ERROR_UNKNOWN_ENGINE_OPTION   = -8;
 		static const int BTL_SLAM_ERROR_UNKNOWN_PROCESS_OPTION  = -9;
+		static const int BTL_SLAM_ERROR_BAD_MAP_REQUEST         = -10;
 
 		/*! Constructor/Destructor */
 		HRP2BtlSlamProcess();
 		virtual ~HRP2BtlSlamProcess();
 
 		/*! Generic process interface */
-		int pInitializeTheProcess();
-		int pRealizeTheProcess();
-		int pCleanUpTheProcess();
-		int pStartProcess();
-		int pStopProcess();
-		int pSetParameter(std::string aParameter, std::string aValue);
+		virtual int pInitializeTheProcess();
+		virtual int pRealizeTheProcess();
+		virtual int pCleanUpTheProcess();
+		virtual int pStartProcess();
+		virtual int pStopProcess();
+
+		/*!
+		 * Generic services. Accepted <aParameters> are:
+		 * - config   (please refer to setSlamConfig)
+		 * - display  (please refer to setDisplayState)
+		 * - engine   (please refer to setEngineState)
+		 * - process  (please refer to setProcessState)
+		 * - map      (please refer to setMapRequest)
+		 */
+		virtual int pSetParameter(std::string aParameter, std::string aValue);
 
 		/*! Specific interface */
 		void SetInputImages(unsigned char** pImageContainer);
@@ -56,11 +66,41 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 	protected:
 
 		/*! Push latest image into shared memory */
-		void pushImage();
+		virtual void pushImage();
 
 		/*! Write current RGB image into a <filename> file */
-		bool writeImageIntoFile(const unsigned char* rgbFrame,
+		virtual bool writeImageIntoFile(const unsigned char* rgbFrame,
                             const std::string& filename) const;
+
+		/*!
+		 * States handling. Accepted <state> are:
+		 * - pause
+		 * - start
+		 */
+		virtual int setDisplayState(const std::string& state);
+		virtual int setEngineState(const std::string& state);
+		virtual int setProcessState(const std::string& state);
+
+		/*!
+		 * Map interface. Accepted <request> are :
+		 *  - save <filename>
+		 *  - saveBeforeStop <filename>
+		 */
+		virtual int setMapRequest(const std::string& request);
+
+		/*! Set <m_slamConfig> parsing the given <config> string.
+		 *  If parsing fails, <m_slamConfig> is reset even if
+		 *  a previous valid configuration was set */
+		virtual int setSlamConfig(const std::string& config);
+
+		/*! Clean up current configuration in m_slamConfig var.
+		 *  If m_slamConfig has never been set, then nothing
+		 *  is performed. */
+		virtual void cleanUpConfig();
+
+		/*! Clean up all allocated segment in memory. Then
+		 * remove the whole segment and delete <m_pSharedSegment> */
+		virtual void cleanUpSharedMemory();
 
 		/*! Defined for user convenience only.
 		 *  Data type shared among Btl processes and LLVS engine */
@@ -88,25 +128,11 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		/*! Process status */
 		bool m_isAlreadyStarted;
 
-		/*! States handling */
-		int setDisplayState(const std::string& state);
-		int setEngineState(const std::string& state);
-		int setProcessState(const std::string& state);
+		/*! User wants the map to be saved at the stop process stage */
+		bool m_saveMapBeforeStop;
 
-	private:
-		/*! Set <m_slamConfig> parsing the given <config> string.
-		 *  If parsing fails, <m_slamConfig> is reset even if
-		 *  a previous valid configuration was set */
-		int setSlamConfig(const std::string& config);
-
-		/*! Clean up current configuration in m_slamConfig var.
-		 *  If m_slamConfig has never been set, then nothing
-		 *  is performed. */
-		void cleanUpConfig();
-
-		/*! Clean up all allocated segment in memory. Then
-		 * remove the whole segment and delete <m_pSharedSegment> */
-		void cleanUpSharedMemory();
+		/*! Where slam engine's map should be saved */
+		std::string m_saveMapLocation;
 };
 
 #endif // LLVS_HAVE_HRP_BTL_SLAM

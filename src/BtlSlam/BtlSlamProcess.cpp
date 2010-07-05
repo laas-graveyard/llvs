@@ -13,7 +13,7 @@
 /*! Includes system */
 #include <sstream>
 #include <stdio.h> //memcpy
-#include <fstream> //to be removed
+#include <fstream>
 
 /*! Includes slam specific */
 #include <vslam_app.h>
@@ -23,15 +23,16 @@
 
 /*! Parameters */
 //FIXME: Remove those hard-coded values
-#define BTL_SLAM_CAMERA_WIDTH	      320
-#define BTL_SLAM_CAMERA_HEIGHT      240
-#define BTL_SLAM_CAMERA_DEPTH       3
-#define BTL_SLAM_SHARED_MEMORY_SIZE 65536
-#define BTL_SLAM_RGB_SIZE           "255"
-#define BTL_SLAM_PPM_FORMAT         "P6"
-#define BTL_SLAM_IMAGE_SIZE           BTL_SLAM_CAMERA_WIDTH \
-	                                  * BTL_SLAM_CAMERA_HEIGHT \
-                                    * BTL_SLAM_CAMERA_DEPTH
+#define BTL_SLAM_CAMERA_WIDTH	          320
+#define BTL_SLAM_CAMERA_HEIGHT          240
+#define BTL_SLAM_CAMERA_DEPTH           3
+#define BTL_SLAM_SHARED_MEMORY_SIZE     65536
+#define BTL_SLAM_RGB_SIZE               "255"
+#define BTL_SLAM_PPM_FORMAT             "P6"
+#define BTL_SLAM_IMAGE_SIZE               BTL_SLAM_CAMERA_WIDTH \
+                                        * BTL_SLAM_CAMERA_HEIGHT \
+                                        * BTL_SLAM_CAMERA_DEPTH
+#define BTL_SLAM_DEFAULT_MAP_LOCATION   "DefaultMap"
 
 /* ---------------------------------------------------
  * Initialization / Destruction
@@ -41,7 +42,9 @@ HRP2BtlSlamProcess::HRP2BtlSlamProcess()
 	:m_pImageContainer(0),
 	m_pSharedBuffer(0),
 	m_pSharedSegment(0),
-	m_isAlreadyStarted(false)
+	m_isAlreadyStarted(false),
+	m_saveMapBeforeStop(false),
+	m_saveMapLocation(BTL_SLAM_DEFAULT_MAP_LOCATION)
 {
 	m_slamConfig.options = NULL;
 	m_slamConfig.size = 0;
@@ -103,7 +106,6 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 		m_pSharedBuffer->image = new unsigned char[BTL_SLAM_IMAGE_SIZE];
 	}
 
-
 	//FIXME: We may change m_pImageContainer to point on the
 	// whole m_Binaries table of LLVS. Then we can deliver
 	// the right camera stream according to "SlamConfig::camera"
@@ -121,8 +123,8 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 	}
 	catch(VSLAM_Common::Exception ex)
 	{
-		ODEBUG3("Exception caught : " << ex.msg);
-		ODEBUG3("Error code : " << ex.code);
+		ODEBUG3("[BtlSlam] Exception caught : " << ex.msg);
+		ODEBUG3("[BtlSlam] Error code : " << ex.code);
 		VSLAM_App::Instance().exit();
 		return BTL_SLAM_ERROR_INITIALIZATION_FAILED;
 	}
@@ -133,7 +135,6 @@ HRP2BtlSlamProcess::pInitializeTheProcess()
 int
 HRP2BtlSlamProcess::pRealizeTheProcess()
 {
-	ODEBUG3("[BtlSlam] Realize");
 	if( m_isAlreadyStarted )
 	{
 		pushImage();
@@ -184,6 +185,14 @@ HRP2BtlSlamProcess::pStartProcess()
 int
 HRP2BtlSlamProcess::pStopProcess()
 {
+	if( m_saveMapBeforeStop )
+	{
+		ODEBUG3("[BtlSlam] Save map before stopping. File:"
+				<< m_saveMapLocation);
+		VSLAM_App::Instance().saveMap(m_saveMapLocation);
+		ODEBUG3("[BtlSlam] End of map save");
+		m_saveMapBeforeStop = false;
+	}
 	m_isAlreadyStarted = false;
 	ODEBUG3("[BtlSlam] Stop");
 	VSLAM_App::Instance().exit();
@@ -209,6 +218,10 @@ HRP2BtlSlamProcess::pSetParameter(std::string aParameter, std::string aValue)
 	else if( aParameter == "process" )
 	{
 		return setProcessState(aValue);
+	}
+	else if( aParameter == "map")
+	{
+		return setMapRequest(aValue);
 	}
 	else
 	{
@@ -299,6 +312,64 @@ HRP2BtlSlamProcess::setSlamConfig(const std::string& config)
 		}
 	}
 
+	return BTL_SLAM_RESULT_OK;
+}
+
+int
+HRP2BtlSlamProcess::setMapRequest(const std::string& request)
+{
+	// Save actual status in case we have to rollback
+	std::string oldMapLocation(m_saveMapLocation);
+	bool oldSaveMapBeforeStop(m_saveMapBeforeStop);
+	ODEBUG3("[BtlSlam] Receiving \"" << request << "\"");
+
+	// Parse the request string
+	std::stringstream stream(request);
+	if(stream.eof())
+	{
+		return BTL_SLAM_ERROR_BAD_MAP_REQUEST;
+	}
+
+	std::string option;
+	stream >> option;
+	ODEBUG3("[BtlSlam] Option:" << option);
+
+	// Memorize planned action
+	if(option == "saveBeforeStop")
+	{
+		if(stream.eof())
+		{
+			return BTL_SLAM_ERROR_BAD_MAP_REQUEST;
+		}
+		m_saveMapBeforeStop = true;
+		stream >> m_saveMapLocation;
+		ODEBUG3("[BtlSlam] Record save map before stop request");
+	}
+
+	// Save a map now
+	else if(option == "save")
+	{
+		if(stream.eof())
+		{
+			return BTL_SLAM_ERROR_BAD_MAP_REQUEST;
+		}
+		stream >> m_saveMapLocation;
+		ODEBUG3("[BtlSlam] Save map now in " << m_saveMapLocation);
+		VSLAM_App::Instance().saveMap(m_saveMapLocation);
+	}
+
+	// Or there is a syntax error
+	else
+	{
+		return BTL_SLAM_ERROR_BAD_MAP_REQUEST;
+	}
+	if(!stream.eof())
+	{
+		// We then have to roll back any performed action
+		m_saveMapLocation = oldMapLocation;
+		m_saveMapBeforeStop = oldSaveMapBeforeStop;
+		return BTL_SLAM_ERROR_BAD_MAP_REQUEST;
+	}
 	return BTL_SLAM_RESULT_OK;
 }
 
