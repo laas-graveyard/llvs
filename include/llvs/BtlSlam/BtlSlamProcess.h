@@ -22,6 +22,12 @@
 /*! Includes system */
 #include <string>
 
+/*! Class forwarding */
+namespace llvs
+{
+	class BtlSlamInterface_impl;
+}
+
 class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 {
 	public:
@@ -62,6 +68,7 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 
 		/*! Specific interface */
 		void SetInputImages(unsigned char** pImageContainer);
+		llvs::BtlSlamInterface_impl* GetInterface();
 
 	protected:
 
@@ -101,6 +108,9 @@ class HRP2BtlSlamProcess : public HRP2VisionBasicProcess
 		/*! Clean up all allocated segment in memory. Then
 		 * remove the whole segment and delete <m_pSharedSegment> */
 		virtual void cleanUpSharedMemory();
+
+		/*! CORBA services */
+		llvs::BtlSlamInterface_impl* m_BtlSlamInterface_impl;
 
 		/*! Defined for user convenience only.
 		 *  Data type shared among Btl processes and LLVS engine */

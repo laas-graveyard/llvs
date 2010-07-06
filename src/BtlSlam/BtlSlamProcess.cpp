@@ -21,6 +21,9 @@
 /*! Includes llvs tools */
 #include <llvs/tools/Debug.h>
 
+/*! CORBA services */
+#include <Corba/BtlSlamInterface_impl.h>
+
 /*! Parameters */
 //FIXME: Remove those hard-coded values
 #define BTL_SLAM_CAMERA_WIDTH	          320
@@ -39,16 +42,21 @@
  * --------------------------------------------------- */
 
 HRP2BtlSlamProcess::HRP2BtlSlamProcess()
-	:m_pImageContainer(0),
+	:m_BtlSlamInterface_impl(0),
+	m_pImageContainer(0),
 	m_pSharedBuffer(0),
 	m_pSharedSegment(0),
 	m_isAlreadyStarted(false),
 	m_saveMapBeforeStop(false),
 	m_saveMapLocation(BTL_SLAM_DEFAULT_MAP_LOCATION)
 {
+	// Basic process information
 	m_slamConfig.options = NULL;
 	m_slamConfig.size = 0;
 	m_ProcessName = "BtlSlamProcess";
+
+	// Instantiation of CORBA services
+	m_BtlSlamInterface_impl = new llvs::BtlSlamInterface_impl(VSLAM_App::Instance());
 }
 
 HRP2BtlSlamProcess::~HRP2BtlSlamProcess()
@@ -240,6 +248,12 @@ HRP2BtlSlamProcess::SetInputImages(unsigned char** pImageContainer)
 	ODEBUG3("[BtlSlam] Set image buffer address: " << (void*)pImageContainer
 			<< " currently pointing " << (void*)*pImageContainer);
 	m_pImageContainer = pImageContainer;
+}
+
+llvs::BtlSlamInterface_impl*
+HRP2BtlSlamProcess::GetInterface(void)
+{
+	return m_BtlSlamInterface_impl;
 }
 
 void

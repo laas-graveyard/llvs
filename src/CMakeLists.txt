@@ -30,6 +30,7 @@
 			Corba/StereoVision_impl.cpp 
 			Corba/ModelTrackerInterface_impl.cpp
 			Corba/PointTrackerInterface_impl.cpp
+			Corba/BtlSlamInterface_impl.cpp
 		VVV
 			VVV/DisparityProcess.cpp 
 			VVV/MotionEvaluationProcess.cpp 

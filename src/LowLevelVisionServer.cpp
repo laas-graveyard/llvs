@@ -84,6 +84,9 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
+#if (LLVS_HAVE_HRP_BTL_SLAM>0)
+#include "Corba/BtlSlamInterface_impl.h"
+#endif
 
 #include <llvs/tools/Debug.h>
 
@@ -158,7 +161,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_PointTrackerCorbaRequestProcess_impl =
     new PointTrackerInterface_impl(this);
 #endif
-
 
   ODEBUG("Step 1");
 
@@ -3531,6 +3533,19 @@ void LowLevelVisionServer::SetTheSLAMImage(int anIndex)
 #if (LLVS_HAVE_SCENE>0)
   m_SingleCameraSLAM->SetInputImages(&m_epbm[m_TheSLAMImage]);
 #endif
+}
+
+BtlSlamInterface_ptr
+LowLevelVisionServer::getBtlSlamInterface()
+  throw(CORBA::SystemException)
+{
+	BtlSlamInterface_var interface;
+#if (LLVS_HAVE_HRP_BTL_SLAM>0)
+	interface = m_BtlSlamProcess->GetInterface()->_this();
+#else
+	ODEBUG3("[BtlSlamInterface] WARNING! Interface has not been compiled");
+#endif
+	return interface._retn();
 }
 
 int LowLevelVisionServer::GetTheSLAMImage()

@@ -103,7 +103,8 @@
 #endif
 
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
-#include "BtlSlam/BtlSlamProcess.h"
+	#include "BtlSlam/BtlSlamProcess.h"
+	#include "BtlSlamInterface.hh"
 #endif
 
 #include <vector>
@@ -572,10 +573,12 @@ namespace llvs
 
 #endif
 
+		public:
+			BtlSlamInterface_ptr getBtlSlamInterface() throw(CORBA::SystemException);
+		protected:
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
-
+		protected:
 			HRP2BtlSlamProcess* m_BtlSlamProcess;
-
 #endif //LLVS_HAVE_HRP_BTL_SLAM
 
 #if (LLVS_HAVE_SCENE>0)
