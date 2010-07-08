@@ -62,6 +62,7 @@
 			ModelTrackerInterface_impl.h
 			PointTrackerInterface_impl.h
 			StereoVision_impl.h
+			BtlSlamInterface_impl.h
 	    # dc1394
 			IEEE1394DCCameraParameters.h
 	    # ModelTracker
@@ -99,10 +100,7 @@
 			RectificationProcess.h
 	    # Main include
 			CircularBuffer.t.h
-			common.h
-			common_skel.h
 			ConnectionToSot.h
 			oocmap.h
 			OpticalFlowProcess.h
-			visionsensor.h
 	)

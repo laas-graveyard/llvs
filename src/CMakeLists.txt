@@ -20,7 +20,7 @@
 			ConnectionToSot.cpp
 			Simu/SimulatorInputMethod.cpp 
 			Simu/FileImagesInputMethod.cpp
-		BTL_SLAM
+		HRP_BTL_SLAM
 			BtlSlam/BtlSlamProcess.cpp
 		DC_1394_V2
 			dc1394/IEEE1394DCCameraParameters.cpp
@@ -30,6 +30,7 @@
 			Corba/StereoVision_impl.cpp 
 			Corba/ModelTrackerInterface_impl.cpp
 			Corba/PointTrackerInterface_impl.cpp
+			Corba/BtlSlamInterface_impl.cpp
 		VVV
 			VVV/DisparityProcess.cpp 
 			VVV/MotionEvaluationProcess.cpp 
@@ -75,7 +76,7 @@
 		SOURCES
 			${${PROJECT_NAME}_SOURCE_LIST}
 		COMPILE_FLAGS
-			"-g -c  -Wall -Wno-unused -fexceptions -Wfatal-errors"
+			"-Wall -Wno-unused -fexceptions -Wfatal-errors"
 	)
 
 #------------------------------------------------------------------------------
@@ -88,7 +89,7 @@
 		LINK_WITH
 			${${PROJECT_NAME}_LIBRARY_NAME}
 		COMPILE_FLAGS
-			"-g -c  -Wall -Wno-unused -fexceptions" 
+			"-Wall -Wno-unused -fexceptions -Wfatal-errors"
 	)
 
 #------------------------------------------------------------------------------
