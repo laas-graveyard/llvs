@@ -84,6 +84,12 @@ using namespace std;
 #include "dc1394/IEEE1394DCImagesInputMethod.h"
 #endif
 
+ 
+
+#if(LLVS_HAVE_KALMAN_FILTER>0)
+#include "ModelTracker/kalmanOnNMBTProcess.h"
+#endif  
+
 
 #include <llvs/tools/Debug.h>
 
@@ -447,12 +453,19 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 #if (LLVS_HAVE_NMBT>0)
   /*! Model Tracker process. */
 
+
+  //TODO find a better way to do define the m_ModelTrackerProcess
   bool useKalmanFilter=true;
-#if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER)
-  m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
-#else
-  m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
-#endif
+if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER>0)
+  {
+    ODEBUG("creation of HRP2KalmanOnNMBTProcess");
+    m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
+  }
+else
+   {
+     ODEBUG("creation of HRP2nmbtTrackingProcess");
+     m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
+   }
 
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_ModelTrackerProcess->StopProcess();

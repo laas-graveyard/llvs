@@ -7,6 +7,9 @@
     
     See license file for information on license.
 */
+
+#include <sys/time.h>
+
 #include <llvs/tools/Debug.h>
 
 #include "ModelTracker/kalmanOnNMBTProcess.h"
@@ -146,7 +149,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      aValue.erase(0,found+1);
 	      m_N[i]=atof(tmp.c_str());
 
-	      ODEBUG3("m_N["<<i<<"] : "<< m_N[i]);
+	      ODEBUG("m_N["<<i<<"] : "<< m_N[i]);
 	    }
 	}
       else if(lParam == "PVAR")
@@ -165,7 +168,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      aValue.erase(0,found+1);
 	      m_P[i][i]=atof(tmp.c_str());
 
-	      ODEBUG3("m_P["<<i<<"]["<<i<<"] : "<< m_P[i][i]);
+	      ODEBUG("m_P["<<i<<"]["<<i<<"] : "<< m_P[i][i]);
 	    }
 	  
 	}
@@ -184,7 +187,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      aValue.erase(0,found+1);
 	      m_R[i][i]=atof(tmp.c_str());
 
-	      ODEBUG3("m_R["<<i<<"]["<<i<<"] : "<< m_R[i][i]);
+	      ODEBUG("m_R["<<i<<"]["<<i<<"] : "<< m_R[i][i]);
 	    }
 	}
       else if(lParam == "REINIT")
@@ -210,7 +213,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	 return -1;
        }
     }
-  else
+    else
     {
       HRP2nmbtTrackingProcess::pSetParameter(aParameter,aValue);
     }
@@ -229,6 +232,7 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
 
   HRP2nmbtTrackingProcess:: pInitializeTheProcess();
   
+
   switch(m_StateType)
     {
     case VEL_CAM:
@@ -254,8 +258,26 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
 
   m_MeasureModel=new TrackerModel(m_R,m_StateSize);
 
+  ConvertHMatrixToCVector(m_inputcMo,m_Y);
+
   m_Kalman=new seKalman(m_MeasureModel,m_StateModel,m_Y,m_P);
 
+
+#if 1
+
+  ofstream aof;
+  aof.open("dumpkalman.dat",ofstream::out);
+  aof <<"# TimeStamp (1 value) /dt(1 value)/ Xpre("<<m_StateSize<<" values)/"
+      <<"diagPre ("<<m_StateSize<<" values)/Measure Tracker (6 values)/ "
+      <<" Xup ( "<<m_StateSize<<"values)/ diagPre ("<<m_StateSize<<" values)" <<endl;
+  
+  aof.close();
+
+#endif
+
+
+
+ ODEBUG3("KALMAN Initialized");
   return 0;
 }
 
@@ -266,17 +288,17 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 {
   //TODO cMo inversion when working in object frame
 
-  double dt=0.033;
+  double dt=0.06;//TODO this dt value is just for testing
   vpColVector U;
   m_Kalman->prediction(dt,U);
 
-  vpColVector lX(m_StateSize);
-  lX=m_Kalman->getXpre();
+  vpColVector lXpre(m_StateSize);
+  lXpre=m_Kalman->getXpre();
 
   vpHomogeneousMatrix lcMo;
-  ConvertCVectorToHMatrix(lX,lcMo);
+  ConvertCVectorToHMatrix(lXpre,lcMo);
 
-  m_tracker.setcMo(lcMo);
+  // m_tracker.setcMo(lcMo);
  
   HRP2nmbtTrackingProcess::pRealizeTheProcess();
 
@@ -284,13 +306,51 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
   
   m_Kalman->update(m_Y);
 
+  vpColVector lXup(m_StateSize);
+  lXup=m_Kalman->getXup();
+
+
   if(m_ReIntializedNMBT)
     {
-      lX=m_Kalman->getXup();
-      ConvertCVectorToHMatrix(lX,lcMo);
+      ConvertCVectorToHMatrix(lXup,lcMo);
 
       m_tracker.init(*m_inputVispImage,lcMo);
     }
+
+
+#if 1
+  
+  vpMatrix lPpre(m_StateSize,m_StateSize);
+  lPpre=m_Kalman->getPpre();
+
+  vpMatrix lPup(m_StateSize,m_StateSize);
+  lPup=m_Kalman->getPup();
+
+  ofstream aof;
+  aof.open("dumpkalman.dat",ofstream::app);
+  struct timeval atv;
+  gettimeofday(&atv,0);
+  aof.precision(15);
+  aof << atv.tv_sec + 0.000001 * atv.tv_usec << "  "<<dt<<"  "
+      <<lXpre.t()<<" ";  
+  
+  for (int i = 0;i<m_StateSize;++i)
+    {
+      aof <<lPpre[i][i]<<"  ";
+    }
+
+  aof << lXup.t();
+  
+  for (int i = 0;i<m_StateSize;++i)
+    {
+      aof <<lPup[i][i]<<"  ";
+    }
+  aof <<endl;
+  
+  aof.close();
+  
+#endif
+
 
   return 0;
 }
