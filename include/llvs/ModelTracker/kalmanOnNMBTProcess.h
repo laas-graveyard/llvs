@@ -42,8 +42,8 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
     VEL_OBJ,
     ACC_CAM,
     ACC_OBJ,
-    COM_CAM,
-    COM_OBJ
+    CTL_CAM,
+    CTL_OBJ
   } typeState ;	
   
   /*! Constructor */

@@ -78,8 +78,8 @@ KALMAN_STATE : VEL_CAM
                VEL_OBJ
                ACC_CAM
 	       ACC_OBJ
-	       COM_CAM
-	       COM_OBJ
+	       CTL_CAM
+	       CTL_OBJ
 
 KALMAN_PVAR
 KALMAN_NVAR
@@ -120,12 +120,12 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      m_StateSize=15;
 	      m_StateType=ACC_OBJ;
 	    } 
-	  else if(aValue == "COM_CAM")
+	  else if(aValue == "CTL_CAM")
 	    { 
 	      m_StateSize=12;
 	      m_StateType=COM_CAM;
 	    }
-	  else if(aValue == "COM_OBJ")
+	  else if(aValue == "CTL_OBJ")
 	    {
 	      m_StateSize=12;
 	      m_StateType=COM_OBJ;
@@ -248,10 +248,10 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
     case ACC_OBJ:
       m_StateModel=new SE3ModelAtconstRc(m_N);
       break;
-    case COM_CAM:
+    case CTL_CAM:
       m_StateModel=new SE3ModelUvRo(m_N);
       break;
-    case COM_OBJ:
+    case CTL_OBJ:
       m_StateModel=new SE3ModelUvRc(m_N);
       break;
     };

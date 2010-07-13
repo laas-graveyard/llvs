@@ -468,6 +468,8 @@ int HRP2PointTrackingProcess::Tracking()
 -------------------------------------*/
 int HRP2PointTrackingProcess::computePose()
 {
+
+  double x=0,y=0 ;
   // pixel-> meter conversion
   for (unsigned int i=0 ; i < m_NbPoint ; i++)
     {
@@ -476,7 +478,6 @@ int HRP2PointTrackingProcess::computePose()
       // x = (u-u0)/px
       // y = (v-v0)/py
       // where px, py, u0, v0 are the intrinsic camera parameters
-      double x,y ;
       vpPixelMeterConversion::convertPoint( m_cam ,*m_vpIPList[i] , x , y )  ;
       m_PointList[i].set_x(x) ;
       m_PointList[i].set_y(y) ;
