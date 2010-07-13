@@ -573,7 +573,7 @@ HRP2FileImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char **I
 }
 
 unsigned int
-HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& camera, struct timeval &timestamp)
+HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& camera, double &timestamp)
 {
   int r=0;
 		
@@ -668,7 +668,10 @@ HRP2FileImagesInputMethod::GetSingleImage(unsigned char **Image, const unsigned 
   //  memcpy(*Image,m_ReadImageData[camera]->Data,
   //m_ReadImageData[camera]->width * m_ReadImageData[camera]->height);
 
-  gettimeofday(&timestamp,0);
+  struct timeval ltimeval;
+  gettimeofday(&ltimeval,0);
+
+  timestamp=ltimeval.tv_sec + 0.0000001 * ltimeval.tv_usec;
   ODEBUG("End of GetSingleImage ");
   return r;
 

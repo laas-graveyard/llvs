@@ -96,7 +96,7 @@ namespace llvs
        */
       virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
-      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp);
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, double &timestamp);
 
       /*! \brief Set the size of the image willing to be grabbed. */
       virtual unsigned int SetImageSize(int lw, int lh, const unsigned int& CameraNumber);

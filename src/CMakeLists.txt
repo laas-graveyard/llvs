@@ -76,7 +76,7 @@
 		SOURCES
 			${${PROJECT_NAME}_SOURCE_LIST}
 		COMPILE_FLAGS
-			"-Wall -Wno-unused -fexceptions -Wfatal-errors"
+			"-Wall -Wno-unused -fexceptions"
 	)
 
 #------------------------------------------------------------------------------
@@ -89,7 +89,7 @@
 		LINK_WITH
 			${${PROJECT_NAME}_LIBRARY_NAME}
 		COMPILE_FLAGS
-			"-Wall -Wno-unused -fexceptions -Wfatal-errors"
+			"-Wall -Wno-unused -fexceptions"
 	)
 
 #------------------------------------------------------------------------------

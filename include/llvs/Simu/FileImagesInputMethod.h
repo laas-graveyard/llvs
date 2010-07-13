@@ -61,7 +61,7 @@ namespace llvs {
       virtual int GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, unsigned char **ImageUp);
 
       /*! Takes a new image.*/
-      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& camera, struct timeval &timestamp);
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& camera, double &timestamp);
 
       /*! Get the current format of the image */
       virtual string GetFormat(const unsigned int& CameraNumber) const;

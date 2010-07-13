@@ -123,12 +123,12 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	  else if(aValue == "CTL_CAM")
 	    { 
 	      m_StateSize=12;
-	      m_StateType=COM_CAM;
+	      m_StateType=CTL_CAM;
 	    }
 	  else if(aValue == "CTL_OBJ")
 	    {
 	      m_StateSize=12;
-	      m_StateType=COM_OBJ;
+	      m_StateType=CTL_OBJ;
 	    }
 	   else 
 	     {
@@ -179,7 +179,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	  	  
 	  m_R.setIdentity();
 
-	  for ( int i=0; i<m_StateSize;++i)
+	  for ( int i=0; i<6;++i)
 	    {
 	  
 	      found=aValue.find(":");
@@ -298,7 +298,7 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
   vpHomogeneousMatrix lcMo;
   ConvertCVectorToHMatrix(lXpre,lcMo);
 
-  // m_tracker.setcMo(lcMo);
+  m_tracker.setcMo(lcMo);
  
   HRP2nmbtTrackingProcess::pRealizeTheProcess();
 
@@ -339,7 +339,7 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
       aof <<lPpre[i][i]<<"  ";
     }
 
-  aof << lXup.t();
+  aof <<m_Y.t()<< lXup.t();
   
   for (int i = 0;i<m_StateSize;++i)
     {

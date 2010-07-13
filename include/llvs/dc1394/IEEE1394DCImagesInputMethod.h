@@ -100,7 +100,7 @@ namespace llvs
        * \param unsigned char * Image:  A pointer where to store the image.
        * \param int camera: The camera index.
        */
-      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera,struct timeval &timestamp);
+      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera,double &timestamp);
 
       /* Real implementation for single PGM */
       int GetImagePGM(unsigned char *Image, int SemanticCamera);
@@ -226,13 +226,13 @@ namespace llvs
 			unsigned int CaptureDequeue(const unsigned int& cameraNumber);
 
 			/*! Specialization of GetImageSingle for PGM image format */
-      unsigned int GetImageSinglePGM(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
+      unsigned int GetImageSinglePGM(unsigned char **Image, const unsigned int& cameraNumber, double &timestamp);
 
 			/*! Specialization of GetImageSingle for RAW image format */
-      unsigned int GetImageSingleRaw(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
+      unsigned int GetImageSingleRaw(unsigned char **Image, const unsigned int& cameraNumber, double &timestamp);
 
 			/*! Specialization of GetImageSingle for RGB image format */
-      unsigned int GetImageSingleRGB(unsigned char **Image, const unsigned int& cameraNumber, struct timeval &timestamp);
+      unsigned int GetImageSingleRGB(unsigned char **Image, const unsigned int& cameraNumber, double &timestamp);
 
       /*! Clean memory when stopping the board. */
       void CleanMemory();

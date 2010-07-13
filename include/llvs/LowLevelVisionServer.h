@@ -680,7 +680,7 @@ namespace llvs
       double m_headTorg[16];
 
       /*! Timestamp for images */
-      vector<struct timeval> m_timestamps;
+      vector<double> m_timestamps;
 
       /*! Depth of the acquired image */
       vector<unsigned int> m_depth;
@@ -691,7 +691,7 @@ namespace llvs
 
 
       unsigned char *m_StoredImages;
-      struct timeval *m_StoredTimeStamp;
+      double * m_StoredTimeStamp;
       double * m_SideOfTheImage;
       double * m_StoredCameraPosOri;
       double * m_StoredCameraCov;

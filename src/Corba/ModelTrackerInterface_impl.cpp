@@ -35,7 +35,7 @@ ModelTrackerInterface_impl::ModelTrackerInterface_impl(LowLevelVisionServer * LL
   m_LLVS = LLVS;
 #if (LLVS_HAVE_NMBT>0)
   m_CBTD.image = new vpImage<unsigned char>(240,320);
-  m_CBTD.timestamp = new timeval;
+  m_CBTD.timestamp = new double(0);
 #endif  
 }
 
@@ -172,8 +172,8 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
 #if (LLVS_HAVE_NMBT>0)
 
 
-  aDIOv->anImgData.longData[0] =m_CBTD.timestamp->tv_sec;
-  aDIOv->anImgData.longData[1] =m_CBTD.timestamp->tv_usec;
+  aDIOv->anImgData.longData[0] =*m_CBTD.timestamp;
+  aDIOv->anImgData.longData[1] =(*m_CBTD.timestamp-aDIOv->anImgData.longData[0])*1e6;
 
   unsigned char *pt =m_CBTD.image->bitmap;
 

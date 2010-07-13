@@ -114,7 +114,9 @@ namespace llvs
 			 * a specific error reason. Please see above list of
 			 * handled errors.
        */
-      virtual unsigned int GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp) = 0;
+      virtual unsigned int GetSingleImage(unsigned char **Image,
+					  const unsigned int& SemanticCamera,
+					  double &timestamp) = 0;
 
       /*! Set the size of the image willing to be grabbed. */
       virtual unsigned int SetImageSize(int lw, int lh, const unsigned int& SemanticCamera);

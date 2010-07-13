@@ -1262,7 +1262,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 
 	  if (fp!=0)
 	    {
-	      double TimeStamp=m_timestamps[i].tv_sec + 0.0000001 * m_timestamps[i].tv_usec;
+	      double TimeStamp=m_timestamps[i];
 	      if (m_depth[0]==1)
 		fprintf(fp,"P5\n");
 	      else if (m_depth[0]==3)
@@ -2327,8 +2327,9 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
     an2Image->octetData[j] = *pt++;
 
-  an2Image->longData[0] = m_timestamps[SemanticCamera].tv_sec;
-  an2Image->longData[1] = m_timestamps[SemanticCamera].tv_usec;
+  an2Image->floatData[0] = m_timestamps[SemanticCamera];
+  an2Image->floatData[1] = (m_timestamps[SemanticCamera]-an2Image->floatData[0])*1e6;
+
   anImage = an2Image._retn();
 
   ODEBUG("m_depth["<<SemanticCamera << "]="<<(int)m_depth[SemanticCamera]<< endl);
@@ -2369,10 +2370,10 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   an2Image->floatData.length(0);
   an2Image->width=320;
   an2Image->height=240;
-  an2Image->longData.length(2);
+  an2Image->longData.length(1);
   an2Image->format=GRAY;//PixelFormat::GRAY;
-  an2Image->longData[0] = m_timestamps[SemanticCamera].tv_sec;
-  an2Image->longData[1] = m_timestamps[SemanticCamera].tv_usec;
+  an2Image->floatData[0] = m_timestamps[SemanticCamera];
+  an2Image->floatData[1] = (m_timestamps[SemanticCamera]-an2Image->floatData[0])*1e6;
 
 
   unsigned char *pt =m_Widecam_image_undistorded->bitmap;
@@ -3237,7 +3238,7 @@ void LowLevelVisionServer::CreateStack()
   else
     ODEBUG3("COULD ALLOCATE ENOUGH MEMORY for stack");
 
-  m_StoredTimeStamp = new struct timeval[m_MaxSI];
+  m_StoredTimeStamp = new double[m_MaxSI];
   if (m_StoredImages==0)
     ODEBUG3("COULD NOT ALLOCATE ENOUGH MEMORY for timestamps");
 
@@ -3305,7 +3306,7 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
   if ((m_StoredCameraCov!=0) && (m_SingleCameraSLAM!=0))
     {
 
-      double timeref = m_timestamps[image].tv_sec + 0.000001 * m_timestamps[image].tv_usec;
+      double timeref = m_timestamps[image];
 #if 0
       m_SingleCameraSLAM->GetGyroAcceleroFromTimeStamp(m_StoredCameraCov+6*m_IndexSensorsStack,
 						       m_StoredCameraCov+6*m_IndexSensorsStack+3,
@@ -3369,8 +3370,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	      double prevTimeStamp;
 	      for(unsigned int j=0; j<m_MaxSI/ldepth; j++)
 		{
-		  double TimeStamp=m_StoredTimeStamp[j*ldepth+i].tv_sec +
-		    0.000001 * m_StoredTimeStamp[j*ldepth+i].tv_usec;
+		  double TimeStamp=m_StoredTimeStamp[j*ldepth+i];
 		  if (j==0)
 		    prevTimeStamp=TimeStamp;
 		  fprintf(fp,"%f %f\n",TimeStamp,TimeStamp-prevTimeStamp);
@@ -3391,7 +3391,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	      fprintf(fp_sensors,"%f ",m_StoredCameraCov[i]);
 	      if ((i>0) && (i%9==8))
 		{
-		  double TimeStamp=m_StoredTimeStamp[i/9].tv_sec + 0.000001 * m_StoredTimeStamp[i/9].tv_usec;
+		  double TimeStamp=m_StoredTimeStamp[i/9];
 		  fprintf(fp_sensors,"%f\n",TimeStamp);
 		}
 	    }
@@ -3424,7 +3424,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	      fprintf(fp_sensors,"%f ",m_StoredCameraPosOri[i]);
 	      if ((i>0) && (i%7==6))
 		{
-		  double TimeStamp=m_StoredTimeStamp[i/7].tv_sec + 0.000001 * m_StoredTimeStamp[i/7].tv_usec;
+		  double TimeStamp=m_StoredTimeStamp[i/7];
 		  fprintf(fp_sensors," %f\n",TimeStamp);
 		}
 	    }
@@ -3462,7 +3462,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 
 	  if (fp!=0)
 	    {
-	      double TimeStamp=m_StoredTimeStamp[i].tv_sec + 0.000001 * m_StoredTimeStamp[i].tv_usec;
+	      double TimeStamp=m_StoredTimeStamp[i];
 	      if (m_depth[0]==1)
 		fprintf(fp,"P5\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width[0],(int)m_Height[0]);
 	      else if (m_depth[0]==3)

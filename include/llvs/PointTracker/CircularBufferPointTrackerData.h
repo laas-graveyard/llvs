@@ -26,7 +26,7 @@
 struct CBPointTrackerData
 {
   vpImage<unsigned char> * image;
-  timeval* timestamp;
+  double* timestamp;
   vector<vpImagePoint*> vpIP;
   vpHomogeneousMatrix cMo;
 
@@ -50,7 +50,7 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
 	for(unsigned int i=0;i<m_CircularBuffer.size();i++)
 	  {
 	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
-	    m_CircularBuffer[i].onedatum.timestamp= new timeval;
+	    m_CircularBuffer[i].onedatum.timestamp= new double(0);
 	  }
 		
 	m_ProcessName = "CircularPointTrackerData";

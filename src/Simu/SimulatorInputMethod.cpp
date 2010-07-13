@@ -112,7 +112,7 @@ int HRP2SimulatorInputMethod::GetImage(unsigned char ** ImageLeft, unsigned char
 }
 
 unsigned int
-HRP2SimulatorInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, struct timeval &timestamp)
+HRP2SimulatorInputMethod::GetSingleImage(unsigned char **Image, const unsigned int& SemanticCamera, double &timestamp)
 {
 	ODEBUG("Not implemented");
 	return ERROR_UNDEFINED_SEMANTIC_CAMERA;

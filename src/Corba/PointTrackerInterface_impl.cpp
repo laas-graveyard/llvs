@@ -38,7 +38,7 @@ PointTrackerInterface_impl::PointTrackerInterface_impl(LowLevelVisionServer * LL
   m_LLVS = LLVS;
 #if (LLVS_HAVE_NMBT>0)
   m_CBPTD.image = new vpImage<unsigned char>(240,320);
-  m_CBPTD.timestamp = new timeval;
+  m_CBPTD.timestamp = new double(0);
 #endif 
 }
 
@@ -157,8 +157,7 @@ PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoO
 #if (LLVS_HAVE_NMBT>0)
 
 
-  aDIOv->anImgData.longData[0] =m_CBPTD.timestamp->tv_sec;
-  aDIOv->anImgData.longData[1] =m_CBPTD.timestamp->tv_usec;
+  aDIOv->anImgData.longData[0] =*m_CBPTD.timestamp;
 
   unsigned char *pt =m_CBPTD.image->bitmap;
 
