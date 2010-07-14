@@ -459,7 +459,11 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER>0)
     {
       ODEBUG("creation of HRP2KalmanOnNMBTProcess");
+
       m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
+      HRP2KalmanOnNMBTProcess* lKalmanOnNMBTProcess;
+      lKalmanOnNMBTProcess = dynamic_cast<HRP2KalmanOnNMBTProcess*> (m_ModelTrackerProcess);
+      lKalmanOnNMBTProcess->SetTimeStamp(&m_timestamps[CAMERA_WIDE]);
     }
   else
     {

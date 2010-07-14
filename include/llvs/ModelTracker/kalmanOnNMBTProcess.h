@@ -13,6 +13,7 @@
 #define _KALMAN_ON_NMBT_PROCESS_H_
 
 #include <iostream>
+#include <queue>
 
 #include "VisionBasicProcess.h"
 /*! HRP2VisionBasicProcess is used to derive all the vision process
@@ -54,7 +55,12 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
 
   /*! Set a parameter */
   int pSetParameter(string aParameter, string aValue);
- 
+
+  /*! Set pointer on m_timestamp in LLVS*/
+  int SetTimeStamp(double* aTimeStamp);
+   
+  /*! Set the ConnectionToSot  pointer */
+  void SetConnectionToSot (llvs::ConnectionToSot * aCTS);
 
  protected:
 
@@ -74,7 +80,16 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   /*! Convert vpHomogeneousMatrix to vpColverctor*/
   void ConvertCVectorToHMatrix(const vpColVector & aCV,
 			       vpHomogeneousMatrix & aHM);
- public:
+
+  void KalmanOnSoT();
+  
+  struct dataSoT
+  {
+    vpColVector Y;
+    vpColVector U;
+    double timeStamp;
+    
+  };
    
   /*State molidelisation type */
   typeState m_StateType;
@@ -85,14 +100,33 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   /*State molidelisation object*/
   StateModel* m_StateModel;
 
-  /*State molidelisation object*/
-  MeasureModel* m_MeasureModel;
+  /*Tracker measure molidelisation object*/
+  MeasureModel* m_TrackerModel;
 
-  /*State molidelisation object*/
+  /*SoT measure molidelisation object*/
+  MeasureModel* m_SoTModel;
+
+  /* Connection to Stack of Task*/
+  llvs::ConnectionToSot * m_CTS;
+
+
+  /*State molidelisation size*/
   int m_StateSize;
 
   /* Measure vector*/
   vpColVector m_Y;
+
+  /* Control vector*/
+  vpColVector m_U;
+
+  /* FIFO of dataSoT */
+  queue<dataSoT> m_DataSot;
+
+  /* TimeStamp in LLVS*/
+  double* m_TimeStampLLVS;
+
+  /* TimeStamp in LLVS*/
+  double  m_LastTimeStamp;
   
   /*State covrariance matrix*/
   vpMatrix m_P;
@@ -100,12 +134,18 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   /*State noise variance vector*/
   vpColVector m_N;
 
-  /*Measure noise variance Matrix*/
-  vpMatrix m_R;
+  /*Tracker noise variance Matrix*/
+  vpMatrix m_RTracker;
 
- /*Measure noise variance Matrix*/
+  /*SoT noise variance Matrix*/
+  vpMatrix m_RSoT;
+
+ public:
+  /*Measure noise variance Matrix*/
   bool m_ReIntializedNMBT;
 
+  /*m_TimeStampLLVS is initialized*/
+  bool m_TimeStampInitialize;
 
 };
 

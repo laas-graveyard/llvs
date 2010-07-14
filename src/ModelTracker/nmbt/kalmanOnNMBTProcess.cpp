@@ -16,6 +16,7 @@
 //#include "ModelTracker/nmbtTrackingProcess.h"
 
 /* Kalman include*/
+#include "KalmanFilter/SoTModel.h"
 #include "KalmanFilter/TrackerModel.h"
 #include "KalmanFilter/sekalman.h"
 #include "KalmanFilter/SE3ModelVconstRo.h"
@@ -39,20 +40,31 @@ HRP2KalmanOnNMBTProcess::HRP2KalmanOnNMBTProcess()
   m_StateType=VEL_OBJ;
 
   m_StateModel=0x0;
-  m_MeasureModel=0x0;
+  m_TrackerModel=0x0;
+  m_SoTModel= 0x0;
+
   m_Kalman=0x0;
 
   m_P.resize(m_StateSize,m_StateSize);
   m_P.setIdentity();
 
   m_Y.resize(6);
+  m_U.resize(6);
 
   m_N.resize(6);
 
-  m_R.resize(6,6);
-  m_R.setIdentity();
-  m_R*=0.25;
+  m_RTracker.resize(6,6);
+  m_RTracker.setIdentity();
+  m_RTracker*=0.025;
 
+  m_RSoT.resize(12,12);
+  m_RSoT.setIdentity();
+  m_RSoT*=0.25;
+
+  m_TimeStampLLVS=0x0;
+  m_LastTimeStamp=0;
+  
+  m_TimeStampInitialize=false;
   m_ReIntializedNMBT=false;
 }
 
@@ -64,7 +76,8 @@ HRP2KalmanOnNMBTProcess::HRP2KalmanOnNMBTProcess()
 HRP2KalmanOnNMBTProcess:: ~HRP2KalmanOnNMBTProcess()
 {
   delete m_StateModel;
-  delete m_MeasureModel;
+  delete m_TrackerModel;
+  delete m_SoTModel;
   delete m_Kalman; 
 }
 
@@ -177,7 +190,7 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	  int found=0;
 	  string tmp;
 	  	  
-	  m_R.setIdentity();
+	  m_RTracker.setIdentity();
 
 	  for ( int i=0; i<6;++i)
 	    {
@@ -185,7 +198,25 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      found=aValue.find(":");
 	      tmp=aValue.substr(0,found);
 	      aValue.erase(0,found+1);
-	      m_R[i][i]=atof(tmp.c_str());
+	      m_RTracker[i][i]=atof(tmp.c_str());
+
+	      ODEBUG("m_R["<<i<<"]["<<i<<"] : "<< m_R[i][i]);
+	    }
+	}
+      else if(lParam == "RSOT")
+	{
+	  int found=0;
+	  string tmp;
+	  	  
+	  m_RSoT.setIdentity();
+
+	  for ( int i=0; i<12;++i)
+	    {
+	  
+	      found=aValue.find(":");
+	      tmp=aValue.substr(0,found);
+	      aValue.erase(0,found+1);
+	      m_RSoT[i][i]=atof(tmp.c_str());
 
 	      ODEBUG("m_R["<<i<<"]["<<i<<"] : "<< m_R[i][i]);
 	    }
@@ -224,60 +255,88 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 }
 
 
+/*! ------------------------------------- 
+  Set pointer on m_timestamp in LLVS 
+  -------------------------------------*/
+int HRP2KalmanOnNMBTProcess::SetTimeStamp(double* aTimeStamp)
+{
+  m_TimeStampLLVS=aTimeStamp;
+  m_TimeStampInitialize=true;
+  return 0;
+}
+
+
+/*!------------------------------------- 
+  Set the ConnectionToSot  pointer 
+  ------------------------------------- */
+void HRP2KalmanOnNMBTProcess::SetConnectionToSot (llvs::ConnectionToSot * aCTS)
+{
+  m_CTS=aCTS;
+}
+
+
 /*!------------------------------------- 
   Initialize the process. 
   -------------------------------------*/
 int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
 {
-
-  HRP2nmbtTrackingProcess:: pInitializeTheProcess();
-  
-
-  switch(m_StateType)
+  if(m_TimeStampInitialize)
     {
-    case VEL_CAM:
-      m_StateModel=new SE3ModelVconstRc(m_N);
-      break;
+      HRP2nmbtTrackingProcess:: pInitializeTheProcess();
+      
+      
+      switch(m_StateType)
+	{
+	case VEL_CAM:
+	  m_StateModel=new SE3ModelVconstRc(m_N);
+	  break;
 
-    case VEL_OBJ:
-      m_StateModel=new SE3ModelVconstRo(m_N);
-      break;
-    case ACC_CAM:
-      m_StateModel=new SE3ModelAtconstRo(m_N);
-      break;
-    case ACC_OBJ:
-      m_StateModel=new SE3ModelAtconstRc(m_N);
-      break;
-    case CTL_CAM:
-      m_StateModel=new SE3ModelUvRo(m_N);
-      break;
-    case CTL_OBJ:
-      m_StateModel=new SE3ModelUvRc(m_N);
-      break;
-    };
+	case VEL_OBJ:
+	  m_StateModel=new SE3ModelVconstRo(m_N);
+	  break;
+	case ACC_CAM:
+	  m_StateModel=new SE3ModelAtconstRo(m_N);
+	  break;
+	case ACC_OBJ:
+	  m_StateModel=new SE3ModelAtconstRc(m_N);
+	  break;
+	case CTL_CAM:
+	  m_StateModel=new SE3ModelUvRo(m_N);
+	  break;
+	case CTL_OBJ:
+	  m_StateModel=new SE3ModelUvRc(m_N);
+	  break;
+	};
 
-  m_MeasureModel=new TrackerModel(m_R,m_StateSize);
+      m_TrackerModel=new TrackerModel(m_RTracker,m_StateSize);
+      m_SoTModel=new SoTModel(m_RSoT,m_StateSize);
 
-  ConvertHMatrixToCVector(m_inputcMo,m_Y);
+      ConvertHMatrixToCVector(m_inputcMo,m_Y);
 
-  m_Kalman=new seKalman(m_MeasureModel,m_StateModel,m_Y,m_P);
+      m_Kalman=new seKalman(m_TrackerModel,m_StateModel,m_Y,m_P);
 
 
 #if 1
 
-  ofstream aof;
-  aof.open("dumpkalman.dat",ofstream::out);
-  aof <<"# TimeStamp (1 value) /dt(1 value)/ Xpre("<<m_StateSize<<" values)/"
-      <<"diagPre ("<<m_StateSize<<" values)/Measure Tracker (6 values)/ "
-      <<" Xup ( "<<m_StateSize<<"values)/ diagPre ("<<m_StateSize<<" values)" <<endl;
+      ofstream aof;
+      aof.open("dumpkalman.dat",ofstream::out);
+      aof <<"# TimeStamp (1 value) /dt(1 value)/ Xpre("<<m_StateSize<<" values)/"
+	  <<"diagPre ("<<m_StateSize<<" values)/Measure Tracker (6 values)/ "
+	  <<" Xup ( "<<m_StateSize<<"values)/ diagPre ("<<m_StateSize<<" values)" <<endl;
   
-  aof.close();
+      aof.close();
 
 #endif
+      ODEBUG3("KALMAN Initialized");
+    }
+  else
+    {
+      cout<< " SetTimestamp() must be call before Initialize."<<endl
+	  << m_ProcessName<<" is STOP"<<endl;
 
+      m_Computing=0;
+    }
 
-
- ODEBUG3("KALMAN Initialized");
   return 0;
 }
 
@@ -286,11 +345,19 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
 -------------------------------------*/
 int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 {
+
+  if( m_StateType == CTL_CAM)
+    {
+      KalmanOnSoT();
+    }
+
   //TODO cMo inversion when working in object frame
 
-  double dt=0.06;//TODO this dt value is just for testing
-  vpColVector U;
-  m_Kalman->prediction(dt,U);
+  double dt=*m_TimeStampLLVS-m_LastTimeStamp;
+  m_LastTimeStamp =*m_TimeStampLLVS;
+
+
+  m_Kalman->prediction(dt,m_U);
 
   vpColVector lXpre(m_StateSize);
   lXpre=m_Kalman->getXpre();
@@ -328,10 +395,9 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 
   ofstream aof;
   aof.open("dumpkalman.dat",ofstream::app);
-  struct timeval atv;
-  gettimeofday(&atv,0);
-  aof.precision(15);
-  aof << atv.tv_sec + 0.000001 * atv.tv_usec << "  "<<dt<<"  "
+ 
+  aof.precision(16);
+  aof << m_LastTimeStamp << "  "<<dt<<"  "
       <<lXpre.t()<<" ";  
   
   for (int i = 0;i<m_StateSize;++i)
@@ -401,3 +467,33 @@ void HRP2KalmanOnNMBTProcess::ConvertCVectorToHMatrix(const vpColVector & aCV,
   aHM.buildFrom(t,ThU);
 
 }
+
+
+void HRP2KalmanOnNMBTProcess::KalmanOnSoT()
+{
+  // m_CTS->getSotData();
+  
+  //Condition&storeData;
+  double ldt;
+  
+  m_Kalman->setMeasureModel(m_SoTModel);
+
+  while(!m_DataSot.front().timeStamp<*m_TimeStampLLVS && !m_DataSot.empty())
+    {
+      ldt=m_LastTimeStamp-m_DataSot.front().timeStamp;
+      
+      m_U=m_DataSot.front().U;
+      
+      m_Kalman->prediction(ldt,m_U);
+      
+      m_Kalman->update(m_DataSot.front().Y);
+      
+      m_DataSot.pop();
+      
+      m_LastTimeStamp=m_DataSot.front().timeStamp;
+    }
+  
+  m_Kalman->setMeasureModel(m_TrackerModel);
+
+}
+
