@@ -316,6 +316,9 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
       m_Kalman=new seKalman(m_TrackerModel,m_StateModel,m_Y,m_P);
 
 
+      m_LastTimeStamp=*m_TimeStampLLVS;
+
+
 #if 1
 
       ofstream aof;
