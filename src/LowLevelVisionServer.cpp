@@ -2331,8 +2331,8 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
     an2Image->octetData[j] = *pt++;
 
-  an2Image->floatData[0] = m_timestamps[SemanticCamera];
-  an2Image->floatData[1] = (m_timestamps[SemanticCamera]-an2Image->floatData[0])*1e6;
+  an2Image->longData[0] = (long)m_timestamps[SemanticCamera];
+  an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
 
   anImage = an2Image._retn();
 
@@ -2374,10 +2374,10 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   an2Image->floatData.length(0);
   an2Image->width=320;
   an2Image->height=240;
-  an2Image->longData.length(1);
+  an2Image->longData.length(2);
   an2Image->format=GRAY;//PixelFormat::GRAY;
-  an2Image->floatData[0] = m_timestamps[SemanticCamera];
-  an2Image->floatData[1] = (m_timestamps[SemanticCamera]-an2Image->floatData[0])*1e6;
+  an2Image->longData[0] =(long) m_timestamps[SemanticCamera];
+  an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
 
 
   unsigned char *pt =m_Widecam_image_undistorded->bitmap;
