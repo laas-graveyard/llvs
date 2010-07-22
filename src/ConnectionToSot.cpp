@@ -331,11 +331,40 @@ void ConnectionToSot::ReadWaistComSignals(double waistcom[3])
     }
   catch(...)
     {
-      cout << "Unable to read waist rpy signals. "<< endl;
+      cout << "Unable to read waist control signals. "<< endl;
       
     }
-  ODEBUG("Go out of  ReadWaistRPYSignals ");
+  ODEBUG("Go out of  ReadWaistComSignals ");
 }
+
+void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
+{
+  ODEBUG("Enter ReadComSignals ");
+
+  try
+    {
+      struct timeval ats;
+	    
+      hppCorbaServer::DoubleSeq_var DScomattitude;
+      m_SOT_Server_Command->readInputVectorSignal(m_ComAttitudeSignalRank,
+						  DScomattitude);
+      
+      if (DScomattitude->length()==3)
+	for(unsigned int li=0;li<3;li++)
+	  comattitude[li]= DScomattitude[li];
+    }
+  catch(...)
+    {
+      cout << "Unable to read com attitude signals. "<< endl;
+      
+    }
+  ODEBUG("Go out of  ReadComAttitudeSignals ");
+}
+
+
+
+
+
 bool ConnectionToSot::Init()
 {
   bool status;
@@ -352,15 +381,16 @@ bool ConnectionToSot::Init()
       return false;
     }
 
-  string CstSignaux[5]={"waistpositionabsolute",
+  string CstSignaux[6]={"waistpositionabsolute",
 			"waistattitudeabsolute",
 			"Head",
 			"Waist",
-                        "Waistcom"};
+                        "Waistcom",
+                        "comattitudeabsolute"};
 
   string OutSignal[1] = {"VelRef"};
   ODEBUG("Before creating the signals: " << status);
-  for(unsigned int li=0;li<5;li++)
+  for(unsigned int li=0;li<6;li++)
     {
 
       /*      
@@ -379,6 +409,8 @@ bool ConnectionToSot::Init()
 	  m_WaistPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
 	else if (li==4)
 	  m_WaistComSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+	else if (li==5)
+	  m_ComAttitudeSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
       }
       catch(...)
 	{
@@ -415,8 +447,8 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 14
-  string SotCommand[14]= {
+#define NBCOMMANDS 16
+  string SotCommand[16]= {
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",
     "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
@@ -430,7 +462,9 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal dhhtp.out",
     "OpenHRP.periodicCall addSignal dwhtp.out",
     "plug coshell.VelRef pg.velocitydes",
-    "plug pg.dcomref coshell.Waistcom"
+    "plug pg.dcomref coshell.Waistcom",
+    "OpenHRP.periodicCall addSignal pg.comattitude",
+    "plug pg.comattitude coshell.comattitudeabsolute"
   };
 #endif
 

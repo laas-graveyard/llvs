@@ -3371,7 +3371,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	  /* Store timestamp */
 	  if (fp!=0)
 	    {
-	      double prevTimeStamp;
+	      double prevTimeStamp=0;
 	      for(unsigned int j=0; j<m_MaxSI/ldepth; j++)
 		{
 		  double TimeStamp=m_StoredTimeStamp[j*ldepth+i];
