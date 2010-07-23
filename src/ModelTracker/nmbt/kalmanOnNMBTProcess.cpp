@@ -316,6 +316,9 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
       m_Kalman=new seKalman(m_TrackerModel,m_StateModel,m_Y,m_P);
 
 
+      m_LastTimeStamp=*m_TimeStampLLVS;
+
+
 #if 1
 
       ofstream aof;
@@ -376,11 +379,12 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
   vpColVector lXup(m_StateSize);
   lXup=m_Kalman->getXup();
 
-
+  ConvertCVectorToHMatrix(lXup,lcMo);
+  
+  m_outputcMo=lcMo;
+  
   if(m_ReIntializedNMBT)
     {
-      ConvertCVectorToHMatrix(lXup,lcMo);
-
       m_tracker.init(*m_inputVispImage,lcMo);
     }
 

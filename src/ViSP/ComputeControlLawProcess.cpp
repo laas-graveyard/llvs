@@ -410,7 +410,8 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
       <<"# TimeStamp (1 value) / Pose cMo(6 values)/ |Error| (1 value)"
       <<" / Error Vectot (6 values)/ Pose fMo(6 values) "
       <<"/ Control in camera Frame(6 values) / Control in waist Frame(6 values)"
-      <<"/ Control send to SoT (3 values) / Control from SoT (2 values) "<<endl;
+      <<"/ Control send to SoT (3 values) / Control from SoT in ref frame (2 values) "
+      <<"/ Theta out pg (1 value)/ Control from SoT in robot frame (2 values) " <<endl;
   
   aof.close();
 
@@ -515,31 +516,38 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       r=-1;
     }
 
+  VelocitySaturation(m_ComputeV,velref);
 
   if(r==-1 ||  m_RealiseControlLaw==false)
     {
-      m_ComputeV = 0;
-      // m_ComputeV[0]=0.00001;
+      // m_ComputeV = 0;
+      m_ComputeV[0]=0.00001;
       
       m_RealiseControlLaw=false;
       r=-1;
+
       /*Stop the process*/
       // m_Computing = 0;
     }
   else
     {
-      VelocitySaturation(m_ComputeV,velref);
-      
+      // velref[2]=0;
       // ZeroVelocity(velref);
     }
 
 
   double waistcom[3];
+  double comattitude[3];
+  
+
+
   if (m_CTS!=0)
     {
       m_CTS-> WriteVelocityReference(velref);
 
       m_CTS-> ReadWaistComSignals(waistcom);
+
+      m_CTS-> ReadComAttitudeSignals(comattitude);
     }
 
 
@@ -555,6 +563,22 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpThetaUVector fThUo(fMo);
   vpRxyzVector fRxyzo (fThUo);
 
+
+  /*Change of frame from ref to robot  */
+  vpTranslationVector refTcom;
+  //Only z rotation
+  vpRxyzVector   refRxyzcom(0,0,comattitude[2]);
+  vpThetaUVector refThUcom(refRxyzcom);
+  vpHomogeneousMatrix refMcom(refTcom,refThUcom);
+  vpTwistMatrix comVref(refMcom.inverse());
+
+  vpColVector waistCtlVelinRef(6);
+  waistCtlVelinRef[0]=waistcom[0];
+  waistCtlVelinRef[1]=waistcom[1];
+  
+  vpColVector waistCtlVelRobot(6);
+  waistCtlVelRobot=comVref*waistCtlVelinRef;
+  
   ofstream aof;
   aof.open("dumpcommand.dat",ofstream::app);
   struct timeval atv;
@@ -568,7 +592,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
       << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
       << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
-      << waistcom[0] <<"  " << waistcom[1] <<endl;
+      << waistcom[0] <<"  " << waistcom[1]<<"  "<< comattitude[2]<<"  "
+      << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<<endl;
   
   aof.close();
 
