@@ -31,29 +31,20 @@ bool ServerBinded=false;
 
 void * LLVSThread(void *arg)
 {
-	LowLevelVisionServer *aVS = (LowLevelVisionServer *)arg;
+  LowLevelVisionServer *aVS = (LowLevelVisionServer *)arg;
 
-	double current_time;
-	double mean=0;
+  double current_time;
+  double mean=0;
 
-	ODEBUG("LLVS thread: " << pthread_self());
-	// Start to process.
-	aVS->StartMainProcess();
+  ODEBUG("LLVS thread: " << pthread_self());
+  // Start to process.
+  aVS->StartMainProcess();
 
-	// Current strategy:
-	// If the Vision system read a file and or a directory,
-	// or takes information from the frame-grabber 
-	// it is in stand-alone mode.
-	// In simulation mode, everything is trigger through
-	// the SetImage method.
-	if (aVS->GetInputMode()==LowLevelVisionSystem::SIMULATION)
-		pthread_exit(0);
-
-	// Vision Main loop.
-	for(;;)
-	{
-		aVS->ApplyingProcess();
-	}
+  // Vision Main loop.
+  for(;;)
+    {
+      aVS->ApplyingProcess();
+    }
   return 0;
 }
 

@@ -935,8 +935,7 @@ LowLevelVisionServer::ApplyingProcess()
 	  // Modification 28/12/2005
 	  // for exhausting the buffer of images.
 	  NbOfWait++;
-	  if ((NbOfWait==2) &&
-	      (m_TypeOfInputMethod==LowLevelVisionSystem::FRAMEGRABBER))
+	  if (NbOfWait==2)
 	    {
 	      ResFromGIFF=GetImageFromFrameGrabber();
 	      NbOfWait=0;
@@ -1161,30 +1160,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
     cout << "Before ImagesInput Method : " << m_ImagesInputMethod->GetNumberOfCameras() << endl;
 
   if (m_ImagesInputMethod!=0)
-    {/*
-       string lFormat =     m_ImagesInputMethod->GetFormat(0);
-       if ((lFormat=="PGM") && (m_depth[0]==3))
-       {
-       for(int unsigned j=0;j<4;j++)
-       SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
-       }
-
-       if ((lFormat=="RAW") && (m_depth[0]==3))
-       {
-       for(int unsigned j=0;j<4;j++)
-       SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
-       }
-
-
-       if ((lFormat=="RGB") && (m_depth[0]==1))
-       {
-
-       for(int unsigned j=0;j<4;j++)
-       SetImagesGrabbedSize(j,m_Width[0],m_Height[0]);
-       }
-       ODEBUG(" lFormat: " << lFormat);
-
-     */
+    {
       struct timeval tv_current;
       double CurrentTime;
       gettimeofday(&tv_current,0);
@@ -1213,70 +1189,47 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 		StoreImageOnStack(li);
 
 	    }
+	  ODEBUG("Probably not");
 
 	}
 
-      /* Test if a reallocation has taking place
-       * This may be the case while reading a file.
-       */
-      //FIXME: Simulation version of InputMethod (e.g. File) are not using
-      // interface conventions regarding the result return value.
-      // r == 2 has then no meaning and may make a collision with an
-      // already defined error value. Lines regarding this test
-      // are commented to avoid unwanted behaviour. To be fixed.
-      /*
-	if (r==2)
-	{
-	int lw,lh,i;
-	if (m_ImagesInputMethod->GetImageSize(lw,lh,0)<0)
-	cout << "Problem with the size" << endl;
-
-	if (m_Verbosity>=2)
-	cout << "Reallocation detected : " << lw << " " << lh << endl;
-
-	// Fix the size of the image
-	//	  for(int li=0;li<lNbOfCameras;li++)
-	///	  SetImagesGrabbedSize(lw,lh);
-
-	}
-      */
     } // (if inputMethod is allocated)
   if (m_Verbosity>=2)
     cout << "After ImagesInput Method : " << endl;
 
-  if (m_CheckEntry)
+  //  if (m_CheckEntry)
     {
 #if 0
       static unsigned long int lcounter=0;
       FILE *fp;
-
-      for(int i=0; i<m_ImagesInputMethod->GetNumberOfCameras(); i++)
+      for(unsigned int i=0; i<m_ImagesInputMethod->GetNumberOfCameras(); i++)
 	{
 	  int k,l;
 	  unsigned char *pt = m_BinaryImages[i];
 	  char Buffer[1024];
 	  bzero(Buffer,1024);
-	  if (m_depth[0]==1)
-	    sprintf(Buffer,"REALcheck%06d.pgm",lcounter++);
+	  if ((int)m_depth[0]==1)
+	    sprintf(Buffer,"REALcheck_%01d_%06d.pgm",i,(int)lcounter);
 	  else
-	    sprintf(Buffer,"REALcheck%06d.ppm",lcounter++);
+	    sprintf(Buffer,"REALcheck_%01d_%06d.ppm",i,(int)lcounter);
 	  fp = fopen(Buffer,"w");
 	  if (m_Verbosity>=2)
 	    cout << "Save the image : " << Buffer << endl;
-
+	  
+	  ODEBUG("m_depth["<<i<<"]="<<m_depth[i]);
 	  if (fp!=0)
 	    {
 	      double TimeStamp=m_timestamps[i];
-	      if (m_depth[0]==1)
+	      if (m_depth[i]==1)
 		fprintf(fp,"P5\n");
-	      else if (m_depth[0]==3)
+	      else 
 		fprintf(fp,"P6\n");
-	      fprintf(fp,"#%f\n%d %d\n255\n",TimeStamp,m_epbm[i].Width,m_epbm[i].Height);
-	      for(l=0;l<m_epbm[i].Height;l++)
+	      fprintf(fp,"#%f\n%d %d\n255\n",TimeStamp,(int)m_Width[i],(int)m_Height[i]);
+	      for(l=0;l<m_Height[i];l++)
 		{
-		  for(k=0;k<m_epbm[i].Width;k++)
+		  for(k=0;k<m_Width[i];k++)
 		    {
-		      for(int m=0;m<m_depth[0];m++)
+		      for(unsigned int m=0;m<m_depth[i];m++)
 			fprintf(fp,"%c",*pt++);
 		    }
 		}
@@ -1284,13 +1237,8 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	      fclose(fp);
 	    }
 	}
+      lcounter++;
 
-      {
-	char Buffer[1024];
-	bzero(Buffer,1024);
-	sprintf(Buffer,"DumpImage.epbm");
-	epbm_msave(Buffer,m_epbm,4,0);
-      }
 #else
 #endif
 
@@ -2297,7 +2245,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  ODEBUG("getImage :" << SemanticCamera << " " << string(Format) << " " <<
+  ODEBUG3("getImage :" << SemanticCamera << " " << string(Format) << " " <<
 	 m_BinaryImages.size());
   if ((SemanticCamera<0) || ((unsigned int)SemanticCamera>=m_BinaryImages.size()) )
     {

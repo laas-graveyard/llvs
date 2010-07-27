@@ -66,7 +66,18 @@
 #include <assert.h>
 using namespace std;
 
+
 #include "ImagesInputMethod.h"
+#ifdef __ORBIX__
+#include "common.h"
+#include "visionsensor.h"
+#endif
+
+#ifdef OMNIORB4
+#include "common.hh"
+#include "ViewSimulator.hh"
+#endif
+
  
 /*! \brief This object implements the grabbing of the images from the simulator. 
  *  
@@ -78,11 +89,6 @@ namespace llvs
   class HRP2SimulatorInputMethod : public HRP2ImagesInputMethod
     {
     public:
-  
-      /*! Constantes */
-      static const int COLOR = 0;
-      static const int BW = 1;
-
       /*! Constructor */
       HRP2SimulatorInputMethod(int argc, char *argv[],CORBA::ORB_var ns);
   
@@ -119,19 +125,20 @@ namespace llvs
       /*! \brief Cleanup the grabbing system. 
        */
       virtual void Cleanup();
-
+      
+      /*! \brief Return the number of cameras being simulated. */
+      virtual unsigned int GetNumberOfCameras() const;
+      
       /*! \brief Return the link between the detected camera 
        and its semantic. */
-      virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS)
-      { /* TODO */ 
-	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
-	assert(false); 
-	return -1;};
+      virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS);
 
     protected:
-
-      /*! Color mode */
-      unsigned char m_ColorMode;
+      OpenHRP::ViewSimulator_var m_vsensor;
+      OpenHRP::CameraSequence_var m_cameras;
+      std::vector<unsigned> m_subsamplingX;
+      std::vector<unsigned> m_subsamplingY;
     };
+
 };  
 #endif /* _HRP2_INPUT_SIMULATOR_METHOD_H_ */
