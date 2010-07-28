@@ -774,22 +774,34 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
   return r; 
 }
 
-/*! Velocity saturation*/
+/*! Velocity saturation
+
+   RawVel is the velocity expressed in the waist frame 6ddl : Vx Vy Vz ThetaUx ThetaUy ThetaUz
+   VelRef in the saturated velocity expressed in the waist frame 3ddl: Vx Vy Rz
+
+*/
 int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
 {
   vpColVector dv(0.05*m_Velmax);
- 
   vpColVector Vinf  = m_Velmax-dv;
   vpColVector Vsup  = m_Velmax+dv;
  
-  double absRawVel;
 
+  ///compute the 3ddl vector corresponding to the input
+  vpColVector RawVel3ddl(3);
+  RawVel3ddl[0]= RawVel[0];
+  RawVel3ddl[1]= RawVel[1];
+  RawVel3ddl[2]= RawVel[5];
+
+
+  // temporary abs value of the input velocity
+  double absRawVel;
+  // normalization factor
+  double fac = 1; 
   // for all the coeff
-  double fac = 1;
-  
   for (int i=0; i<3;++i)
     {   
-      absRawVel=fabs(RawVel[i]);
+      absRawVel=fabs(RawVel3ddl[i]);
       
       fac = min(fabs(fac),m_Velmax[i]/(absRawVel+0.00001));
   
@@ -806,7 +818,7 @@ int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,d
   
 for (int i=0; i<3;++i)
     {   
-      VelRef[i]=RawVel[i]*fac;
+      VelRef[i]=RawVel3ddl[i]*fac;
     }
  return 0;
 }
