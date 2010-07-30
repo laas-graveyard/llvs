@@ -458,7 +458,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 
   //TODO find a better way to do define the m_ModelTrackerProcess
-  bool useKalmanFilter=false;
+  bool useKalmanFilter=true;
   if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER>0)
     {
       ODEBUG("creation of HRP2KalmanOnNMBTProcess");

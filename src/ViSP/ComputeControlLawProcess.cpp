@@ -290,6 +290,8 @@ void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
     {
       m_IninitHeight = 0;
     }
+
+  m_RealiseControlLaw=true;
 }
 
 /*! Set the ConnectionToSot  pointer */
@@ -442,6 +444,13 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   vpHomogeneousMatrix fMo;
 
+
+  // the stop criterion is based on the infinity norm of
+  // a 3ddl vector corresponding to the 3 controled ddl X [0],Z[2] and Ry[4]
+  // in the camera frame
+  vpColVector error3ddl(3);
+  double error3ddlInfinityNorm=100;
+  double errorThreshold=0.1;
   if (m_nmbt->m_trackerTrackSuccess )
     {
       m_nmbt->GetOutputcMo(m_cMo);
@@ -460,7 +469,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
       
-      
+      // build the 3ddl error vector from the 6 ddl one
+      error3ddl[0]= m_Task.error[0];
+      error3ddl[1]= m_Task.error[2];
+      error3ddl[2]= m_Task.error[4];
+      error3ddlInfinityNorm=error3ddl.infinityNorm();
+                  
       // express the rotation as rx ry rz
       vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
@@ -469,44 +483,43 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       cVelocity[4]=Vrxyz[1];
       cVelocity[5]=Vrxyz[2];
 
+      // Compute control ok before testing
       r=0;
-
       m_ControlLawComputed = true;
-
-      
       double headprpy[6];
       double waistprpy[6];
       
-      // Read nom information from SoT.
+      // Get the current robot frames from SoT.
       if (m_CTS!=0)
 	{
 	  m_CTS->ReadHeadRPYSignals(headprpy);
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
-	}
+	
       
-      //Create homogeneousMatrix to store the head position in foot frame   
-      vpHomogeneousMatrix  fMh;
+	  //Create homogeneousMatrix to store the head position in foot frame   
+	  vpHomogeneousMatrix  fMh;
 
 
-      // Change the velocity frame from camera to waist
-      changeVelocityFrame(cVelocity,
-			  wVelocity,
-			  headprpy,
-			  waistprpy,
-			  fMh);
+	  // Change the velocity frame from camera to waist
+	  changeVelocityFrame(cVelocity,
+			      wVelocity,
+			      headprpy,
+			      waistprpy,
+			      fMh);
       
-     //compute the obect  position in foot frame 
-      fMo = fMh*m_headMcamera*m_cMo;
+	  //compute the obect  position in foot frame 
+	  fMo = fMh*m_headMcamera*m_cMo;
 
-
-      if(TestObjectMotion(fMo))
-	{
-	  m_ComputeV = wVelocity;
-	}
-      else
-	{
-	  cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
-	  r=-1;
+  
+	  if(TestObjectMotion(fMo))
+	    {
+	      m_ComputeV = wVelocity;
+	    }
+	  else
+	    {
+	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
+	      r=-1;
+	    }
 	}
     }
   else
@@ -518,11 +531,21 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   VelocitySaturation(m_ComputeV,velref);
 
+
+  // Test the stop criteria
+  if(error3ddlInfinityNorm<errorThreshold)
+    {
+      cerr << "Compute control law >> Finish" << endl;
+      r=-1;
+    }
+
+
   if(r==-1 ||  m_RealiseControlLaw==false)
     {
-      // m_ComputeV = 0;
-      m_ComputeV[0]=0.00001;
+      //m_ComputeV = 0;
+      // m_ComputeV[0]=0.0000;
       
+      stop(velref);
       m_RealiseControlLaw=false;
       r=-1;
 
@@ -540,7 +563,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   double comattitude[3];
   
 
-
+ 
   if (m_CTS!=0)
     {
       m_CTS-> WriteVelocityReference(velref);
@@ -548,6 +571,14 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_CTS-> ReadWaistComSignals(waistcom);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
+    }
+  else
+    {
+      for (int i=0; i<3;++i)
+	{
+	  waistcom[i]=0;
+	  comattitude[i]=0;
+	}
     }
 
 
@@ -588,13 +619,20 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       << cTo.t()<<"  "<< cRxyzo.t()<<"  "<<m_Error<<"  "
       <<  m_Task.error.t() << fTo.t()<<"  "<< fRxyzo.t()<<"  "
       << cVelocity[0]<<"  "<<cVelocity[1]<<"  "<<cVelocity[2]<<"  "
-      << cVelocity[3]<<"  "<<cVelocity[4]<<"  "<<cVelocity[5]<<"  "
-      << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
-      << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
-      << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
-      << waistcom[0] <<"  " << waistcom[1]<<"  "<< comattitude[2]<<"  "
-      << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<<endl;
-  
+      << cVelocity[3]<<"  "<<cVelocity[4]<<"  "<<cVelocity[5]<<"  ";
+
+  if (m_CTS!=0)
+    {
+      aof << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
+	  << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
+	  << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
+	  << waistcom[0] <<"  " << waistcom[1]<<"  "<< comattitude[2]<<"  "
+	  << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<<endl;
+    }
+  else
+    {
+      aof <<endl;
+    }
   aof.close();
 
 #endif
@@ -609,7 +647,16 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 */
 int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
 {
-    
+
+  double* velref;
+  velref=new double[3];
+  
+  stop(velref);
+  if (m_CTS!=0)
+    {
+      m_CTS-> WriteVelocityReference(velref);
+    }
+
   return 0;
 } 
 
@@ -824,6 +871,14 @@ for (int i=0; i<3;++i)
 }
 
 /*! Put Velocity value at zero when lower than 0.02  */
+int HRP2ComputeControlLawProcess::stop(double * VelRef)
+{
+  m_RealiseControlLaw=false;
+  for (int i=0;i<3;i++)
+    VelRef[i]=0;
+  return 0;
+}
+
 int HRP2ComputeControlLawProcess::ZeroVelocity(double * VelRef)
 {
 

@@ -36,7 +36,7 @@ void * ConnectionToSotThread(void *arg)
 	  aCST->ReadHeadRPYSignals(headprpy);
 	  aCST->ReadWaistRPYSignals(waistprpy);
 #endif 
-	  usleep(23000);
+	  usleep(5000);
 #if 0
 	  ODEBUG3("headprpy ( " 
 		 << headprpy[0] << " , "

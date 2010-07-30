@@ -133,11 +133,19 @@ public:
    /*!load the cameraHeadTransform*/
    int loadcMh(vpHomogeneousMatrix &M);
   
+
+   /*Stop*/
+   int stop(double * VelRef);
+   
+
    /* Nmbt tracking process*/
    HRP2nmbtTrackingProcess* m_nmbt;
    
    /* Connection to Stack of Task*/
    llvs::ConnectionToSot * m_CTS;
+
+
+   
 
    /* Object pose in the current camera frame*/
    vpHomogeneousMatrix m_cMo;
@@ -208,6 +216,8 @@ public:
    /*Flag to check if the control law must be computed*/
    bool m_RealiseControlLaw;
    
+   
+ 
 };
 
 
