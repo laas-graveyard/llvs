@@ -194,7 +194,10 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_TypeOfSynchro = SynchroMethodForInputImages;
 
   ODEBUG("Step 2");
-  ODEBUG("Type of Input Method: " << m_TypeOfInputMethod << " (files:" << LowLevelVisionSystem::FILES <<", framegrabber:"<< LowLevelVisionSystem::FRAMEGRABBER);
+  ODEBUG3("Type of Input Method: " << m_TypeOfInputMethod << endl <<
+	  "Type of Synchronization: " << m_TypeOfSynchro << endl <<
+	 " (files:" << LowLevelVisionSystem::FILES <<
+	 ", framegrabber:"<< LowLevelVisionSystem::FRAMEGRABBER);
   switch(m_TypeOfInputMethod)
     {
 
@@ -902,7 +905,7 @@ LowLevelVisionServer::ApplyingProcess()
   static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
-  ODEBUG( __FILE__ << " " << __LINE__ );
+  ODEBUG3( __FILE__ << " " << __LINE__ );
   if ((!m_Computing) || (!m_EndOfConstructor)
       || (m_ImagesInputMethod==0))
     {
@@ -1167,12 +1170,15 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
       CurrentTime = tv_current.tv_sec + 0.000001 * tv_current.tv_usec;
 
       int lNbOfCameras = m_ImagesInputMethod->GetNumberOfCameras();
-
+      ODEBUG("m_ImagesInputMethod->GetNumberOfCameras() " << lNbOfCameras);
       for(int li=0;li<lNbOfCameras;li++)
 	{
+	  ODEBUG("m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime ? :" <<
+		  (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime));
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
 	      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
+
 	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],
 						      SemanticCamera,
 						      m_timestamps[SemanticCamera]);

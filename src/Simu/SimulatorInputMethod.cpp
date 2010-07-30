@@ -1,4 +1,4 @@
-/** @doc This object implements the link between 
+/** @doc This object implements the link between
     the Integrated Simulation Environnment with the
     overall vision system.
 
