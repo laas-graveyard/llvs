@@ -40,6 +40,7 @@
 		localization
 		algo
 	)
+        find_package(VISP REQUIRED NO_MODULE)
 	include(LLVT-toolbox)
 
 #------------------------------------------------------------------------------
