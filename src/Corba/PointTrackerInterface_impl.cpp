@@ -36,7 +36,7 @@ using namespace llvs;
 PointTrackerInterface_impl::PointTrackerInterface_impl(LowLevelVisionServer * LLVS)
 {
   m_LLVS = LLVS;
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   m_CBPTD.image = new vpImage<unsigned char>(240,320);
   m_CBPTD.timestamp = new double(0);
 #endif 
@@ -154,7 +154,7 @@ PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoO
   aDIOv->anImgData.longData.length(2);
   aDIOv->anImgData.format=GRAY;
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
 
   aDIOv->anImgData.longData[0] =*m_CBPTD.timestamp;

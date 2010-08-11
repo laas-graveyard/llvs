@@ -37,7 +37,7 @@
 */
 #include "ModelTracker/nmbtTrackingProcess.h"
 
-#if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
+#if (LLVS_HAVE_VISP>0)
 
 #include <sstream>
 
@@ -58,7 +58,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   
 {
   
-  m_ProcessName = "nmbtTrackingProcess";
+  m_ProcessName = "vpMbtTrackerProcess";
   m_cameraParamLoaded = false;
   m_initPoseLoaded = false;
   m_inputImagesLoaded = false;
@@ -77,12 +77,6 @@ Destructor
 HRP2nmbtTrackingProcess:: ~HRP2nmbtTrackingProcess()
 {
   
-  m_cameraParamLoaded = false;
-  m_inputImagesLoaded = false;
-  m_modelLoaded = false;
-  m_trackerTrackSuccess =false;
-  m_initPoseLoaded = false;
-  m_inputVispImage=0x0;
 
   
 }
@@ -181,23 +175,11 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   //-------------------------------
   // create the path to the box
   //-------------------------------
-
-  // get the home env var
-  char* homePath;
-  homePath = getenv ("HOME");
-  
-  // set the model default path
-  //  string defaultPath ( "data/model/WoodenBox/WoodenBox");
-  //ostringstream tmp_stream;
-  //tmp_stream<< homePath << "/"<<defaultPath;
-  //m_pathPose = tmp_stream.str(); 
-
-  string defaultPath ( "./data/model/WoodenBox/WoodenBox");
+  string defaultPath ( "./data/model/ElectricWallFar/ElectricWallFar.wrl");
   m_pathPose =defaultPath;
   m_pathVrml = defaultPath +".wrl";
 
-  //tmp_stream<<".wrl";
-  // m_pathVrml = tmp_stream.str(); 
+ 
 
   // load the model and set the flag model loaded to true
   LoadModel( m_pathVrml.c_str());
@@ -210,18 +192,14 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
 
   // read the pose
   LoadPose();
-  m_tracker.setcMo(m_inputcMo) ;
+  m_tracker.setPose(m_inputcMo) ;
   m_initPoseLoaded = true;
 
   //---------------------------------
   // Load the default camera parameters
   //--------------------------------- 
 
-  // init path to xml file
-  //string camParamPath ("./data/hrp2CamParam/hrp2.xml");
-  //tmp_stream.str("");
-  //tmp_stream<<homePath<< "/"<< camParamPath;
-  //m_pathCam = tmp_stream.str();
+
   string camParamPath ("./data/ViSP/hrp2CamParam/hrp2.xml");
   m_pathCam =camParamPath;
 
@@ -378,8 +356,6 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   // If the parameter already exist is value is overwritten. 
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
-  
-  
   //int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
   // get the 4 first parameter to find the parameter type
@@ -415,7 +391,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
     }
   else
     {
-      cout << "Warning : unknown parameter :"<< aParameter << endl; 
+      //cout << "Warning : unknown parameter :"<< aParameter << endl; 
       return -1;
     }
  
@@ -463,18 +439,11 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
 	  m_me.setMu2(value);
 	  ODEBUG(" ENTER MU2 value : "<<value );
 	}
-      else if (paramId=="MU3")
-	{
-	  ODEBUG(" ENTER MU1 value : "<<value );
-	  m_me.setMu1(value);
-	  i >> value ;
-	  m_me.setMu2(value);
-	  ODEBUG(" ENTER MU2 value : "<<value );
-	}
       else 
 	{
-	  cout << "Warning : unknown vpme parameter :"<< paramId << endl; 
+	  //cout << "Warning : unknown vpme parameter :"<< paramId << endl; 
 	  return -1;
+
 	}
       // If the tracker is not working
       if (!m_Computing)
@@ -508,7 +477,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
        }
      else 
        {
-	 cout << "Warning : unknown path parameter :"<< paramId << endl; 
+	 //cout << "Warning : unknown path parameter :"<< paramId << endl; 
 	 return -1;
        }
     }
@@ -524,7 +493,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
        }
      else 
        {
-	 cout << "Warning : unknown path parameter :"<< paramId << endl; 
+	 //cout << "Warning : unknown path parameter :"<< paramId << endl; 
 	 return -1;
        }
     }
@@ -546,7 +515,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
 	   }
 	 else
            {
-	     cout << "Warning : unknown distorsion type :"<< aValue << endl; 
+	     //cout << "Warning : unknown distorsion type :"<< aValue << endl; 
              return -2;
            }
 
@@ -558,7 +527,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
        }
       else 
        {
-	 cout << "Warning : unknown path parameter :"<< paramId << endl; 
+	 //cout << "Warning : unknown path parameter :"<< paramId << endl; 
 	 return -1;
        }
 
@@ -576,7 +545,7 @@ void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
   ODEBUG("GOING HERE INSIDE SetcMo " << cMo);
   m_inputcMo=cMo;   
 
-  m_tracker.setcMo(m_inputcMo);
+  m_tracker.setPose(m_inputcMo);
   m_initPoseLoaded = true;
 }  
 

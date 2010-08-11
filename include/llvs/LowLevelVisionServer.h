@@ -96,7 +96,7 @@
 #endif
 
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 #include "ModelTracker/nmbtTrackingProcess.h"
 #include "ViSP/CircularBufferTrackerData.h"
 #include "ViSP/ComputeControlLawProcess.h"
@@ -489,7 +489,7 @@ namespace llvs
     public:
 
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
       /*! Circular Buffer */
       CircularModelTrackerData * m_CBonNMBT;

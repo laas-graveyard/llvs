@@ -11,7 +11,7 @@
 
 #include "CircularBuffer.t.h"
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
 #include <visp/vpImage.h>
 #include <visp/vpHomogeneousMatrix.h>
@@ -81,6 +81,6 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
   HRP2nmbtTrackingProcess * m_nmbt;
   CBTrackerData * m_CBTrackerData;
 };
-#endif  // (LLVS_HAVE_NMBT>0)
+#endif  // (LLVS_HAVE_VISP>0)
 
 #endif /* _CIRCULAR_BUFFER_MODEL_TRACKER_LLVS_H_ */

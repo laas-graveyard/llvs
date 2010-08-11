@@ -601,7 +601,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpRxyzVector   refRxyzcom(0,0,comattitude[2]);
   vpThetaUVector refThUcom(refRxyzcom);
   vpHomogeneousMatrix refMcom(refTcom,refThUcom);
-  vpTwistMatrix comVref(refMcom.inverse());
+
+  vpVelocityTwistMatrix comVref(refMcom.inverse());
 
   vpColVector waistCtlVelinRef(6);
   waistCtlVelinRef[0]=waistcom[0];
@@ -724,7 +725,7 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
   vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
  
   //Compute the associate twist matrix
-  vpTwistMatrix wVh (wMh);
+  vpVelocityTwistMatrix wVh (wMh);
  
   //The position of the current camera in the head should
   // have been previously loaded

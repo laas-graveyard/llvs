@@ -15,57 +15,57 @@
 #------------------------------------------------------------------------------
 # Project information
 #------------------------------------------------------------------------------
-  project (LLVS)
-  cmake_minimum_required (VERSION 2.6.4)
-	set (${PROJECT_NAME}_LIBRARY_NAME llvs-0)
-	set (${PROJECT_NAME}_BINARY_NAME LLVS_server)
+project (LLVS)
+cmake_minimum_required (VERSION 2.6.4)
+set (${PROJECT_NAME}_LIBRARY_NAME llvs-0)
+set (${PROJECT_NAME}_BINARY_NAME LLVS_server)
 
 #------------------------------------------------------------------------------
 # Specify the cmake path and option
 #------------------------------------------------------------------------------
-	# Project specific module files
-	list (
-		APPEND 
-		CMAKE_MODULE_PATH 
-		$ENV{ROBOTPKG_BASE}/share/cmake
-	)
+# Project specific module files
+list (
+  APPEND 
+  CMAKE_MODULE_PATH 
+  $ENV{ROBOTPKG_BASE}/share/cmake/
+  )
 
-	# Dependent packages
-	find_package (
-		Modules
-		COMPONENTS
-		image
-		architecture
-		middleware
-		localization
-		algo
-	)
-        find_package(VISP REQUIRED NO_MODULE)
-	include(LLVT-toolbox)
+MESSAGE(STATUS "CMAKE_MODULE_PATH:" ${CMAKE_MODULE_PATH})
+# Dependent packages
+find_package (
+  Modules
+  COMPONENTS
+  image
+  architecture
+  middleware
+  localization
+  algo
+  )
+
+include(LLVT-toolbox)
 
 #------------------------------------------------------------------------------
 # Optional libraries
 #------------------------------------------------------------------------------
-	# Note that for boost inclusion reason, BtlSlam must be first included.
-	ADD_LLV_OPTION(HrpBtlSlam DESCRIPTION "Search for Bristol Visual SLAM for HRP2." DISABLED)
-	ADD_LLV_OPTION(VISP DESCRIPTION "Search for visual servoing plateform." DISABLED)
-	ADD_LLV_OPTION(VW DISABLED)
-	ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
-	ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib." DISABLED)
-	ADD_LLV_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
-	ADD_LLV_OPTION(MMX DESCRIPTION DISABLED)
-	ADD_LLV_OPTION(NMBT DESCRIPTION "Search for model tracker new version." DISABLED)
-	ADD_LLV_OPTION(MBT DESCRIPTION "Search for original model tracker version." DISABLED)
-	ADD_LLV_OPTION(DC1394_V2 DESCRIPTION "Search for firewire dc1394 library version 2."
-		             OUTPUT_VAR DC1394_V2)
-	ADD_LLV_OPTION(KalmanFilter DISABLED)
+# Note that for boost inclusion reason, BtlSlam must be first included.
+ADD_LLV_OPTION(HrpBtlSlam DESCRIPTION "Search for Bristol Visual SLAM for HRP2." DISABLED)
+ADD_LLV_OPTION(VISP DISABLED)
+ADD_LLV_OPTION(VW DISABLED)
+ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
+ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib." DISABLED)
+ADD_LLV_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
+ADD_LLV_OPTION(MMX DESCRIPTION DISABLED)
+ADD_LLV_OPTION(DC1394_V2 DESCRIPTION "Search for firewire dc1394 library version 2."
+  OUTPUT_VAR DC1394_V2)
+ADD_LLV_OPTION(KalmanFilter DISABLED)
+
 #------------------------------------------------------------------------------
 # Required libraries
 #------------------------------------------------------------------------------
-	ADD_LLV_PACKAGES(
-		OpenHRP
-		OpenCV
-	)
+ADD_LLV_PACKAGES(
+  OpenHRP
+  OpenCV
+  )
 
 #------------------------------------------------------------------------------
 # FIXME: Optional to required library transition
@@ -74,24 +74,24 @@
 # macro to enable/disable some code parts. Now the library became required for
 # anything to work. All macros have to be removed from code. Then cmake
 # compatibility lines below can be deleted.
-	set(LLVS_HAVE_OPENCV 1)
+set(LLVS_HAVE_OPENCV 1)
 
 #------------------------------------------------------------------------------
 # Propagation in sub dirs
 #------------------------------------------------------------------------------
-	add_subdirectory(include)
-	add_subdirectory(src)
+add_subdirectory(include)
+add_subdirectory(src)
 
 #------------------------------------------------------------------------------
 # Unit tests
 #------------------------------------------------------------------------------
-	option(COMPILE_UNIT_TESTS "Compile also unit tests" OFF)
-	if(COMPILE_UNIT_TESTS)
-		add_subdirectory(unitTesting)
-	endif(COMPILE_UNIT_TESTS)
+option(COMPILE_UNIT_TESTS "Compile also unit tests" OFF)
+if(COMPILE_UNIT_TESTS)
+  add_subdirectory(unitTesting)
+endif(COMPILE_UNIT_TESTS)
 
 #------------------------------------------------------------------------------
 # Add uninstall target
 #------------------------------------------------------------------------------
-	include(install-toolbox)
-	ADD_UNINSTALL_TARGET()
+include(install-toolbox)
+ADD_UNINSTALL_TARGET()

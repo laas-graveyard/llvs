@@ -25,6 +25,8 @@
 #include <visp/vpColVector.h>
 #include <visp/vpMatrix.h>
 
+#if (LLVS_HAVE_KALMAN_FILTER > 0)
+
 #include "ConnectionToSot.h"
 #include "ModelTracker/nmbtTrackingProcess.h"
 
@@ -148,5 +150,7 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   bool m_TimeStampInitialize;
 
 };
+
+#endif // (LLVS_HAVE_KALMAN_FILTER > 0)
 
 #endif 

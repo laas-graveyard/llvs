@@ -26,12 +26,6 @@
 /* Define to 1 if OpenCV is installed */
 #define LLVS_HAVE_VISP ${LLVS_HAVE_VISP}
 
-/* Define to 1 if the model tracker of the lagadic team is installed */
-#define LLVS_HAVE_MBT ${LLVS_HAVE_MBT}
-
-/* Define to 1 if the new model tracker of the lagadic team is installed */
-#define LLVS_HAVE_NMBT ${LLVS_HAVE_NMBT}
-
 /* Define to 1 if the Kalman Filter is installed */ 
 #define LLVS_HAVE_KALMAN_FILTER ${LLVS_HAVE_KALMAN_FILTER}
 

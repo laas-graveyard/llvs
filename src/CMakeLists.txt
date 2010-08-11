@@ -43,10 +43,8 @@
 		OPEN_CV
 			OpenCV/StereoVisionProcess.cpp
 			OpenCV/MireDetectionProcess.cpp
-		NMBT
 			ModelTracker/nmbt/nmbtTrackingProcess.cpp
 			ModelTracker/nmbt/kalmanOnNMBTProcess.cpp
-		VISP
 			ViSP/vispConvertImageProcess.cpp
 			ViSP/CircularBufferTrackerData.cpp 
 			ViSP/ComputeControlLawProcess.cpp

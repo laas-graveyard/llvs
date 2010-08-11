@@ -33,7 +33,7 @@ using namespace llvs;
 ModelTrackerInterface_impl::ModelTrackerInterface_impl(LowLevelVisionServer * LLVS)
 {
   m_LLVS = LLVS;
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   m_CBTD.image = new vpImage<unsigned char>(240,320);
   m_CBTD.timestamp = new double(0);
 #endif  
@@ -41,7 +41,7 @@ ModelTrackerInterface_impl::ModelTrackerInterface_impl(LowLevelVisionServer * LL
 
 ModelTrackerInterface_impl::~ModelTrackerInterface_impl()
 {
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   delete m_CBTD.image;
 #endif  
 }
@@ -52,7 +52,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
 
   vpHomogeneousMatrix cMo;
@@ -86,7 +86,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::SetcdMo(const ModelTrackerInterface::HomogeneousMatrix& aHM)
 {
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
 
   vpHomogeneousMatrix cdMo;
@@ -122,7 +122,7 @@ CORBA::Boolean
 ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acMo)
 {
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
   
@@ -155,7 +155,7 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 CORBA::Boolean
 ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO)
 {
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
   
@@ -169,7 +169,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->anImgData.height=240;
   aDIOv->anImgData.longData.length(2);
   aDIOv->anImgData.format=GRAY;
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
 
   aDIOv->anImgData.longData[0] =*m_CBTD.timestamp;

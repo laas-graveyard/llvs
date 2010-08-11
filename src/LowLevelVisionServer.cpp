@@ -154,7 +154,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /* It is an interface to call the VVV scripts . */
   m_StereoVision_impl = new StereoVision_impl(m_orb,this);
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   /*! Is is an interface to call the NMBT tracker. */
   m_ModelTrackerCorbaRequestProcess_impl =
     new ModelTrackerInterface_impl(this);
@@ -453,26 +453,22 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 #endif
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   /*! Model Tracker process. */
 
 
   //TODO find a better way to do define the m_ModelTrackerProcess
-  bool useKalmanFilter=true;
-  if( useKalmanFilter && LLVS_HAVE_KALMAN_FILTER>0)
-    {
-      ODEBUG("creation of HRP2KalmanOnNMBTProcess");
+#if (LLVS_HAVE_KALMAN_FILTER > 0)
+  ODEBUG("creation of HRP2KalmanOnNMBTProcess");
 
-      m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
-      HRP2KalmanOnNMBTProcess* lKalmanOnNMBTProcess;
-      lKalmanOnNMBTProcess = dynamic_cast<HRP2KalmanOnNMBTProcess*> (m_ModelTrackerProcess);
-      lKalmanOnNMBTProcess->SetTimeStamp(&m_timestamps[CAMERA_WIDE]);
-    }
-  else
-    {
-      ODEBUG("creation of HRP2nmbtTrackingProcess");
-      m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
-    }
+  m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
+  HRP2KalmanOnNMBTProcess* lKalmanOnNMBTProcess;
+  lKalmanOnNMBTProcess = dynamic_cast<HRP2KalmanOnNMBTProcess*> (m_ModelTrackerProcess);
+  lKalmanOnNMBTProcess->SetTimeStamp(&m_timestamps[CAMERA_WIDE]);
+#else
+  ODEBUG("creation of HRP2nmbtTrackingProcess");
+  m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
+#endif // LLVS_HAVE_KALMAN_FILTER > 0
 
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_ModelTrackerProcess->StopProcess();
@@ -539,7 +535,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
       m_CTS=0;
     }
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   m_ComputeControlLawProcess->SetConnectionToSot(m_CTS);
 #endif
 
@@ -3486,7 +3482,7 @@ ModelTrackerInterface_ptr LowLevelVisionServer::getModelTracker()
   throw(CORBA::SystemException)
 {
   ModelTrackerInterface_var tmp_ModelTrackerInterface;
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
   tmp_ModelTrackerInterface = m_ModelTrackerCorbaRequestProcess_impl->_this();
 #endif
   return tmp_ModelTrackerInterface._retn();

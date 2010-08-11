@@ -93,6 +93,6 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
   HRP2PointTrackingProcess * m_PointTracker;
   CBPointTrackerData * m_CBPointTrackerData;
 };
-#endif  // (LLVS_HAVE_NMBT>0)
+#endif  // (LLVS_HAVE_VISP>0)
 
 #endif /* _CIRCULAR_BUFFER_MODEL_TRACKER_LLVS_H_ */

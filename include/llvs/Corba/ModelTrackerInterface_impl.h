@@ -36,7 +36,7 @@ namespace llvs
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
 
-#if (LLVS_HAVE_NMBT>0)
+#if (LLVS_HAVE_VISP>0)
 
     CBTrackerData m_CBTD;
 

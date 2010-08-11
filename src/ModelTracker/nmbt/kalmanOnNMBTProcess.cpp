@@ -15,6 +15,8 @@
 #include "ModelTracker/kalmanOnNMBTProcess.h"
 //#include "ModelTracker/nmbtTrackingProcess.h"
 
+#if (LLVS_HAVE_KALMAN_FILTER > 0)
+
 /* Kalman include*/
 #include "KalmanFilter/SoTModel.h"
 #include "KalmanFilter/TrackerModel.h"
@@ -501,3 +503,4 @@ void HRP2KalmanOnNMBTProcess::KalmanOnSoT()
 
 }
 
+#endif // (LLVS_HAVE_KALMAN_FILTER > 0)
