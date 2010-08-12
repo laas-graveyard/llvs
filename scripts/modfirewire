@@ -1,0 +1,265 @@
+#!/bin/sh
+# Copyright (C) 2010 Thomas Moulard, JRL, CNRS/AIST.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ # ------ #
+ # README #
+ # ------ #
+
+# This script handle loading/unloading of firewire-related modules in
+# the kernel.
+#
+# This script is useful to make sure frame grabbing fail is not due to
+# a driver crash.
+#
+# Please note that as this script impacts the kernel, it has to be run
+# as root in order to work.
+
+# Override the locale.
+LC_ALL='C'
+export LC_ALL
+
+me=$0
+bme=`basename "$0"`
+
+
+  # ----------------------- #
+  # Customizable variables. #
+  # ----------------------- #
+
+# Kernel modules tools.
+: ${INSMOD=/sbin/insmod}
+: ${RMMOD=/sbin/rmmod}
+: ${MODPROBE=/sbin/modprobe}
+
+: ${CHMOD=/bin/chmod}
+
+# Kernel modules list.
+: ${MODFIREWIRE_MODULES="ieee1394 ohci1394 raw1394 video1394"}
+
+# Deduce inverse list from the first one.
+MODFIREWIRE_MODULES_INV=` echo -n " $MODFIREWIRE_MODULES " | tac -s ' '`
+
+  # ---------------- #
+  # Helper functions #
+  # ---------------- #
+
+set_colors()
+{
+  red='[0;31m';    lred='[1;31m'
+  green='[0;32m';  lgreen='[1;32m'
+  yellow='[0;33m'; lyellow='[1;33m'
+  blue='[0;34m';   lblue='[1;34m'
+  purple='[0;35m'; lpurple='[1;35m'
+  cyan='[0;36m';   lcyan='[1;36m'
+  grey='[0;37m';   lgrey='[1;37m'
+  white='[0;38m';  lwhite='[1;38m'
+  std='[m'
+}
+
+set_nocolors()
+{
+  red=;    lred=
+  green=;  lgreen=
+  yellow=; lyellow=
+  blue=;   lblue=
+  purple=; lpurple=
+  cyan=;   lcyan=
+  grey=;   lgrey=
+  white=;  lwhite=
+  std=
+}
+
+# abort err-msg
+abort()
+{
+  echo "modfirewire: ${lred}abort${std}: $@" \
+  | sed '1!s/^[ 	]*/             /' >&2
+  exit 1
+}
+
+# warn msg
+warn()
+{
+  echo "modfirewire: ${lred}warning${std}: $@" \
+  | sed '1!s/^[ 	]*/             /' >&2
+}
+
+# notice msg
+notice()
+{
+  echo "modfirewire: ${lyellow}notice${std}: $@" \
+  | sed '1!s/^[ 	]*/              /' >&2
+}
+
+# yesno question
+yesno()
+{
+  printf "$@ [y/N] "
+  read answer || return 1
+  case $answer in
+    y* | Y*) return 0;;
+    *)       return 1;;
+  esac
+  return 42 # should never happen...
+}
+
+check_user_is_root()
+{
+    if test x`id -u` != x0; then
+	abort "Please launch this script as the root user."
+	exit 2
+    fi
+}
+
+# exit code is 0 if loaded
+is_loaded_module()
+{
+    tmp=`grep $1 /proc/modules`
+}
+
+unload_module()
+{
+    is_loaded_module $1
+    if test x$? = x0; then
+	$RMMOD $1 || warn "fail to unload $1 module"
+    else
+	notice "module $1 is not loaded, skipping..."
+    fi
+}
+
+load_module()
+{
+    is_loaded_module $1
+    if test x$? = x0; then
+	notice "module $1 is already loaded, skipping..."
+    else
+	KERNEL_RELEASE=`uname -r`
+	DRIVERS_PATH=/lib/modules/${KERNEL_RELEASE}/kernel/drivers
+	$INSMOD ${DRIVERS_PATH}/ieee1394/$1.ko || warn "fail to load $1 module"
+    fi
+}
+
+  # -------------------- #
+  # Actions definitions. #
+  # -------------------- #
+
+module_unload()
+{
+    check_user_is_root
+    notice "Unloading modules..."
+    unload_module sbp2
+    for module in $MODFIREWIRE_MODULES_INV; do
+	unload_module $module
+    done
+    notice "Unloading modules done."
+}
+
+module_load()
+{
+    check_user_is_root
+    notice "Loading modules..."
+    for module in $MODFIREWIRE_MODULES; do
+	load_module $module
+    done
+    $MODPROBE sbp2 || warn "fail to load sbp2 module through modprobe"
+    notice "Loading modules done."
+
+    notice "Checking permissions on device filesystem..."
+    $CHMOD 777 /dev/raw1394
+    $CHMOD -R 777 /dev/video1394
+}
+
+module_reload()
+{
+    module_unload
+    if test x$? != x0; then
+	warn "Failed to properly unload modules."
+    fi
+    module_load
+    if test x$? != x0; then
+	warn "Failed to properly load modules."
+    fi
+}
+
+version()
+{
+    echo 'modfirewire
+Copyright (C) 2010 JRL, CNRS/AIST.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.'
+}
+
+help()
+{
+    echo 'Usage: modfirewire [action]
+Actions:
+  help, h		      Print this message and exit.
+  load, l                     Load modules.
+  reload, r		      Unload then load modules.
+  unload, u		      Unload modules.
+  version, v		      Unload modules.
+
+Report bugs to <hpp@laas.fr>'
+}
+
+  # ------------------- #
+  # `main' starts here. #
+  # ------------------- #
+
+# Define colors if stdout is a tty.
+if test -t 1; then
+  set_colors
+else # stdout isn't a tty => don't print colors.
+  set_nocolors
+fi
+
+# For dev's:
+test "x$1" = x--debug && shift && set -x
+
+if test "x$#" = "x0"; then
+    help
+    exit 0
+fi
+
+case $1 in
+    load | l)
+	shift
+	module_load
+	;;
+    unload | u)
+	shift
+	module_unload
+	;;
+    reload | r)
+	shift
+	module_reload
+	;;
+    version | v | --version | -version)
+	shift
+	version
+	;;
+    help | h | --help | -help)
+	shift
+	help
+	;;
+    *)
+	echo "modfirewire: ${lred}invalid option${std}: $1"
+	shift
+	help
+	exit 1
+	;;
+esac
