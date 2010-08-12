@@ -57,8 +57,7 @@ Default constructor
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   
 {
-  
-  m_ProcessName = "vpMbtTrackerProcess";
+  m_ProcessName = "nmbtTrackingProcess";
   m_cameraParamLoaded = false;
   m_initPoseLoaded = false;
   m_inputImagesLoaded = false;
