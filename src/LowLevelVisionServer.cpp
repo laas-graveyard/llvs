@@ -194,7 +194,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_TypeOfSynchro = SynchroMethodForInputImages;
 
   ODEBUG("Step 2");
-  ODEBUG3("Type of Input Method: " << m_TypeOfInputMethod << endl <<
+  ODEBUG("Type of Input Method: " << m_TypeOfInputMethod << endl <<
 	  "Type of Synchronization: " << m_TypeOfSynchro << endl <<
 	 " (files:" << LowLevelVisionSystem::FILES <<
 	 ", framegrabber:"<< LowLevelVisionSystem::FRAMEGRABBER);
@@ -609,6 +609,20 @@ LowLevelVisionServer::FreeBinaryImages()
 }
 
 CORBA::Long
+LowLevelVisionServer::GetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::Long &lw, CORBA::Long &lh)
+  throw(CORBA::SystemException)
+{
+  if ((SemanticCameraID>=0) && (SemanticCameraID<(CORBA::Long)m_BinaryImages.size()))
+    {
+      lw = m_Width[SemanticCameraID];
+      lh = m_Height[SemanticCameraID];
+    }
+  else
+    throw("Wrong Semantic ID");
+  return 0;
+}
+
+CORBA::Long
 LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::Long lw, CORBA::Long lh)
   throw(CORBA::SystemException)
 {
@@ -617,8 +631,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::
   int res =0;
   /* Should first check if the ratio lw/lh
      is the same than previously. Otherwise a different
-     calibration data set should be used.
-  */
+     calibration data set should be used.  */
   if (m_ImagesInputMethod==0)
     return -1;
 
@@ -901,7 +914,7 @@ LowLevelVisionServer::ApplyingProcess()
   static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
-  ODEBUG3( __FILE__ << " " << __LINE__ );
+  ODEBUG( __FILE__ << " " << __LINE__ );
   if ((!m_Computing) || (!m_EndOfConstructor)
       || (m_ImagesInputMethod==0))
     {
@@ -1174,7 +1187,7 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 	  if (m_ImagesInputMethod->NextTimeForGrabbing(li)<CurrentTime)
 	    {
 	      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
-
+	      ODEBUG("SemanticCamera:" << SemanticCamera);
 	      r = m_ImagesInputMethod->GetSingleImage(&m_BinaryImages[SemanticCamera],
 						      SemanticCamera,
 						      m_timestamps[SemanticCamera]);
@@ -1199,52 +1212,6 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
   if (m_Verbosity>=2)
     cout << "After ImagesInput Method : " << endl;
 
-  //  if (m_CheckEntry)
-    {
-#if 0
-      static unsigned long int lcounter=0;
-      FILE *fp;
-      for(unsigned int i=0; i<m_ImagesInputMethod->GetNumberOfCameras(); i++)
-	{
-	  int k,l;
-	  unsigned char *pt = m_BinaryImages[i];
-	  char Buffer[1024];
-	  bzero(Buffer,1024);
-	  if ((int)m_depth[0]==1)
-	    sprintf(Buffer,"REALcheck_%01d_%06d.pgm",i,(int)lcounter);
-	  else
-	    sprintf(Buffer,"REALcheck_%01d_%06d.ppm",i,(int)lcounter);
-	  fp = fopen(Buffer,"w");
-	  if (m_Verbosity>=2)
-	    cout << "Save the image : " << Buffer << endl;
-	  
-	  ODEBUG("m_depth["<<i<<"]="<<m_depth[i]);
-	  if (fp!=0)
-	    {
-	      double TimeStamp=m_timestamps[i];
-	      if (m_depth[i]==1)
-		fprintf(fp,"P5\n");
-	      else 
-		fprintf(fp,"P6\n");
-	      fprintf(fp,"#%f\n%d %d\n255\n",TimeStamp,(int)m_Width[i],(int)m_Height[i]);
-	      for(l=0;l<m_Height[i];l++)
-		{
-		  for(k=0;k<m_Width[i];k++)
-		    {
-		      for(unsigned int m=0;m<m_depth[i];m++)
-			fprintf(fp,"%c",*pt++);
-		    }
-		}
-
-	      fclose(fp);
-	    }
-	}
-      lcounter++;
-
-#else
-#endif
-
-    }
   return result;
 }
 
@@ -2174,7 +2141,7 @@ void LowLevelVisionServer::GetImageSize(int Size[2],unsigned int CameraID)
 {
   Size[0] = -1;
   Size[1] = -1;
-  if ((CameraID<0) || (CameraID>m_ImagesInputMethod->GetNumberOfCameras()))
+  if ((CameraID>=0) && (CameraID<m_ImagesInputMethod->GetNumberOfCameras()))
     {
       Size[0] = m_Width[CameraID];
       Size[1] = m_Height[CameraID];
@@ -2247,7 +2214,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   ImageData_var an2Image = new ImageData;
   int i,j, index =0 ;
 
-  ODEBUG3("getImage :" << SemanticCamera << " " << string(Format) << " " <<
+  ODEBUG("getImage :" << SemanticCamera << " " << string(Format) << " " <<
 	 m_BinaryImages.size());
   if ((SemanticCamera<0) || ((unsigned int)SemanticCamera>=m_BinaryImages.size()) )
     {
@@ -2272,7 +2239,7 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   an2Image->width = m_Width[SemanticCamera];
   an2Image->height = m_Height[SemanticCamera];
 
-  ODEBUG("Size: " << Size);
+  ODEBUG("Size of the image: " << Size);
   an2Image->octetData.length(Size);
   an2Image->longData.length(2);
 
@@ -2291,48 +2258,50 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
 }
 
 /* Get a rectified image */
-CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
+CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage)
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
-  int i,j, index =0 ;
+  int i,j, index =0;
 
-  cout << "SemanticCamera:" << SemanticCamera << std::endl;
-  if ((SemanticCamera<0) || ((unsigned int) SemanticCamera>m_ImagesInputMethod->GetNumberOfCameras()))
+  unsigned size =
+    m_Height[SemanticCamera] *
+    m_Width[SemanticCamera] ;
+
+  if ((SemanticCamera<0) || ((unsigned int) SemanticCamera>m_BinaryImages.size()))
     {
+      std::cout << "Build a default image." << std::endl;
       an2Image->octetData.length(0);
       an2Image->longData.length(0);
       an2Image->floatData.length(0);
-      an2Image->width=320;
-      an2Image->height=240;
+      an2Image->width=m_Width[SemanticCamera];
+      an2Image->height=m_Height[SemanticCamera];
       anImage = an2Image._retn();
       return -1;
     }
-
-  CheckImageFormat(Format);
 #if (LLVS_HAVE_VVV>0)
   an2Image->octetData.length(m_Height[SemanticCamera] * m_Width[SemanticCamera]*m_depth[SemanticCamera]);
 
   for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
     an2Image->octetData[j] = ((unsigned char *)m_CorrectedImages[SemanticCamera].Image)[j];
-  //an2Image->octetData[j] = ((unsigned char *)m_epbm_distorted[SemanticCamera].Image)[j];
 #endif
 
 #if (LLVS_HAVE_VISP>0)
 
-  an2Image->octetData.length(320*240);
+  //FIXME: why? this code should be more generic...
+  an2Image->octetData.length(size);
   an2Image->floatData.length(0);
-  an2Image->width=320;
-  an2Image->height=240;
+  an2Image->width=m_Width[SemanticCamera];
+  an2Image->height=m_Height[SemanticCamera];
   an2Image->longData.length(2);
-  an2Image->format=GRAY;//PixelFormat::GRAY;
+  an2Image->format=GRAY;
   an2Image->longData[0] =(long) m_timestamps[SemanticCamera];
   an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
 
 
   unsigned char *pt =m_Widecam_image_undistorded->bitmap;
 
-  for(j=0;j<(int)(320*240);j++)
+  for(unsigned j = 0; j <size; j++)
     an2Image->octetData[j] = *pt++;
 
 #ifdef _DEBUG_MODE_ON_
@@ -2352,7 +2321,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
 
   anImage = an2Image._retn();
 
-  CORBA::Long lr=320*240;
+  CORBA::Long lr=size;
   return lr;
 }
 

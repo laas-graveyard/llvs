@@ -175,7 +175,7 @@ int HRP2nmbtTrackingProcess::SetDefaultParam()
   //-------------------------------
   // create the path to the box
   //-------------------------------
-  string defaultPath ( "./data/model/ElectricWallFar/ElectricWallFar.wrl");
+  string defaultPath ( "./data/model/ElectricWallFar/ElectricWallFar");
   m_pathPose =defaultPath;
   m_pathVrml = defaultPath +".wrl";
 

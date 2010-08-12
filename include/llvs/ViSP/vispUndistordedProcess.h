@@ -60,7 +60,7 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
 
 
   /*! Set a parameter */
-  int SetParameter(string aParameter, string aValue);
+  int pSetParameter(string aParameter, string aValue);
    
   /*! Set the image */
   void SetImages(unsigned char ** Iraw , vpImage<unsigned char>* Ivisp ); 

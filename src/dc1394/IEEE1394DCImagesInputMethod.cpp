@@ -508,7 +508,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	}
       timestamp=m_VideoFrames[cameraNumber]->timestamp*1e-6;
 
-      ODEBUG("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
+      ODEBUG3("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
 	     <<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: " 
 	     << m_ModeRaw2RGB );
       switch(m_ModeRaw2RGB)
@@ -582,6 +582,9 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
       unsigned char *ImgSrc,*ImgDst;
       ImgDst =(unsigned char *) ImagesDst;
 
+      ODEBUG("Width:" << dec << m_ImagesWidth[cameraNumber]);
+      ODEBUG("Height:" << dec << m_ImagesHeight[cameraNumber]);
+
 
       int intervalw, intervalh, indexd, indexs;
       unsigned int BWidth, BHeight;
@@ -619,7 +622,6 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	}
 
     }
-
 
   if (m_VideoFrames[cameraNumber])
     {
@@ -928,7 +930,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
         }
 	else
 	  {
-	    ODEBUG("Created " << i << " camera with guid "<<list->ids[i].guid);
+	    ODEBUG("Created " << i << " camera with guid "<< hex << list->ids[i].guid);
 	  }
         j++;
       }
@@ -1011,7 +1013,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 								 dc1394framerate_t &fps,
 								 const unsigned int& CameraNb)
 {
-  ODEBUG("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
   if (m_CurrentVisionSystemProfileID!=-1)
     {
       IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
@@ -1055,7 +1057,10 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 
   if (!strcmp(aCamera.vendor,"Point Grey Research"))
     {
-      if (!strcmp(aCamera.model,"Flea FLEA-COL"))
+
+      if ((!strcmp(aCamera.model,"Flea FLEA-COL")) 
+	  ||(!strcmp(aCamera.model,"Flea2 FL2-03S2C"))
+	  )
 	{
 	  if (m_CurrentVisionSystemProfileID==-1)
 	    {
@@ -1579,6 +1584,8 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
 	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
 	    {
+	      ODEBUG("Test :" << hex << VSPCameraGUID << " and " 
+		      << hex << m_DC1394Cameras[k]->guid);
 	      if (VSPCameraGUID==m_DC1394Cameras[k]->guid)
 		lScoreCandidates[i]++;
 	    }

@@ -60,7 +60,7 @@ HRP2vispUndistordedProcess:: ~HRP2vispUndistordedProcess()
 void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
 					    ,vpImage<unsigned char>* Ivisp )
 {
- //TODO some verification and resize?
+  //TODO some verification and resize?
   m_ImagesInitialized	= false;
   m_VispGreyImages      = Ivisp;
   m_RawImages           = Iraw;
@@ -74,7 +74,7 @@ void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
 }  
 
 void HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
-					    ,vpImage<vpRGBa>* Ivisp )
+					   ,vpImage<vpRGBa>* Ivisp )
 {
   //TODO some verification and resize?
   m_ImagesInitialized	= false;
@@ -88,7 +88,7 @@ void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_
 { 
   m_CameraParamLoaded     =  false;
   m_CamParam=_cam;
- m_CameraParamLoaded     =  true;
+  m_CameraParamLoaded     =  true;
 }
 
 /*!-------------------------------------
@@ -99,16 +99,18 @@ void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_
   FLIP = ON or OFF
   TYPE_CONV = RGB_VISPU8 or RGB_VISPU8_NONE
   -------------------------------------*/
-int HRP2vispUndistordedProcess::SetParameter(std::string aParameter, 
+int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter, 
 					      std::string aValue)
 {
+  std::cout << aParameter << "/" << aValue << std::endl;
+
   // use of the generic function to add the parameter in the parameter list
   // A parameter can be or cannot be associated with a value, 
   // thus an empty string for Value is correct.
   // If the parameter already exist is value is overwritten. 
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
-  int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
+  //int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
 
   if (aParameter=="FLIP")
@@ -132,15 +134,19 @@ int HRP2vispUndistordedProcess::SetParameter(std::string aParameter,
       if (aValue=="RGB_VISPU8")
 	{
 	  m_conversion = RGB_VISPU8;
+	  std::cout << "set parameters pas de rectif" << std::endl;
 	}
       else if (aValue=="RGB_VISPU8_NONE")
 	{
+	  std::cout << "set parameters pas de rectif" << std::endl;
 	  m_conversion = RGB_VISPU8_NONE;
 	}
+      else
+	throw "invalid value";
     }
 
 
-  return(outputVBPSetParameters);
+  return 0;
 }
 
 /*!------------------------------------- 
@@ -171,7 +177,7 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 
       if(m_conversion == RGB_VISPU8 ) 
 	{
-	  
+	  std::cout << "Hello world rectif" << std::endl;	  
 	  vpImageConvert::RGBToGrey( *m_RawImages,
 				     m_tmpVispGreyImages.bitmap,
 				     m_ImgParam.width,
@@ -185,7 +191,7 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 
       if(m_conversion == RGB_VISPU8_NONE) 
 	{
-	  
+	  std::cout << "Hello world pas rectif" << std::endl;
 	  vpImageConvert::RGBToGrey( *m_RawImages,
 				     m_VispGreyImages->bitmap,
 				     m_ImgParam.width,

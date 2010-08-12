@@ -190,6 +190,14 @@ namespace llvs
 				       CORBA::Long lw, CORBA::Long lh)
 	throw(CORBA::SystemException);
 
+      /*! Set the grabbed image size
+       * Because of some algorithms used, right now this size is used for ALL the cameras
+       * of the system.
+       */
+      CORBA::Long GetImagesGrabbedSize(CORBA::Long SemanticCameraID,
+				       CORBA::Long &lw, CORBA::Long &lh)
+	throw(CORBA::SystemException);
+
       /*! Get the image from the frame grabber. */
       CORBA::Long GetImageFromFrameGrabber();
 
@@ -272,7 +280,7 @@ namespace llvs
 	throw(CORBA::SystemException);
 
       /*! Interface: Get a rectified image */
-      CORBA::Long getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage, char *& Format)
+      CORBA::Long getRectifiedImage(CORBA::Long SemanticCamera, ImageData_out anImage)
 	throw(CORBA::SystemException);
 
       /*! Interface: Get range map */
