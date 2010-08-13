@@ -102,7 +102,7 @@ void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_
 int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter, 
 					      std::string aValue)
 {
-  std::cout << aParameter << "/" << aValue << std::endl;
+  //  std::cout << aParameter << "/" << aValue << std::endl;
 
   // use of the generic function to add the parameter in the parameter list
   // A parameter can be or cannot be associated with a value, 
@@ -177,7 +177,7 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 
       if(m_conversion == RGB_VISPU8 ) 
 	{
-	  std::cout << "Hello world rectif" << std::endl;	  
+	  //	  std::cout << "Hello world rectif" << std::endl;	  
 	  vpImageConvert::RGBToGrey( *m_RawImages,
 				     m_tmpVispGreyImages.bitmap,
 				     m_ImgParam.width,
@@ -191,7 +191,7 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 
       if(m_conversion == RGB_VISPU8_NONE) 
 	{
-	  std::cout << "Hello world pas rectif" << std::endl;
+	  //	  std::cout << "Hello world pas rectif" << std::endl;
 	  vpImageConvert::RGBToGrey( *m_RawImages,
 				     m_VispGreyImages->bitmap,
 				     m_ImgParam.width,
