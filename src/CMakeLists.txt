@@ -45,6 +45,7 @@
 			OpenCV/MireDetectionProcess.cpp
 			ModelTracker/nmbt/nmbtTrackingProcess.cpp
 			ModelTracker/nmbt/kalmanOnNMBTProcess.cpp
+		VISP
 			ViSP/vispConvertImageProcess.cpp
 			ViSP/CircularBufferTrackerData.cpp 
 			ViSP/ComputeControlLawProcess.cpp
