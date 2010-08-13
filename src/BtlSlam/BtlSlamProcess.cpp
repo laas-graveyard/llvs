@@ -145,6 +145,7 @@ HRP2BtlSlamProcess::pRealizeTheProcess()
 {
 	if( m_isAlreadyStarted )
 	{
+		//writeImageIntoFile(*m_pImageContainer, "temp.ppm");
 		pushImage();
 	}
 	else

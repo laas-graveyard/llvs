@@ -30,7 +30,6 @@ list (
   $ENV{ROBOTPKG_BASE}/share/cmake/
   )
 
-MESSAGE(STATUS "CMAKE_MODULE_PATH:" ${CMAKE_MODULE_PATH})
 # Dependent packages
 find_package (
   Modules
