@@ -147,13 +147,13 @@ namespace llvs
       void StopBoard();
   
       /*! Set parameter value */
-      virtual int SetParameter(string aParameter, std::string aValue);
+      virtual int pSetParameter(string aParameter, std::string aValue);
   
       /*! Override Start Process */
-      virtual int StartProcess() throw(const char*);
+      virtual int pStartProcess();
   
       /*! Override Stop Process */
-      virtual int StopProcess();
+      virtual int pStopProcess();
 
       void GetCameraFeatureValue(string aCamera, std::string aFeature, std::string &aValue);
       void SetCameraFeatureValue(string aCamera, std::string aFeature, std::string aValue);

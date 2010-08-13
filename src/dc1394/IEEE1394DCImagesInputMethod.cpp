@@ -104,7 +104,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
     {
       std::string VisionSystemProfileDefault(ListOfVSPs[i]);
       std::string VSPDValue(ListOfVSPsFN[i]);
-      SetParameter(VisionSystemProfileDefault,
+      pSetParameter(VisionSystemProfileDefault,
 		   VSPDValue);
     }
   
@@ -280,12 +280,11 @@ void HRP2IEEE1394DCImagesInputMethod::CleanMemory()
   m_HandleDC1394 = 0;
 }
 
-int HRP2IEEE1394DCImagesInputMethod::StartProcess() throw(const char*)
+int HRP2IEEE1394DCImagesInputMethod::pStartProcess()
 {
   if (!m_Computing)
     {
       ODEBUG("StartProcess: Phase 1");
-      HRP2VisionBasicProcess::StartProcess();
       ODEBUG("StartProcess: Phase 2");
       InitializeBoard();
       ODEBUG("StartProcess: Phase 3");
@@ -296,10 +295,9 @@ int HRP2IEEE1394DCImagesInputMethod::StartProcess() throw(const char*)
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::StopProcess()
+int HRP2IEEE1394DCImagesInputMethod::pStopProcess()
 {
   ODEBUG("StopProcess: Phase 1");
-  HRP2VisionBasicProcess::StopProcess();
   ODEBUG("StopProcess: Phase 2");
   StopContinuousShot();
   ODEBUG("StopProcess: Phase 3");
@@ -835,9 +833,8 @@ HRP2IEEE1394DCImagesInputMethod::SetFormat(std::string aFormat, const unsigned i
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::SetParameter(std::string aParameter, std::string aValue)
+int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::string aValue)
 {
-  HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
   std::string CameraPrefix;
   unsigned char IsACamera = 0;
   unsigned int lpos = 0;
@@ -1003,7 +1000,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
   for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
     FromFrameRateToTime(i);
 
-  m_Computing = 1;
+  m_Computing = 0;
   ODEBUG("End of InitializeBoard");
 }
 
@@ -1569,6 +1566,8 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   vector<unsigned int> lScoreCandidates;
   lScoreCandidates.resize(m_VisionSystemProfiles.size());
 
+  ODEBUG("Nb of file .vsp: " << m_VisionSystemProfiles.size());
+  ODEBUG("Nb cam on the bus" << m_DC1394Cameras.size());
   // Loop in the list of vision system profiles
   for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
     {
@@ -1597,7 +1596,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	}
     }
 
-  ODEBUG(ScoreBestCandidate << " " << IndexBestCandidate);
+  ODEBUG3(ScoreBestCandidate << " " << IndexBestCandidate);
   if ((IndexBestCandidate>-1) && (ScoreBestCandidate>0))
     {
       m_CurrentVisionSystemProfileID = IndexBestCandidate;
