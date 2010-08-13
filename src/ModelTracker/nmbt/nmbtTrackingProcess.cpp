@@ -170,17 +170,19 @@ void  HRP2nmbtTrackingProcess::GetWidth(int&_width)
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::SetDefaultParam()
 {
-
+  ODEBUG ("Enter the function SetDefault Param " << m_pathVrml.c_str() );
   //-------------------------------
   // create the path to the box
   //-------------------------------
   string defaultPath ( "./data/model/ElectricWallFar/ElectricWallFar");
   m_pathPose =defaultPath;
-  m_pathVrml = defaultPath +".wrl";
+  m_pathVrml = defaultPath+".wrl";
 
  
 
   // load the model and set the flag model loaded to true
+ 
+  ODEBUG (" Path to model is : " << m_pathVrml.c_str() <<endl) ;
   LoadModel( m_pathVrml.c_str());
   m_modelLoaded = true;
 
@@ -566,7 +568,7 @@ This Patches will be used to track the line in the image.
 -------------------------------------*/
 int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
-  ODEBUG("Initialize the process.");
+  ODEBUG("Initialize the process : NMBT MODEL TRACKING .");
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
@@ -588,6 +590,7 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
      
      // set the cMo matrix to identity   
      m_outputcMo.setIdentity();
+     m_outputcMo[0][0]=42;
      
      // return a negative value
      return -1;
@@ -604,9 +607,9 @@ The tracker is initialize in this process
 ------------------------------------------*/
 int HRP2nmbtTrackingProcess::pStartProcess()
 {
-  cout << "Go through pStartProcess" << endl;
+  ODEBUG("Go through pStartProcess NMBT MODEL TRACKING" );
   int r= pInitializeTheProcess();
-  cout << "Went through pStartProcess" << endl;
+  ODEBUG("Went through pStartProcess NMBT MODEL TRACKING");
   return r;
 
 }
@@ -623,6 +626,18 @@ the object model
 -------------------------------------*/
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
+	
+  ODEBUG("Go through pRealizeTheProcess NMBT MODEL TRACKING" );
+  if (m_Verbosity>3)
+    {
+      std::cout << "input cMo before:" << std::endl << m_inputcMo << std::endl;
+      std::cout << "output cMo before:" << std::endl << m_outputcMo << std::endl;
+    }
+  vpHomogeneousMatrix trackercMo;
+  m_tracker.getPose(trackercMo);
+  if (m_Verbosity>3)
+    std::cout << "tracker cMo before:" << std::endl << trackercMo << std::endl;
+
   m_trackerTrackSuccess = false;
   
   unsigned int r=0;
@@ -674,6 +689,16 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  m_tracker.setMovingEdge(m_me);
 	  m_me_modified = false;
 	}
+
+      if (m_Verbosity>2)
+	{
+	  std::cout << "input cMo after:" << std::endl << m_inputcMo << std::endl;
+	  std::cout << "output cMo after:" << std::endl << m_outputcMo << std::endl;
+	  vpHomogeneousMatrix trackercMo;
+	  m_tracker.getPose(trackercMo);
+	  std::cout << "tracker cMo after:" << std::endl << trackercMo << std::endl;
+	}
+      
       return r;
     }
   else 
@@ -705,6 +730,7 @@ int HRP2nmbtTrackingProcess::LoadModel( const std::string & pathToModel)
   // add a test to check if the file exists
   // return an exception when one of these test fail
   //
+  ODEBUG(" Path to model is : " << pathToModel <<endl) ;
   m_tracker.loadModel(pathToModel.c_str());
   
   return 0;
