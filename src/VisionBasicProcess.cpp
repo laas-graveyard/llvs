@@ -49,32 +49,19 @@ HRP2VisionBasicProcess::HRP2VisionBasicProcess(int Instance)
   m_ProcessName = "void";
   m_Verbosity = 0;
   m_Computing=1;
+  m_State = STATE_LIMBO;
 }
 
 HRP2VisionBasicProcess::~HRP2VisionBasicProcess()
 {
 }
 
-/*
-int HRP2VisionBasicProcess::pInitializeTheProcess()
-{
-  return 0;
-}
-
-int HRP2VisionBasicProcess::pRealizeTheProcess()
-{
-  return 0;
-}
-
-int HRP2VisionBasicProcess::pCleanUpTheProcess()
-{
-  return 0;
-}
-*/
 int HRP2VisionBasicProcess::StopProcess()
 {
   m_Computing = 0;
+  m_State = STATE_STOP_PROCESS;
   pStopProcess();
+  m_State = STATE_STOP_PROCESS_FINISHED;
   return 1;
 }
 
@@ -82,7 +69,9 @@ int HRP2VisionBasicProcess::StartProcess()
 {
   ODEBUG("Go through StartProcess " << m_ProcessName);
   m_Computing = 1;
+  m_State = STATE_START_PROCESS;
   pStartProcess();
+  m_State = STATE_START_PROCESS_FINISHED
   ODEBUG("Went through StartProcess " << m_ProcessName);
   return 1;
 
@@ -150,6 +139,37 @@ int HRP2VisionBasicProcess::GetValueOfParameter(string aParameter, string &aValu
 {
  
   pGetValueOfParameter(aParameter,aValue);
+  if (aParameter=="INTERNAL_STATE")
+    {
+      switch(m_State)
+	{
+	case STATE_LIMBO: aValue="LIMBO";
+	  break;
+	case STATE_INITIALIZE: aValue="INITIALIZE";
+	  break;
+	case STATE_INITIALIZE_FINISHED: aValue="INITIALIZE_FINISHED";
+	  break;
+	case STATE_START_PROCESS: aValue="START_PROCESS";
+	  break;
+	case STATE_START_PROCESS_FINISHED: aValue="START_PROCESS_FINISHED";
+	  break;
+	case STATE_EXECUTE_PROCESS: aValue="EXECUTE_PROCESS";
+	  break;
+	case STATE_EXECUTE_PROCESS_FINISHED: aValue="EXECUTE_PROCESS_FINISHED";
+	  break;
+	case STATE_STOP_PROCESS: aValue="STOP_PROCESS";
+	  break;
+	case STATE_STOP_PROCESS_FINISHED: aValue="STOP_PROCESS_FINISHED";
+	  break;
+	case STATE_CLEANUP: aValue="CLEANUP";
+	  break;
+	case STATE_CLEANUP_FINISHED: aValue="CLEANUP_FINISHED";
+	  break;
+	default: aValue="UNKNOWN";
+	  break;
+	}
+      return 0;
+    }
   for(int i=0;i<m_ParametersSize;i++)
     {
       if (m_VectorOfParameters[i]==aParameter)
@@ -316,19 +336,31 @@ int HRP2VisionBasicProcess::GetInstance()
 
 int HRP2VisionBasicProcess::InitializeTheProcess()
 {
-  return pInitializeTheProcess();
+  int r;
+  m_State = STATE_INITIALIZE;
+  r= pInitializeTheProcess();
+  m_State = STATE_INITIALIZE_FINISHED;
+  return r;
 }
 
 int HRP2VisionBasicProcess::RealizeTheProcess()
 {
+  int r =0;
   ODEBUG( m_ProcessName << " Activated:" << (int)m_Computing);
   if (m_Computing==1)
-    return pRealizeTheProcess();
-    
-  return 0;
+    {
+      m_State = STATE_EXECUTE_PROCESS;
+      r=pRealizeTheProcess();
+      m_State = STATE_EXECUTE_PROCESS_FINISHED;
+    }
+  return r;
 }
 
 int HRP2VisionBasicProcess::CleanUpTheProcess()
 {
-  return pCleanUpTheProcess();
+  int r=0;
+  m_State = STATE_CLEANUP;
+  r=pCleanUpTheProcess();
+  m_State = STATE_CLEANUP_FINISHED;
+  return r;
 }

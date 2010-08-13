@@ -211,6 +211,25 @@ class HRP2VisionBasicProcess
   /*! Numero de l'instance. */
   int m_Instance;
 
+  /*! Internal state. */
+  unsigned int m_State;
+
+  /*! Four state. */
+  enum InternalState
+  {
+    STATE_LIMBO,
+    STATE_INITIALIZE,
+    STATE_INITIALIZE_FINISHED,
+    STATE_START_PROCESS,
+    STATE_START_PROCESS_FINISHED,
+    STATE_EXECUTE_PROCESS,
+    STATE_EXECUTE_PROCESS_FINISHED,
+    STATE_STOP_PROCESS,
+    STATE_STOP_PROCESS_FINISHED,
+    STATE_CLEANUP,
+    STATE_CLEANUP_FINISHED
+  };
+
 };
 
 #endif /* _HRP2_VISION_BASIC_PROCESS_H_ */
