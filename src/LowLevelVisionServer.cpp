@@ -93,7 +93,7 @@ using namespace std;
 #endif
 
 #include <llvs/tools/Debug.h>
-
+//#define ODEBUG3(x) cerr << "HPR2Tracker:" << x << endl
 using namespace llvs;
 
 union PixelEncode_t
@@ -111,7 +111,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 {
 
 
-
+ ODEBUG("Build object LOW LEVEL VISION SERVOR");
   m_Computing = 0;
   m_Verbosity = Verbosity;
 #if (LLVS_HAVE_VVV>0)
@@ -222,6 +222,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 	  aIIIM = 	new HRP2IEEE1394DCImagesInputMethod();
 	  m_ImagesInputMethod = (HRP2ImagesInputMethod *)aIIIM;
 	  m_ListOfProcesses.insert(m_ListOfProcesses.end(),aIIIM);
+	  aIIIM->InitializeTheProcess();
 	}
 #endif
 
@@ -433,7 +434,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   /*! Point Tracker process. */
   m_PointTrackerProcess = new HRP2PointTrackingProcess();
   m_PointTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
-  m_PointTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_PointTrackerProcess);
 
 
@@ -447,7 +447,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBonPointTracker=new CircularPointTrackerData(3);
   m_CBonPointTracker->SetPointTrackerPointer(m_PointTrackerProcess);
   m_CBonPointTracker->SetDatum(m_CBPointTrackerData);
-  m_CBonPointTracker->StopProcess();
+  m_CBonPointTracker->InitializeTheProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonPointTracker);
 
 
@@ -459,6 +459,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   //TODO find a better way to do define the m_ModelTrackerProcess
 #if (LLVS_HAVE_KALMAN_FILTER > 0)
+  //FIXME : As soon as the kalman is detected, we can only build a Kalman tracker !!!!
   ODEBUG("creation of HRP2KalmanOnNMBTProcess");
 
   m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
@@ -471,14 +472,12 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 #endif // LLVS_HAVE_KALMAN_FILTER > 0
 
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
-  m_ModelTrackerProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
 
   /*! Compute Control Law process. */
   m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();
   m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
-  m_ComputeControlLawProcess->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
 
 
@@ -491,7 +490,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBonNMBT=new CircularModelTrackerData(3);
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
-  m_CBonNMBT->StopProcess();
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
 #endif
 
@@ -1119,16 +1117,10 @@ LowLevelVisionServer::ApplyingProcess()
   if (GetVerboseMode()>=1)
     cout << "In the loop: " << current_time << " " << current_time2 << " " << current_time3 << endl;
 
-#if 0
-  if (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_FLOW)
-    {
-      if (current_time<0.033)
-	usleep((unsigned int) (0.75*(33000 - (unsigned int)(1000000.0 * current_time))));
-    }
-#endif
 
   ODEBUG("NbOfActiveProcesses"<<NbOfActiveProcesses);
 
+#if 0
   if ((NbOfActiveProcesses>0)&&
       (IndexBuffer==300)  )
     {
@@ -1149,6 +1141,7 @@ LowLevelVisionServer::ApplyingProcess()
     }
   else if (IndexBuffer == 1000000)
     IndexBuffer = -1;
+#endif
 
   if ((NbOfActiveProcesses==0) && (IndexBuffer==-1))
     {
@@ -1305,7 +1298,7 @@ LowLevelVisionServer::RectifyImages(CONST EPBM I[4],
 {
   int i;
 
-  /* 画像枚数が２、３枚以外のとき */
+  /* ??奮里箸 */
   if (n != 2 && n != 3) {
     return -1;
   }
@@ -1332,7 +1325,7 @@ LowLevelVisionServer::RectifyImages(CONST EPBM I[4],
 
 
 
-  /* L,Rの画像が同一のものではないかすでに変換されている */
+  /* L,R硫?同里里任呂覆任儡討 */
 
   for (i = 0; i < n; i++)
     {

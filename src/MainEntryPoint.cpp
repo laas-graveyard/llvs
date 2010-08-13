@@ -76,6 +76,9 @@ void SIGINT_handler(int signal_code)
 
 int main(int argc, char * argv[])
 {
+  std::cout << "-----------------------------------"<< std::endl << std::endl;
+  std::cout << "LOW LEVEL VISION SERVER"<< std::endl<<std::endl 	;
+  std::cout << "-----------------------------------"<< std::endl << std::endl;
   // Init exit mutex
   pthread_mutex_init(&ExitApplicationMutex, NULL);
   pthread_mutex_lock(&ExitApplicationMutex);
@@ -281,13 +284,15 @@ int main(int argc, char * argv[])
 
   try
     {
+      ODEBUG("Try to instanciate LLVS");
       aVS = new LowLevelVisionServer(InputType,SynchroType,filename,orb,Verbosemode,calibdir);
+      ODEBUG3("LLVS is launched ");
     }
   //FIXME: We may choose an uniform way to throw exception to
   //       avoid this kind of copy/paste
   catch( const char* msg )
     {
-      ODEBUG("LowLevelVisionServer could not be instantiated");
+      ODEBUG3("LowLevelVisionServer could not be instantiated");
       ODEBUG3("Reason:" << msg);
       ODEBUG3("Stopping now...");
       orb->destroy();
