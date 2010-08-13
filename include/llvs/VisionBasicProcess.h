@@ -83,7 +83,7 @@ class HRP2VisionBasicProcess
   int StopProcess();
   
   /* Start the process */
-  virtual int StartProcess();
+  int StartProcess();
 
   /* Returns the current status of the process:
    * 0 : not running 
@@ -160,6 +160,9 @@ class HRP2VisionBasicProcess
 #endif
 
  protected:
+
+  void DisplayError(const string &Transition);
+
   /*! Hooks on methods without the p 
     To be redefined and called only by inherited classes */
 
@@ -189,6 +192,8 @@ class HRP2VisionBasicProcess
 
   virtual int pStopProcess()
   {return 0;};
+
+  void SetStateParameter();
 
   /*! Name of the process */
   string m_ProcessName;
