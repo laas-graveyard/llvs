@@ -615,6 +615,20 @@ int HRP2nmbtTrackingProcess::pStartProcess()
 }
 
 
+/*!----------------------------------------
+Stop the process
+The tracker is quietly killed in this process
+------------------------------------------*/
+int HRP2nmbtTrackingProcess::pStopProcess()
+{
+  ODEBUG3("Go through pStopProcess NMBT MODEL TRACKING" );
+  int r=0;
+  m_trackerTrackSuccess = false;
+  ODEBUG3("Went through pStopProcess NMBT MODEL TRACKING");
+  return r;
+
+}
+
 /*!------------------------------------- 
 Realize the process 
 the tracker has previously been initialised with: 
@@ -652,11 +666,12 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
       catch(std::string a) // tracking got lost
 	{
 	  
-
-	  std::cerr << std::endl;
-	  std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
-	  std::cerr << std::endl;
-
+	  if (m_Verbosity>5)
+	    {
+	      std::cerr << std::endl;
+	      std::cerr << "-----    -----   Failed with exception \"" << a << "\"     -----    -----" << std::endl;
+	      std::cerr << std::endl;
+	    }
 	  
 	  // set the tracking flag
 	  m_trackerTrackSuccess= false;
