@@ -615,6 +615,20 @@ int HRP2nmbtTrackingProcess::pStartProcess()
 }
 
 
+/*!----------------------------------------
+Stop the process
+The tracker is quietly killed in this process
+------------------------------------------*/
+int HRP2nmbtTrackingProcess::pStopProcess()
+{
+  ODEBUG3("Go through pStopProcess NMBT MODEL TRACKING" );
+  int r=0;
+  m_trackerTrackSuccess = false;
+  ODEBUG3("Went through pStopProcess NMBT MODEL TRACKING");
+  return r;
+
+}
+
 /*!------------------------------------- 
 Realize the process 
 the tracker has previously been initialised with: 
