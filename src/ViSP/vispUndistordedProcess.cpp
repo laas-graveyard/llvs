@@ -134,7 +134,7 @@ int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter,
       if (aValue=="RGB_VISPU8")
 	{
 	  m_conversion = RGB_VISPU8;
-	  std::cout << "set parameters pas de rectif" << std::endl;
+	  std::cout << "set parameters rectif" << std::endl;
 	}
       else if (aValue=="RGB_VISPU8_NONE")
 	{

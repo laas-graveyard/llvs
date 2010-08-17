@@ -148,6 +148,8 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
   /*! Get Image Width*/
   void GetWidth(int&_width)  ;
 
+  /// Log data on disk.
+  void logData();
  
 private:
   
@@ -214,7 +216,7 @@ protected:
   bool m_modelLoaded;
   bool m_trackerTrackSuccess;
   bool m_initPoseLoaded;
- 	
+  bool m_logData;
 };
 
 #endif // LLVS_HAVE_VISP
