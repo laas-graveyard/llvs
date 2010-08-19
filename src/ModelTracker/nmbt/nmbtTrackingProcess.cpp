@@ -362,10 +362,15 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   // get the 4 first parameter to find the parameter type
   // get 4 letters starting from the letter number 0
   string paramType = aParameter.substr(0,4);
-  // get the  first parameter to find the parameter type
-  // get 3 letters starting from the letter number 5
-  string paramId = aParameter.substr(5,3);
   
+  string paramId;
+  if (aParameter.length()>7)
+    {
+      // get the  first parameter to find the parameter type
+      // get 3 letters starting from the letter number 5
+      paramId = aParameter.substr(5,3);
+    }
+
   //cout << "paramType: " << paramType   << endl;
   //cout << "paramId: " << paramId   << endl;
   bool isAPathParam(false);
