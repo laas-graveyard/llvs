@@ -363,7 +363,6 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   // get the 4 first parameter to find the parameter type
   // get 4 letters starting from the letter number 0
   string paramType = aParameter.substr(0,4);
-
   string paramId;
   if (aParameter.length()>7)
     {

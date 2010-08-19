@@ -44,6 +44,9 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
       {
 	for(unsigned int i=0;i<m_CircularBuffer.size();i++)
 	  {
+            //FIXME : The size of the image shouldn't  be hardly written.
+            // Yet, we don't have any information  about the image size in this class
+            // it should be added ... 
 	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
 	    m_CircularBuffer[i].onedatum.timestamp= new double(0);
 	  }
