@@ -23,13 +23,6 @@ set (${PROJECT_NAME}_BINARY_NAME LLVS_server)
 #------------------------------------------------------------------------------
 # Specify the cmake path and option
 #------------------------------------------------------------------------------
-# Project specific module files
-list (
-  APPEND 
-  CMAKE_MODULE_PATH 
-  $ENV{ROBOTPKG_BASE}/share/cmake/
-  )
-
 # Dependent packages
 find_package (
   Modules
