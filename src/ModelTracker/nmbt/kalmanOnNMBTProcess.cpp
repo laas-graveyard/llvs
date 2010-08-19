@@ -370,7 +370,7 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
   vpHomogeneousMatrix lcMo;
   ConvertCVectorToHMatrix(lXpre,lcMo);
 
-  m_tracker.setcMo(lcMo);
+  m_tracker.setPose(lcMo);
  
   HRP2nmbtTrackingProcess::pRealizeTheProcess();
 
