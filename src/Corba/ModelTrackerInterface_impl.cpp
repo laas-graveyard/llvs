@@ -152,6 +152,11 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 
 }
 
+///
+/// 
+/// read last written data in the circular buffer
+/// and turn it into a corba object (DebugInfoObject) to be sent to clients
+/// 
 CORBA::Boolean
 ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO)
 {
@@ -177,6 +182,8 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
 
   unsigned char *pt =m_CBTD.image->bitmap;
 
+  // FIXME : Use here the function visp to corba/corba to visp instead
+  // of writing the size of the image explicitely
   for(int j=0;j<(int)(320*240);j++)
     aDIOv->anImgData.octetData[j] = *pt++;  
 
@@ -197,6 +204,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->aData.cMo[3][1]=0;
   aDIOv->aData.cMo[3][2]=0;
   aDIOv->aData.cMo[3][3]=1;
+
 
 #else
   aDIOv->anImgData.longData[0] = 0;
