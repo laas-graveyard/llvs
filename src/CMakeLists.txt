@@ -43,8 +43,6 @@
 		OPEN_CV
 			OpenCV/StereoVisionProcess.cpp
 			OpenCV/MireDetectionProcess.cpp
-			ModelTracker/nmbt/nmbtTrackingProcess.cpp
-			ModelTracker/nmbt/kalmanOnNMBTProcess.cpp
 		VISP
 			ViSP/vispConvertImageProcess.cpp
 			ViSP/CircularBufferTrackerData.cpp 
@@ -52,6 +50,8 @@
 			ViSP/vispUndistordedProcess.cpp 
 			PointTracker/PointTrackingProcess.cpp	
 			PointTracker/CircularBufferPointTrackerData.cpp
+			ModelTracker/nmbt/nmbtTrackingProcess.cpp
+			ModelTracker/nmbt/kalmanOnNMBTProcess.cpp
 		VW	
 			MonoSlam/SingleCameraSLAMProcess.cpp 
 			MonoSlam/IEEE1394ImagesInputMethod.cpp

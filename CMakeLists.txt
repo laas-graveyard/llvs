@@ -40,21 +40,21 @@ include(LLVT-toolbox)
 # Optional libraries
 #------------------------------------------------------------------------------
 # Note that for boost inclusion reason, BtlSlam must be first included.
-ADD_LLV_OPTION(HrpBtlSlam DESCRIPTION "Search for Bristol Visual SLAM for HRP2." DISABLED)
-ADD_LLV_OPTION(VISP DISABLED)
-ADD_LLV_OPTION(VW DISABLED)
-ADD_LLV_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
-ADD_LLV_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib." DISABLED)
-ADD_LLV_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
-ADD_LLV_OPTION(MMX DESCRIPTION DISABLED)
-ADD_LLV_OPTION(DC1394_V2 DESCRIPTION "Search for firewire dc1394 library version 2."
+ADD_PACKAGE_OPTION(HrpBtlSlam DESCRIPTION "Search for Bristol Visual SLAM for HRP2." DISABLED)
+ADD_PACKAGE_OPTION(VISP DISABLED)
+ADD_PACKAGE_OPTION(VW DISABLED)
+ADD_PACKAGE_OPTION(Scene DESCRIPTION "Search for slam davison." DISABLED)
+ADD_PACKAGE_OPTION(VVV DESCRIPTION "Search for aist vision vvv lib." DISABLED)
+ADD_PACKAGE_OPTION(OmniORB4 DESCRIPTION "Search for corba." OUTPUT_VAR OMNIORB4)
+ADD_PACKAGE_OPTION(MMX DESCRIPTION DISABLED)
+ADD_PACKAGE_OPTION(DC1394_V2 DESCRIPTION "Search for firewire dc1394 library version 2."
   OUTPUT_VAR DC1394_V2)
-ADD_LLV_OPTION(KalmanFilter DISABLED)
+ADD_PACKAGE_OPTION(KalmanFilter DISABLED)
 
 #------------------------------------------------------------------------------
 # Required libraries
 #------------------------------------------------------------------------------
-ADD_LLV_PACKAGES(
+ADD_PACKAGES(
   OpenHRP
   OpenCV
   )
@@ -87,3 +87,4 @@ endif(COMPILE_UNIT_TESTS)
 #------------------------------------------------------------------------------
 include(install-toolbox)
 ADD_UNINSTALL_TARGET()
+ADD_PKGCONFIG_FILE()
