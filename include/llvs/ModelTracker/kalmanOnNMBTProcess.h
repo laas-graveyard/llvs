@@ -149,6 +149,9 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   /*m_TimeStampLLVS is initialized*/
   bool m_TimeStampInitialize;
 
+  /*current internal state*/ 
+  std::string m_internalState; 
+
 };
 
 #endif // (LLVS_HAVE_KALMAN_FILTER > 0)

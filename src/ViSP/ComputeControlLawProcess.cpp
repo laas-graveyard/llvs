@@ -220,7 +220,7 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 	  aValue.erase(0,found+1);
 	  m_Velmax[i]=atof(tmp.c_str());
 
-	  ODEBUG3("Velmax["<<i<<"] : "<< m_Velmax[i]);
+	  ODEBUG("Velmax["<<i<<"] : "<< m_Velmax[i]);
 	}
              
     }
@@ -237,9 +237,13 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 	  aValue.erase(0,found+1);
 	  m_Velzero[i]=atof(tmp.c_str());
 
-	  ODEBUG3("Velzero["<<i<<"] : "<< m_Velmax[i]);
+	  ODEBUG("Velzero["<<i<<"] : "<< m_Velmax[i]);
 	}
              
+    }
+ else if (aParameter=="INTERNAL_STATE")
+    { 
+      m_internalState=aValue;             
     }
  else
     {

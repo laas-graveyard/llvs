@@ -102,7 +102,9 @@ public:
   
   typeConversion m_conversion;
   sImageParameters m_ImgParam;
-  vpCameraParameters   	m_CamParam;	
+  vpCameraParameters m_CamParam;
+  /*current internal state*/ 
+  std::string m_internalState; 
 };
 
 

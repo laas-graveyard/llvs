@@ -82,6 +82,7 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
  private:
   HRP2nmbtTrackingProcess * m_nmbt;
   CBTrackerData * m_CBTrackerData;
+  
 };
 #endif  // (LLVS_HAVE_VISP>0)
 

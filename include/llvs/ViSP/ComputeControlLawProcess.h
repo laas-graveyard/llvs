@@ -117,106 +117,104 @@ public:
 
  
  
-   /*!Convert velocity from camera to waist*/
-   int changeVelocityFrame(const vpColVector&velCam,
-			   vpColVector&velWaist,
-			   const double *poseHeadInFoot,
-			   const double *poseWaistInFoot,
-			   vpHomogeneousMatrix & afMh);
+  /*!Convert velocity from camera to waist*/
+  int changeVelocityFrame(const vpColVector&velCam,
+			  vpColVector&velWaist,
+			  const double *poseHeadInFoot,
+			  const double *poseWaistInFoot,
+			  vpHomogeneousMatrix & afMh);
 
 
 
  protected:
-   /*!Init the parameters*/
-   int init();
-   
-   /*!load the cameraHeadTransform*/
-   int loadcMh(vpHomogeneousMatrix &M);
+  /*!Init the parameters*/
+  int init();
   
-
-   /*Stop*/
-   int stop(double * VelRef);
+  /*!load the cameraHeadTransform*/
+  int loadcMh(vpHomogeneousMatrix &M);
+  
    
-
-   /* Nmbt tracking process*/
-   HRP2nmbtTrackingProcess* m_nmbt;
+  /*Stop*/
+  int stop(double * VelRef);
+  
+  
+  /* Nmbt tracking process*/
+  HRP2nmbtTrackingProcess* m_nmbt;
    
-   /* Connection to Stack of Task*/
-   llvs::ConnectionToSot * m_CTS;
+  /* Connection to Stack of Task*/
+  llvs::ConnectionToSot * m_CTS;
 
+  /* Object pose in the current camera frame*/
+  vpHomogeneousMatrix m_cMo;
+  
+  /* Object pose in the desired camera frame*/
+  vpHomogeneousMatrix m_cdMo;
 
+  /* Current camera pose in the desired camera frame*/
+  vpHomogeneousMatrix m_cdMc;
    
+  /*Change velocity frame from camera to head*/
+  vpTwistMatrix m_hVc;
 
-   /* Object pose in the current camera frame*/
-   vpHomogeneousMatrix m_cMo;
+  /* Current camera pose in the head frame*/
+  vpHomogeneousMatrix m_headMcamera;
 
-   /* Object pose in the desired camera frame*/
-   vpHomogeneousMatrix m_cdMo;
-
-   /* Current camera pose in the desired camera frame*/
-   vpHomogeneousMatrix m_cdMc;
-   
-   /*Change velocity frame from camera to head*/
-   vpTwistMatrix m_hVc;
-
-   /* Current camera pose in the head frame*/
-   vpHomogeneousMatrix m_headMcamera;
-
-   /* Visual Servoing Task */
-   vpServo m_Task;  
+  /* Visual Servoing Task */
+  vpServo m_Task;  
     
-   /* Visual Servoing Translation Feature*/
-   vpFeatureTranslation* m_FT;
- 
-   /* Visual Servoing Utheta Feature*/
-   vpFeatureThetaU *  m_FThU;
-
-   /* Visual Servoing gain */
-   double m_Lambda;
+  /* Visual Servoing Translation Feature*/
+  vpFeatureTranslation* m_FT;
   
-   /* Visual Servoing error */
-   double m_Error;
+  /* Visual Servoing Utheta Feature*/
+  vpFeatureThetaU *  m_FThU;
 
-   /* Heiht limitation for the model*/
-   double m_ModelHeightLimit;
+  /* Visual Servoing gain */
+  double m_Lambda;
+  
+  /* Visual Servoing error */
+  double m_Error;
+  
+  /* Heiht limitation for the model*/
+  double m_ModelHeightLimit;
+  
+  /* Store the initial  model height */
+  double m_IninitHeight;
    
-   /* Store the initial  model height */
-   double m_IninitHeight;
+  /* Rotation on X axis limitation for the model */
+  double m_RxLimit;
 
-   /* Rotation on X axis limitation for the model */
-   double m_RxLimit;
+  /* Rotation on X axis limitation for the model */
+  double m_RyLimit;
 
-   /* Rotation on X axis limitation for the model */
-   double m_RyLimit;
+  /* Velocity maximun send to Robot*/
+  vpColVector m_Velmax;
 
-   /* Velocity maximun send to Robot*/
-   vpColVector m_Velmax;
+  /* Velocity value for puting it to zero*/
+  vpColVector m_Velzero;
 
-   /* Velocity value for puting it to zero*/
-   vpColVector m_Velzero;
-
-   /* Save of the last object pose in foot frame*/
-   vpHomogeneousMatrix m_LastfMo;
-   
-   /* Control velocity expressed in the Waist Frame */ 
-   vpColVector m_ComputeV;
-
-   /* Define type of motion tested*/
-   typeMotion m_MotionTested;
-
-   /*Flag to check if the process is initialized*/
-   bool m_ProcessInitialized;
-   
-   /*Flag to check if cMo is set*/
-   bool m_cdMoSet;
-
-   /*Flag to check if the control law is computed*/
-   bool m_ControlLawComputed;
-
-   /*Flag to check if the control law must be computed*/
-   bool m_RealiseControlLaw;
-   
-   
+  /* Save of the last object pose in foot frame*/
+  vpHomogeneousMatrix m_LastfMo;
+  
+  /* Control velocity expressed in the Waist Frame */ 
+  vpColVector m_ComputeV;
+  
+  /* Define type of motion tested*/
+  typeMotion m_MotionTested;
+  
+  /*Flag to check if the process is initialized*/
+  bool m_ProcessInitialized;
+  
+  /*Flag to check if cMo is set*/
+  bool m_cdMoSet;
+  
+  /*Flag to check if the control law is computed*/
+  bool m_ControlLawComputed;
+  
+  /*Flag to check if the control law must be computed*/
+  bool m_RealiseControlLaw;
+  
+  /**/ 
+  std::string m_internalState; 
  
 };
 

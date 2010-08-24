@@ -401,7 +401,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
     } 
   else if(paramType=="INTE") // current state
     {
-      //do nothing
+       m_internalState=aValue; 
     }
   else
     {
