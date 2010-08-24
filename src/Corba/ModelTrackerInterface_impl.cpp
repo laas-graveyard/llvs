@@ -152,8 +152,12 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 
 }
 
+/// !!!!!!!!!!!!!!!!!!
+/// I CRY FOR A FIXME :
+/// Please you should now handle m_CBonNMBT AND m_CBonNMBTWK.
+/// Otherwise Mr. Kalman will never be visible to the outside world...
+/// !!!!!!!!!!!!!!!!!!
 ///
-/// 
 /// read last written data in the circular buffer
 /// and turn it into a corba object (DebugInfoObject) to be sent to clients
 /// 

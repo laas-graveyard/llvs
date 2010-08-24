@@ -502,9 +502,14 @@ namespace llvs
       /*! Circular Buffer */
       CircularModelTrackerData * m_CBonNMBT;
 
+      /*! Circular Buffer for NMBT tracker with Kalman process */
+      CircularModelTrackerData * m_CBonNMBTWK;
 
       /*! Model Tracker process. */
       HRP2nmbtTrackingProcess *m_ModelTrackerProcess;
+
+      /*! Model Tracker process with Kalman. */
+      HRP2nmbtTrackingProcess *m_ModelTrackerProcessWithKalman;
 
       /*! Compute Control Law process. */
       HRP2ComputeControlLawProcess *m_ComputeControlLawProcess;

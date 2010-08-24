@@ -459,22 +459,27 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   //FIXME : As soon as the kalman is detected, we can only build a Kalman tracker !!!!
   ODEBUG("creation of HRP2KalmanOnNMBTProcess");
 
-  m_ModelTrackerProcess = new HRP2KalmanOnNMBTProcess();
+  m_ModelTrackerProcessWithKalman = new HRP2KalmanOnNMBTProcess();
   HRP2KalmanOnNMBTProcess* lKalmanOnNMBTProcess;
-  lKalmanOnNMBTProcess = dynamic_cast<HRP2KalmanOnNMBTProcess*> (m_ModelTrackerProcess);
+  lKalmanOnNMBTProcess = dynamic_cast<HRP2KalmanOnNMBTProcess*> (m_ModelTrackerProcessWithKalman);
   lKalmanOnNMBTProcess->SetTimeStamp(&m_timestamps[CAMERA_WIDE]);
-#else
+
+  m_ModelTrackerProcessWithKalman->SetInputVispImages (m_Widecam_image_undistorded);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcessWithKalman);
+
+#endif
+
   ODEBUG("creation of HRP2nmbtTrackingProcess");
   m_ModelTrackerProcess = new HRP2nmbtTrackingProcess();
-#endif // LLVS_HAVE_KALMAN_FILTER > 0
 
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
+  
 
   /*! Compute Control Law process. */
   m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();
-  m_ComputeControlLawProcess->InitializeTheProcess();
+  //  m_ComputeControlLawProcess->InitializeTheProcess();
   m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
 
@@ -485,17 +490,26 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
 
 
-  m_CBonNMBT=new CircularModelTrackerData(3);
+  m_CBonNMBT=new CircularModelTrackerData(3,"CircularModelTrackerData");
   m_CBonNMBT->InitializeTheProcess();
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
+
+#if (LLVS_HAVE_KALMAN_FILTER > 0)
+  m_CBonNMBTWK=new CircularModelTrackerData(3,"CircularModelTrackerDataWK");
+  m_CBonNMBT->InitializeTheProcess();
+  m_CBonNMBTWK->SetTrackerPointer(m_ModelTrackerProcessWithKalman);
+  m_CBonNMBTWK->SetDatum(m_CBTrackerData);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBTWK);
+#endif
+
 #endif
 
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
 
   m_BtlSlamProcess = new HRP2BtlSlamProcess();
-  m_BtlSlamProcess->InitializeTheProcess();
+  //  m_BtlSlamProcess->InitializeTheProcess();
   m_BtlSlamProcess->SetInputImages(&m_BinaryImages[CAMERA_WIDE]);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_BtlSlamProcess);
 
@@ -933,7 +947,7 @@ LowLevelVisionServer::ApplyingProcess()
   gettimeofday(&before,0);
   int NbOfWait=0;
   ODEBUG("RealizeTheProcess: Scheduling the Grabbing");
-  ODEBUG("RealizeTheProcess: My synchro is :" );
+  ODEBUG("RealizeTheProcess: My synchro is :");
 
   int ResFromGIFF=-1;
   if (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_TRIGGER)
@@ -1263,12 +1277,13 @@ CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG("Start process " << aProcessName << " " << i);
+	  ODEBUG3("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
-	  ODEBUG( aProcessName << " " <<
-		  m_ListOfProcesses[i]->GetStatus() << " " <<
-		  m_ListOfProcesses[i] );
 	}
+      ODEBUG( m_ListOfProcesses[i]->GetName() << " " <<
+	       m_ListOfProcesses[i]->GetStatus() << " " <<
+	       m_ListOfProcesses[i] );
+
     }
   return r;
 }

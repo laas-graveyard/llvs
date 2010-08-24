@@ -559,6 +559,7 @@ void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
   m_inputcMo=cMo;
   m_tracker.setPose(m_inputcMo);
   m_initPoseLoaded = true;
+  ODEBUG3("SetcMo: " << m_inputcMo);
 }
 
 
@@ -579,35 +580,39 @@ This Patches will be used to track the line in the image.
 -------------------------------------*/
 int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
-  ODEBUG("Initialize the process : NMBT MODEL TRACKING .");
+  ODEBUG3("Initialize the process : NMBT MODEL TRACKING .");
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
 
- try
-   {
-     m_tracker.track(*m_inputVispImage) ;
-   }
- catch(std::string a) // tracking got lost
-   {
-
-     std::cerr << std::endl;
-     std::cerr << "-----    -----   Failed with exception \""
+  cout << m_inputcMo << endl;
+  try
+    {
+      m_tracker.track(*m_inputVispImage) ;
+    }
+  catch(std::string a) // tracking got lost
+    {
+      
+      std::cerr << std::endl;
+      std::cerr << "-----    -----   Failed with exception \""
 	       << a << "\"     -----    -----" << std::endl;
-     std::cerr << std::endl;
-
-     // set the tracking flag
-     m_trackerTrackSuccess= false;
-
+      std::cerr << std::endl;
+      
+      // set the tracking flag
+      m_trackerTrackSuccess= false;
+      
      // set the cMo matrix to identity
-     m_outputcMo.setIdentity();
-     m_outputcMo[0][0]=42;
-
-     // return a negative value
-     return -1;
-   }
-
-  ODEBUG("End of initialize the process.");
+      m_outputcMo.setIdentity();
+      
+      // return a negative value
+      return -1;
+    }
+ 
+  vpHomogeneousMatrix cMoCurr;
+  m_tracker.getPose(cMoCurr);
+  cout << m_inputcMo << endl;
+  
+  ODEBUG3("End of initialize the process.");
   return 0;
 }
 
@@ -618,10 +623,8 @@ The tracker is initialize in this process
 ------------------------------------------*/
 int HRP2nmbtTrackingProcess::pStartProcess()
 {
-  ODEBUG("Go through pStartProcess NMBT MODEL TRACKING" );
-  int r= pInitializeTheProcess();
-  ODEBUG("Went through pStartProcess NMBT MODEL TRACKING");
-  return r;
+  ODEBUG3("Go through pStartProcess NMBT MODEL TRACKING" );
+  return 0;
 
 }
 
@@ -652,7 +655,7 @@ the object model
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
 
-  ODEBUG("Go through pRealizeTheProcess NMBT MODEL TRACKING" );
+  ODEBUG3("Go through pRealizeTheProcess NMBT MODEL TRACKING" );
   if (m_Verbosity>3)
     {
       std::cout << "input cMo before:" << std::endl << m_inputcMo << std::endl;

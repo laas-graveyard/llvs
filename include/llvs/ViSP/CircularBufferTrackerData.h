@@ -38,7 +38,7 @@ struct CBTrackerData
 class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
 {
  public:
- CircularModelTrackerData(int SizeOfCB):
+ CircularModelTrackerData(int SizeOfCB,string lProcessName):
   CircularBuffer<CBTrackerData>(SizeOfCB),
     m_CBTrackerData(0)
       {
@@ -51,7 +51,7 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
 	    m_CircularBuffer[i].onedatum.timestamp= new double(0);
 	  }
 		
-	m_ProcessName = "CircularModelTrackerData";
+	m_ProcessName = lProcessName;
       }
 
   ~CircularModelTrackerData()
