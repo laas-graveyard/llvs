@@ -94,5 +94,5 @@
 #------------------------------------------------------------------------------
 # Install
 #------------------------------------------------------------------------------
-  install(TARGETS ${${PROJECT_NAME}_BINARY_NAME} DESTINATION bin)
-	install(TARGETS ${${PROJECT_NAME}_LIBRARY_NAME} DESTINATION lib)
+install(TARGETS ${${PROJECT_NAME}_BINARY_NAME} DESTINATION bin)
+install(TARGETS ${${PROJECT_NAME}_LIBRARY_NAME} DESTINATION lib)
