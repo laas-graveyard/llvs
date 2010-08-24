@@ -398,6 +398,10 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   else if(paramType=="DATA") // enable logging
     {
       m_logData = true;
+    } 
+  else if(paramType=="INTE") // current state
+    {
+      //do nothing
     }
   else
     {
@@ -552,9 +556,7 @@ Set cMo
 ------------------------------------- */
 void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
 {
-  ODEBUG("GOING HERE INSIDE SetcMo " << cMo);
   m_inputcMo=cMo;
-
   m_tracker.setPose(m_inputcMo);
   m_initPoseLoaded = true;
 }
