@@ -559,7 +559,7 @@ void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
   m_inputcMo=cMo;
   m_tracker.setPose(m_inputcMo);
   m_initPoseLoaded = true;
-  ODEBUG3("SetcMo: " << m_inputcMo);
+  ODEBUG("SetcMo: " << m_inputcMo);
 }
 
 
@@ -580,7 +580,7 @@ This Patches will be used to track the line in the image.
 -------------------------------------*/
 int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
 {
-  ODEBUG3("Initialize the process : NMBT MODEL TRACKING .");
+  ODEBUG("Initialize the process : NMBT MODEL TRACKING .");
   m_outputcMo.setIdentity();
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
@@ -612,7 +612,7 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
   m_tracker.getPose(cMoCurr);
   cout << m_inputcMo << endl;
   
-  ODEBUG3("End of initialize the process.");
+  ODEBUG("End of initialize the process.");
   return 0;
 }
 
@@ -623,7 +623,7 @@ The tracker is initialize in this process
 ------------------------------------------*/
 int HRP2nmbtTrackingProcess::pStartProcess()
 {
-  ODEBUG3("Go through pStartProcess NMBT MODEL TRACKING" );
+  ODEBUG("Go through pStartProcess NMBT MODEL TRACKING" );
   return 0;
 
 }
@@ -635,10 +635,10 @@ The tracker is quietly killed in this process
 ------------------------------------------*/
 int HRP2nmbtTrackingProcess::pStopProcess()
 {
-  ODEBUG3("Go through pStopProcess NMBT MODEL TRACKING" );
+  ODEBUG("Go through pStopProcess NMBT MODEL TRACKING" );
   int r=0;
   m_trackerTrackSuccess = false;
-  ODEBUG3("Went through pStopProcess NMBT MODEL TRACKING");
+  ODEBUG("Went through pStopProcess NMBT MODEL TRACKING");
   return r;
 
 }
@@ -655,7 +655,7 @@ the object model
 int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 {
 
-  ODEBUG3("Go through pRealizeTheProcess NMBT MODEL TRACKING" );
+  ODEBUG("Go through pRealizeTheProcess NMBT MODEL TRACKING" );
   if (m_Verbosity>3)
     {
       std::cout << "input cMo before:" << std::endl << m_inputcMo << std::endl;
