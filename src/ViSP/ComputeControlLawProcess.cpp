@@ -146,7 +146,7 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
  
-  ODEBUG3("Set parmeter in CCL  ");
+  ODEBUG("Set parameter in CCL  ");
 
   if (aParameter=="LAMBDA")
     {
