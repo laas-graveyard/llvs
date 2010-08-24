@@ -441,9 +441,6 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_CBPointTrackerData= new CBPointTrackerData();
   m_CBPointTrackerData->image=m_Widecam_image_undistorded;
   m_CBPointTrackerData->timestamp=&m_timestamps[CAMERA_WIDE];
-
-
-
   m_CBonPointTracker=new CircularPointTrackerData(3);
   m_CBonPointTracker->SetPointTrackerPointer(m_PointTrackerProcess);
   m_CBonPointTracker->SetDatum(m_CBPointTrackerData);
@@ -477,6 +474,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   /*! Compute Control Law process. */
   m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();
+  m_ComputeControlLawProcess->InitializeTheProcess();
   m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
 
@@ -488,6 +486,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 
   m_CBonNMBT=new CircularModelTrackerData(3);
+  m_CBonNMBT->InitializeTheProcess();
   m_CBonNMBT->SetTrackerPointer(m_ModelTrackerProcess);
   m_CBonNMBT->SetDatum(m_CBTrackerData);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_CBonNMBT);
@@ -496,6 +495,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
 
   m_BtlSlamProcess = new HRP2BtlSlamProcess();
+  m_BtlSlamProcess->InitializeTheProcess();
   m_BtlSlamProcess->SetInputImages(&m_BinaryImages[CAMERA_WIDE]);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_BtlSlamProcess);
 
