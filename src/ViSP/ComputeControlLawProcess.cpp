@@ -433,8 +433,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
   m_ComputeV.resize(6);
   m_ControlLawComputed = false;
-  int r;
-  ODEBUG3("m_nmbt:" << (int)m_nmbt);
+  int r=-1;
   
   // store the velocity in camera frame
   vpColVector cVelocity(6);
@@ -467,7 +466,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_FThU->buildFrom(m_cdMc) ;
       
   
-      ODEBUG3("Before Task.computecontroLaw!");
+      ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
       ODEBUG("Before SumSquare!");
@@ -525,12 +524,17 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	      r=-1;
 	    }
 	}
+      else 
+	{
+	  ODEBUG3("Unable to contact SoT !!"); 
+	  r=-2;
+	}
     }
   else
     {
        
       ODEBUG3( "Error in Compute control law >> the tracking failed !!!"); 
-      r=-1;
+      r=-3;
     }
 
   VelocitySaturation(m_ComputeV,velref);
@@ -539,22 +543,16 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   // Test the stop criteria
   if(error3ddlInfinityNorm<errorThreshold)
     {
-      cerr << "Compute control law >> Finish" << endl;
-      r=-1;
+      cerr << "Compute control law >> Finish : " << error3ddlInfinityNorm << std::endl;
+      r=-4;
     }
 
 
-  if(r==-1 ||  m_RealiseControlLaw==false)
+  if(r<0 ||  m_RealiseControlLaw==false)
     {
+      ODEBUG3("r=" << r << " m_RealiseControlLaw = "<< m_RealiseControlLaw);
       stop(velref);
       m_RealiseControlLaw=false;
-      r=-1;
-
-    }
-  else
-    {
-      // velref[2]=0;
-      // ZeroVelocity(velref);
     }
 
 
@@ -638,7 +636,6 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
 #endif
 
-  ODEBUG3("Going out of ComputeControlLawProcess !");
   return r;
  
 }
