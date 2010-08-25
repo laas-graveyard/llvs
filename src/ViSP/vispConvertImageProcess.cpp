@@ -2,7 +2,7 @@
 
     Copyright (c) 2010, 
     @author Stephane Embarki
-   
+    C. Dune
     JRL-Japan, CNRS/AIST
     
     See license file for information on license.
