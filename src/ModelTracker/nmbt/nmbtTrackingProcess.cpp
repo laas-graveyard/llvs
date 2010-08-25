@@ -401,7 +401,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
     } 
   else if(paramType=="INTE") // current state
     {
-      //do nothing
+       m_internalState=aValue; 
     }
   else
     {
@@ -559,6 +559,7 @@ void HRP2nmbtTrackingProcess:: SetcMo(const vpHomogeneousMatrix & cMo)
   m_inputcMo=cMo;
   m_tracker.setPose(m_inputcMo);
   m_initPoseLoaded = true;
+  ODEBUG("SetcMo: " << m_inputcMo);
 }
 
 
@@ -584,29 +585,33 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
   m_trackerTrackSuccess = false;
   m_tracker.init(*m_inputVispImage,m_inputcMo );
 
- try
-   {
-     m_tracker.track(*m_inputVispImage) ;
-   }
- catch(std::string a) // tracking got lost
-   {
-
-     std::cerr << std::endl;
-     std::cerr << "-----    -----   Failed with exception \""
+  cout << m_inputcMo << endl;
+  try
+    {
+      m_tracker.track(*m_inputVispImage) ;
+    }
+  catch(std::string a) // tracking got lost
+    {
+      
+      std::cerr << std::endl;
+      std::cerr << "-----    -----   Failed with exception \""
 	       << a << "\"     -----    -----" << std::endl;
-     std::cerr << std::endl;
-
-     // set the tracking flag
-     m_trackerTrackSuccess= false;
-
+      std::cerr << std::endl;
+      
+      // set the tracking flag
+      m_trackerTrackSuccess= false;
+      
      // set the cMo matrix to identity
-     m_outputcMo.setIdentity();
-     m_outputcMo[0][0]=42;
-
-     // return a negative value
-     return -1;
-   }
-
+      m_outputcMo.setIdentity();
+      
+      // return a negative value
+      return -1;
+    }
+ 
+  vpHomogeneousMatrix cMoCurr;
+  m_tracker.getPose(cMoCurr);
+  cout << m_inputcMo << endl;
+  
   ODEBUG("End of initialize the process.");
   return 0;
 }
@@ -619,9 +624,7 @@ The tracker is initialize in this process
 int HRP2nmbtTrackingProcess::pStartProcess()
 {
   ODEBUG("Go through pStartProcess NMBT MODEL TRACKING" );
-  int r= pInitializeTheProcess();
-  ODEBUG("Went through pStartProcess NMBT MODEL TRACKING");
-  return r;
+  return 0;
 
 }
 
@@ -632,10 +635,10 @@ The tracker is quietly killed in this process
 ------------------------------------------*/
 int HRP2nmbtTrackingProcess::pStopProcess()
 {
-  ODEBUG3("Go through pStopProcess NMBT MODEL TRACKING" );
+  ODEBUG("Go through pStopProcess NMBT MODEL TRACKING" );
   int r=0;
   m_trackerTrackSuccess = false;
-  ODEBUG3("Went through pStopProcess NMBT MODEL TRACKING");
+  ODEBUG("Went through pStopProcess NMBT MODEL TRACKING");
   return r;
 
 }

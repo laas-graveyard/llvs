@@ -217,6 +217,7 @@ protected:
   bool m_trackerTrackSuccess;
   bool m_initPoseLoaded;
   bool m_logData;
+  std::string m_internalState; 
 };
 
 #endif // LLVS_HAVE_VISP

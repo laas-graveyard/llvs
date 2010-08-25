@@ -95,6 +95,7 @@ int HRP2VisionBasicProcess::StopProcess()
 int HRP2VisionBasicProcess::StartProcess()
 {
   int r =0;
+  ODEBUG("Start Process (" << m_ProcessName<< ")");
   if ((m_State==STATE_INITIALIZE_FINISHED) ||
       (m_State==STATE_STOP_PROCESS_FINISHED))
     {
@@ -107,7 +108,11 @@ int HRP2VisionBasicProcess::StartProcess()
   else if (m_State==STATE_LIMBO)
     {
       InitializeTheProcess();
-      StartProcess();
+      m_State = STATE_START_PROCESS; SetStateParameter();
+      pStartProcess();
+      m_State = STATE_START_PROCESS_FINISHED; SetStateParameter();
+      m_Computing = 1;
+      r = 1;
     }
   else
     DisplayError("StartProcess");

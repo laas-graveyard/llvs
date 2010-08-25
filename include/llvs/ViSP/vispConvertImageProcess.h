@@ -107,12 +107,11 @@ protected:
 public:
   bool m_ImagesInitialized;
   bool m_imageConvertSucces;
-  
   bool m_flip;
-  
   typeConversion m_conversion;
   sImageParameters m_ImgParam;
- 	
+  /*current internal state*/ 
+  std::string m_internalState; 	
 };
 
 
