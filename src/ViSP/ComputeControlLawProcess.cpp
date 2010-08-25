@@ -430,9 +430,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   m_ComputeV.resize(6);
   m_ControlLawComputed = false;
   int r;
-  ODEBUG("m_nmbt:" << (int)m_nmbt);
+  ODEBUG3("m_nmbt:" << (int)m_nmbt);
   
-
   // store the velocity in camera frame
   vpColVector cVelocity(6);
   
@@ -451,7 +450,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpColVector error3ddl(3);
   double error3ddlInfinityNorm=100;
   double errorThreshold=0.1;
-  if (m_nmbt->m_trackerTrackSuccess )
+  
+  if ( m_nmbt->m_trackerTrackSuccess )
     {
       m_nmbt->GetOutputcMo(m_cMo);
       ODEBUG("m.cMo : "<<m_cMo);
@@ -463,7 +463,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_FThU->buildFrom(m_cdMc) ;
       
   
-      ODEBUG("Before Task.computecontroLaw!");
+      ODEBUG3("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
       ODEBUG("Before SumSquare!");
@@ -525,7 +525,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   else
     {
        
-      cerr << "Error in Compute control law >> the tracking failed !!!" << endl; 
+      ODEBUG3( "Error in Compute control law >> the tracking failed !!!"); 
       r=-1;
     }
 
@@ -542,15 +542,10 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   if(r==-1 ||  m_RealiseControlLaw==false)
     {
-      //m_ComputeV = 0;
-      // m_ComputeV[0]=0.0000;
-      
       stop(velref);
       m_RealiseControlLaw=false;
       r=-1;
 
-      /*Stop the process*/
-      // m_Computing = 0;
     }
   else
     {
@@ -566,6 +561,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
  
   if (m_CTS!=0)
     {
+      ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
       m_CTS-> WriteVelocityReference(velref);
 
       m_CTS-> ReadWaistComSignals(waistcom);
@@ -638,7 +634,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
 #endif
 
-  ODEBUG("Going out of ComputeControlLawProcess !");
+  ODEBUG3("Going out of ComputeControlLawProcess !");
   return r;
  
 }
