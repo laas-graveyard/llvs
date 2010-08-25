@@ -3,6 +3,7 @@
 
    Copyright (c) 2010,
    @author O. Stasse
+   See License.txt for more information on license.
 */
 
 template <T>
