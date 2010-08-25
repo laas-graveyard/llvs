@@ -1,3 +1,16 @@
+/** @doc This object implements the CORBA server providing
+    Low Level Vision on the HRP-2 Vision processor.
+
+
+    Copyright (c) 2003-2006,
+    @author Olivier Stasse
+
+    JRL-Japan, CNRS/AIST
+
+    All rights reserved.
+
+    See License.txt for more information on the license applied to this file.
+*/ 
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
