@@ -1,13 +1,6 @@
 /** @doc This object implements the abstract
     part of the acquisition of images.
 
-   CVS Information:
-   $Id$
-   $Author$
-   $Date$
-   $Revision$
-   $Source$
-   $Log$
 
    Copyright (c) 2003-2006, 
    @author Olivier Stasse
