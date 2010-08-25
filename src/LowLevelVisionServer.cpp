@@ -1,13 +1,6 @@
 /** @doc This object implements the CORBA server providing
     Low Level Vision on the HRP-2 Vision processor.
 
-    CVS Information:
-    $Id$
-    $Author$
-    $Date$
-    $Revision$
-    $Source$
-    $Log$
 
     Copyright (c) 2003-2006,
     @author Olivier Stasse
