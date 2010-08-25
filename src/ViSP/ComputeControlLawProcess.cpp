@@ -1,7 +1,8 @@
 /** @doc This object implements a visual process to get a disparity map.
 
     Copyright (c) 2010, 
-    @author Stephane Embarki
+    @author Stephane Embarki, 
+    C. Dune,
    
     JRL-Japan, CNRS/AIST
     
