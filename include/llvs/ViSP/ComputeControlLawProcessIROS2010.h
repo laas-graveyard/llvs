@@ -35,6 +35,11 @@
 #include <ConnectionToSot.h>
 
 
+struct TimedInteractionMatrix
+{
+  vpMatrix L;
+  double timestamp;
+} ;
 
 /*!  \brief This class implements tracks an object model on a VISP image
   remark:all function that uses X11 are developped in the client
@@ -223,6 +228,9 @@ public:
 
   /*! \brief Additional term to compute the integral term of the control law. */
   double m_Lbk;
+
+  /*! \brief Previous Interaction Matrix. */
+  TimedInteractionMatrix m_prevL;
 };
 
 

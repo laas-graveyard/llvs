@@ -472,7 +472,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
-      vpMatrix lL = m_Task.L;
+      TimedInteractionMatrix lTIM;
+      lTIM.L = m_Task.L;
+      struct timeval ats;
+      gettimeofday(ats,0);
+
+      lTIM.timestamp = ats.tv_sec + 0.000001 * ats.tv_usec;
       
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
@@ -482,7 +487,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       error3ddl[1]= m_Task.error[2];
       error3ddl[2]= m_Task.error[4];
       error3ddlInfinityNorm=error3ddl.infinityNorm();
-                  
+                 
       // express the rotation as rx ry rz
       vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
