@@ -100,6 +100,7 @@
 #include "ModelTracker/nmbtTrackingProcess.h"
 #include "ViSP/CircularBufferTrackerData.h"
 #include "ViSP/ComputeControlLawProcess.h"
+#include "ViSP/ComputeControlLawProcessIROS2010.h"
 #endif
 
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
@@ -513,6 +514,9 @@ namespace llvs
 
       /*! Compute Control Law process. */
       HRP2ComputeControlLawProcess *m_ComputeControlLawProcess;
+
+      /*! Compute Control Law process. */
+      HRP2ComputeControlLawProcessIROS2010  *m_ComputeControlLawProcessIROS2010;
 
     private:
       /*! Corba object handling Tracker requests.*/
