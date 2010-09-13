@@ -231,6 +231,9 @@ public:
 
   /*! \brief Previous Interaction Matrix. */
   TimedInteractionMatrix m_prevL;
+
+  /*! \brief History of com speed reference. */
+  vector<double> m_dcomref;
 };
 
 

@@ -12,7 +12,7 @@
 
 #include <math.h>
 
-#include "ViSP/ComputeControlLawProcess.h"
+#include "ViSP/ComputeControlLawProcessIROS2010.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -35,7 +35,7 @@ using namespace llvs;
   Default constructor
   -------------------------------------*/
 
-HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
+HRP2ComputeControlLawProcessIROS2010::HRP2ComputeControlLawProcessIROS2010()
 {
   m_ProcessName ="ComputeControlLawProcess";
   init();
@@ -46,7 +46,7 @@ HRP2ComputeControlLawProcess::HRP2ComputeControlLawProcess()
 /*!-------------------------------------
   Destructor
   ------------------------------------- */
-HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
+HRP2ComputeControlLawProcessIROS2010:: ~HRP2ComputeControlLawProcessIROS2010()
 {
   delete m_FT;
   delete m_FThU;
@@ -54,7 +54,7 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
 }
 
 
-int HRP2ComputeControlLawProcess::init()
+int HRP2ComputeControlLawProcessIROS2010::init()
 {
  
   m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
@@ -94,7 +94,7 @@ int HRP2ComputeControlLawProcess::init()
 }
 
 
-int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
+int HRP2ComputeControlLawProcessIROS2010::loadcMh(vpHomogeneousMatrix& cMh)
 {
  
 
@@ -139,7 +139,7 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
 
   VEL_MAX
 -------------------------------------*/
-int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter, 
+int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter, 
 					       std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
@@ -258,13 +258,13 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 }
 
 /*! Set the nmbt tracker pointer */
-void HRP2ComputeControlLawProcess::SetTracker(HRP2nmbtTrackingProcess* anmbt)
+void HRP2ComputeControlLawProcessIROS2010::SetTracker(HRP2nmbtTrackingProcess* anmbt)
 {
   m_nmbt = anmbt;
 }
 
 /*! Set the cdMo */
-void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
+void HRP2ComputeControlLawProcessIROS2010::SetcdMo ( vpHomogeneousMatrix acdMo)
 {
   m_cdMo=acdMo;
   m_cdMoSet = true;
@@ -302,13 +302,13 @@ void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
 }
 
 /*! Set the ConnectionToSot  pointer */
-void HRP2ComputeControlLawProcess::SetConnectionToSot (ConnectionToSot * aCTS)
+void HRP2ComputeControlLawProcessIROS2010::SetConnectionToSot (ConnectionToSot * aCTS)
 {
   m_CTS = aCTS;
 }
 
  /*! Set the type of test on motion*/
-void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
+void  HRP2ComputeControlLawProcessIROS2010::SetMotionTest(typeMotion aMotion,
 						  const vector<double> &limits)
 {
   m_MotionTested = aMotion;
@@ -339,26 +339,26 @@ void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
 
 
 /*! Get the cdMc */
-void  HRP2ComputeControlLawProcess::GetcdMc ( vpHomogeneousMatrix &acdMc)
+void  HRP2ComputeControlLawProcessIROS2010::GetcdMc ( vpHomogeneousMatrix &acdMc)
 {
   acdMc=m_cdMc;
 }
 
 /*! Get the ComputeV */
-void  HRP2ComputeControlLawProcess::GetComputeVelocity ( vpColVector &aCV)
+void  HRP2ComputeControlLawProcessIROS2010::GetComputeVelocity ( vpColVector &aCV)
 {
   aCV=m_ComputeV;
 }
 
 /*! Get the Error */
-void  HRP2ComputeControlLawProcess::GetError ( double &aError)
+void  HRP2ComputeControlLawProcessIROS2010::GetError ( double &aError)
 {
   aError=m_Error;
 }
 
 
 /*! Start the process */
-int HRP2ComputeControlLawProcess::pStartProcess()
+int HRP2ComputeControlLawProcessIROS2010::pStartProcess()
 {
   if (m_cdMoSet == true)
     {
@@ -381,7 +381,7 @@ int HRP2ComputeControlLawProcess::pStartProcess()
 /*!------------------------------------- 
   Initialize the process. 
   -------------------------------------*/
-int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
+int HRP2ComputeControlLawProcessIROS2010:: pInitializeTheProcess()
 {
   m_Task.setServo(vpServo::EYEINHAND_CAMERA);
   
@@ -432,7 +432,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 /*!------------------------------------- 
   Realize the process 
   -------------------------------------*/
-int HRP2ComputeControlLawProcess::pRealizeTheProcess()
+int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
 {
   m_ComputeV.resize(6);
   m_ControlLawComputed = false;
@@ -475,7 +475,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       TimedInteractionMatrix lTIM;
       lTIM.L = m_Task.L;
       struct timeval ats;
-      gettimeofday(ats,0);
+      gettimeofday(&ats,0);
 
       lTIM.timestamp = ats.tv_sec + 0.000001 * ats.tv_usec;
       
@@ -512,7 +512,6 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	  //Create homogeneousMatrix to store the head position in foot frame   
 	  vpHomogeneousMatrix  fMh;
 
-
 	  // Change the velocity frame from camera to waist
 	  changeVelocityFrame(cVelocity,
 			      wVelocity,
@@ -520,14 +519,11 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 			      waistprpy,
 			      fMh);
       
-	  //compute the obect  position in foot frame 
+	  //compute the object  position in foot frame 
 	  fMo = fMh*m_headMcamera*m_cMo;
 
-  
 	  if(TestObjectMotion(fMo))
-	    {
-	      m_ComputeV = wVelocity;
-	    }
+	    m_ComputeV = wVelocity;
 	  else
 	    {
 	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
@@ -566,27 +562,27 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
     }
 
 
-  double waistcom[3];
   double comattitude[3];
-  
 
- 
   if (m_CTS!=0)
     {
       ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
       m_CTS-> WriteVelocityReference(velref);
 
-      m_CTS-> ReadWaistComSignals(waistcom);
+      m_CTS-> ReaddComRefSignals(m_dcomref);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
     }
   else
     {
+      if (m_dcomref.size()<6)
+	m_dcomref.resize(6);
+
+      for (unsigned int i=0; i<m_dcomref.size();++i)
+	m_dcomref[i]=0;
+
       for (int i=0; i<3;++i)
-	{
-	  waistcom[i]=0;
-	  comattitude[i]=0;
-	}
+	comattitude[i]=0;
     }
 
 
@@ -613,8 +609,8 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpVelocityTwistMatrix comVref(refMcom.inverse());
 
   vpColVector waistCtlVelinRef(6);
-  waistCtlVelinRef[0]=waistcom[0];
-  waistCtlVelinRef[1]=waistcom[1];
+  waistCtlVelinRef[0]=m_dcomref[0];
+  waistCtlVelinRef[1]=m_dcomref[1];
   
   vpColVector waistCtlVelRobot(6);
   waistCtlVelRobot=comVref*waistCtlVelinRef;
@@ -635,7 +631,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       aof << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
 	  << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
 	  << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
-	  << waistcom[0] <<"  " << waistcom[1]<<"  "<< comattitude[2]<<"  "
+	  << m_dcomref[0] <<"  " << m_dcomref[1]<<"  "<< m_dcomref[2]<<"  "
 	  << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<<endl;
     }
   else
@@ -653,7 +649,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 /*
   Clean up the process
 */
-int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
+int  HRP2ComputeControlLawProcessIROS2010::pCleanUpTheProcess()
 {
 
   double* velref;
@@ -672,7 +668,7 @@ int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
  Change the velocity frame
  
  \brief :
- The velocituy results from the visual servoing control
+ The velocity results from the visual servoing control
  law. It is basically expressed in the camera frame
  Using the current measurements, we can compute the
  transformation between the camera frame in the waist
@@ -690,7 +686,7 @@ int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
            of   poseHeadInFoot and poseWaistInFoot
 
  */
-int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam,
+int  HRP2ComputeControlLawProcessIROS2010::changeVelocityFrame(const vpColVector& velCam,
 						       vpColVector& velWaist,
 						       const double *poseHeadInFoot,
 						       const double *poseWaistInFoot,
@@ -743,7 +739,7 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
 }
 
 /*! Test on object plan  Motion */
-bool HRP2ComputeControlLawProcess::planMotion(const vpHomogeneousMatrix &afMo)
+bool HRP2ComputeControlLawProcessIROS2010::planMotion(const vpHomogeneousMatrix &afMo)
 {
   
   vpHomogeneousMatrix olMo = m_LastfMo.inverse()* afMo;
@@ -766,7 +762,7 @@ bool HRP2ComputeControlLawProcess::planMotion(const vpHomogeneousMatrix &afMo)
 
 
 
-bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afMo)
+bool HRP2ComputeControlLawProcessIROS2010::objectOnGround(const vpHomogeneousMatrix &afMo)
 {
   if (heightInLimit(afMo))
     {
@@ -794,7 +790,7 @@ bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afM
 }
 
 
-bool HRP2ComputeControlLawProcess::heightInLimit(const vpHomogeneousMatrix &afMo)
+bool HRP2ComputeControlLawProcessIROS2010::heightInLimit(const vpHomogeneousMatrix &afMo)
 {
  
   if( fabs( afMo[2][3] - m_IninitHeight)< m_ModelHeightLimit )
@@ -810,7 +806,7 @@ bool HRP2ComputeControlLawProcess::heightInLimit(const vpHomogeneousMatrix &afMo
 
 
 /*! Test the object Motion */
-bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &afMh)
+bool HRP2ComputeControlLawProcessIROS2010::TestObjectMotion(const vpHomogeneousMatrix &afMh)
 {
   bool r = false;
 
@@ -835,7 +831,7 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
    VelRef in the saturated velocity expressed in the waist frame 3ddl: Vx Vy Rz
 
 */
-int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
+int HRP2ComputeControlLawProcessIROS2010::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
 {
   vpColVector dv(0.05*m_Velmax);
   vpColVector Vinf  = m_Velmax-dv;
@@ -879,7 +875,7 @@ for (int i=0; i<3;++i)
 }
 
 /*! Put Velocity value at zero when lower than 0.02  */
-int HRP2ComputeControlLawProcess::stop(double * VelRef)
+int HRP2ComputeControlLawProcessIROS2010::stop(double * VelRef)
 {
   m_RealiseControlLaw=false;
   for (int i=0;i<3;i++)
@@ -887,7 +883,7 @@ int HRP2ComputeControlLawProcess::stop(double * VelRef)
   return 0;
 }
 
-int HRP2ComputeControlLawProcess::ZeroVelocity(double * VelRef)
+int HRP2ComputeControlLawProcessIROS2010::ZeroVelocity(double * VelRef)
 {
 
   if(VelRef[0]< m_Velzero[0] && VelRef[1]<m_Velzero[1] && VelRef[2]<m_Velzero[2])

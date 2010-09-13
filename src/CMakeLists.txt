@@ -47,6 +47,7 @@
 			ViSP/vispConvertImageProcess.cpp
 			ViSP/CircularBufferTrackerData.cpp 
 			ViSP/ComputeControlLawProcess.cpp
+			ViSP/ComputeControlLawProcessIROS2010.cpp
 			ViSP/vispUndistordedProcess.cpp 
 			PointTracker/PointTrackingProcess.cpp	
 			PointTracker/CircularBufferPointTrackerData.cpp

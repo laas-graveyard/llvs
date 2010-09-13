@@ -498,11 +498,9 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 	{
 	  m_CTS->ReadHeadRPYSignals(headprpy);
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
-	
-      
+	      
 	  //Create homogeneousMatrix to store the head position in foot frame   
-	  vpHomogeneousMatrix  fMh;
-
+	  vpHomogeneousMatrix fMh;
 
 	  // Change the velocity frame from camera to waist
 	  changeVelocityFrame(cVelocity,
@@ -511,14 +509,11 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 			      waistprpy,
 			      fMh);
       
-	  //compute the obect  position in foot frame 
+	  // Compute the object position in foot frame 
 	  fMo = fMh*m_headMcamera*m_cMo;
-
   
-	  if(TestObjectMotion(fMo))
-	    {
-	      m_ComputeV = wVelocity;
-	    }
+	  if (TestObjectMotion(fMo))
+	    m_ComputeV = wVelocity;
 	  else
 	    {
 	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
@@ -560,14 +555,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   double waistcom[3];
   double comattitude[3];
   
-
- 
   if (m_CTS!=0)
     {
       ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
       m_CTS-> WriteVelocityReference(velref);
 
-      m_CTS-> ReadWaistComSignals(waistcom);
+      m_CTS-> ReaddComRefSignals(waistcom);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
     }
