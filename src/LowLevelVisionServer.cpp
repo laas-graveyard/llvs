@@ -476,6 +476,11 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ComputeControlLawProcess->SetTracker(m_ModelTrackerProcess);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
 
+  /*! Compute Control Law process. */
+  m_ComputeControlLawProcessIROS2010 = new HRP2ComputeControlLawProcessIROS2010();
+  //  m_ComputeControlLawProcess->InitializeTheProcess();
+  m_ComputeControlLawProcessIROS2010->SetTracker(m_ModelTrackerProcess);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
 
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
