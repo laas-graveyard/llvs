@@ -41,7 +41,8 @@
 
 #ifdef OMNIORB4
 #include <omniORB4/CORBA.h>
-#include "ServerCommand.hh"
+//#include "ServerCommand.hh"
+#include "server-command-corba.hh"
 #endif
 
 
@@ -103,7 +104,7 @@ namespace llvs
       LowLevelVisionServer * m_LLVS;
 
       /*! Pointer on SoT server. */
-      hppCorbaServer::SOT_Server_Command_var m_SOT_Server_Command;
+      CorbaServer::SOT_Server_Command_var m_SOT_Server_Command;
 
       /*! \brief Store the rank of waist position signal. */
       CORBA::Long m_WaistPositionSignalRank;
