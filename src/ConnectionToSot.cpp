@@ -343,7 +343,7 @@ void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
     }
   catch(...)
     {
-      cout << "Unable to read waist control signals. "<< endl;
+      cout << "Unable to read com ref control signals. "<< endl;
       
     }
   ODEBUG("Go out of  ReaddComRefSignals ");
