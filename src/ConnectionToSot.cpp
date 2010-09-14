@@ -501,10 +501,10 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal dhhtp.out",
     "OpenHRP.periodicCall addSignal dwhtp.out",
     "plug coshell.VelRef pg.velocitydes",
-    "plug pg.dcomref coshell.Waistcom",
+    "plug pg.dcomref coshell.dComRef",
     "OpenHRP.periodicCall addSignal pg.comattitude",
     "plug pg.comattitude coshell.comattitudeabsolute",
-    "coshell.buffer Waistcom 30",
+    "coshell.buffer dComRef 30",
   };
 #endif
 
