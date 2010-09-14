@@ -159,7 +159,7 @@ bool ConnectionToSot::SetCorbaReference()
   
   try
     {
-      m_SOT_Server_Command = CorbaServer::SOT_Server_Command::_narrow(obj);
+      m_SOT_Server_Command = nsCorba::SOT_Server_Command::_narrow(obj);
     }
   catch(...)
     {
@@ -190,9 +190,9 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DSvelref;
+      nsCorba::DoubleSeq_var DSvelref;
       ODEBUG("Enter WriteVelocityReference 1 ");
-      DSvelref = new CorbaServer::DoubleSeq;
+      DSvelref = new nsCorba::DoubleSeq;
       DSvelref->length(3);
       ODEBUG("Enter WriteVelocityReference 2 ");
       for(unsigned int li=0;li<3;li++)
@@ -221,7 +221,7 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DSwaistpos, DSwaistatt;
+      nsCorba::DoubleSeq_var DSwaistpos, DSwaistatt;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPositionSignalRank,
 						  DSwaistpos);
       
@@ -272,7 +272,7 @@ void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DShead;
+      nsCorba::DoubleSeq_var DShead;
       m_SOT_Server_Command->readInputVectorSignal(m_HeadPRPYSignalRank,
 						  DShead);
       
@@ -308,7 +308,7 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DSwaist;
+      nsCorba::DoubleSeq_var DSwaist;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPRPYSignalRank,
 						  DSwaist);
       
@@ -333,7 +333,7 @@ void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DSwaistcom;
+      nsCorba::DoubleSeq_var DSwaistcom;
       m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
 						  DSwaistcom);
       
@@ -358,7 +358,7 @@ void ConnectionToSot::ReaddComRefSignals(vector<double> &dcomref)
       struct timeval ats;
 	    
 
-      CorbaServer::DoubleSeq_var DSdcomref;
+      nsCorba::DoubleSeq_var DSdcomref;
       m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
 						  DSdcomref);
       
@@ -384,7 +384,7 @@ void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
     {
       struct timeval ats;
 	    
-      CorbaServer::DoubleSeq_var DScomattitude;
+      nsCorba::DoubleSeq_var DScomattitude;
       m_SOT_Server_Command->readInputVectorSignal(m_ComAttitudeSignalRank,
 						  DScomattitude);
       
@@ -514,7 +514,7 @@ bool ConnectionToSot::Init()
       try 
 	{ 
 
-	  CorbaServer::StringStreamer_var CoshellOutput;
+	  nsCorba::StringStreamer_var CoshellOutput;
 	  m_SOT_Server_Command->runAndRead(SotCommand[li].c_str(),CoshellOutput); 
 	  ODEBUG("Launched " << SotCommand[li].c_str());
 	  string lans;
