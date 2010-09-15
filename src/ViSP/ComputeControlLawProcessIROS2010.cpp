@@ -546,19 +546,21 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
   double errorThreshold=0.1;
   TimedInteractionMatrix lTIM;
 
+  ODEBUG3("pRealizeTheProcess");
+
   if ( m_nmbt->m_trackerTrackSuccess )
     {
       m_nmbt->GetOutputcMo(m_cMo);
-      ODEBUG("m.cMo : "<<m_cMo);
-      ODEBUG("m.cdMo : "<<m_cdMo);
+      ODEBUG3("m.cMo : "<<m_cMo);
+      ODEBUG3("m.cdMo : "<<m_cdMo);
       m_cdMc = m_cdMo*m_cMo.inverse();
 
-      ODEBUG("m.cdMc : "<<m_cdMc);
+      ODEBUG3("m.cdMc : "<<m_cdMc);
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
       
   
-      ODEBUG("Before Task.computecontroLaw!");
+      ODEBUG3("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
       lTIM.L = m_Task.L;
@@ -566,7 +568,7 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
       DealWithDComRef(lTIM);
 
       ODEBUG3("Interaction matrix:" << lTIM.L);
-      ODEBUG("Before SumSquare!");
+      ODEBUG3("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
       
       // build the 3ddl error vector from the 6 ddl one
