@@ -66,6 +66,7 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_ControlLawComputed = false;
   m_RealiseControlLaw= true;
   m_cdMoSet = false;
+  m_prevLInitialized = false;
 
   /* default motion test*/
   m_MotionTested=FREE;
@@ -78,6 +79,11 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_Velzero.resize(3);
   m_Velzero=0.02;
 
+  /*! Set to zero the integral term. */
+  m_IntegralLbk.resize(6);
+  for(unsigned int li=0;li<6;li++)
+    m_IntegralLbk[li] = 0.0;
+    
   // load 
   vpHomogeneousMatrix cameraMhead;
   loadcMh(cameraMhead);
@@ -87,12 +93,93 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_hVc.buildFrom(m_headMcamera);
    
   m_ModelHeightLimit =0.9;
-
-  /*! Set to zero the integral term. */
-  m_Lbk=0.0;
   return 0 ;
 }
 
+void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatrix &lTIM)
+{
+  if (m_CTS==0)
+    return;
+
+  m_CTS->ReaddComRefSignals(m_dcomref);
+  
+  // Go through the vector of dcomref 
+  // extract the timestamp with the highest value.
+  // It will be used as the timestamp.
+  double maxts = 0.0;
+  int maxts_index=-1;
+  double average_speed[6] = {0.0,0.0,0.0,
+			     0.0,0.0,0.0};
+  for(unsigned int li=0;
+      li<m_dcomref.size();
+      li+=7) // The size of dcom at one time is 6 double.
+    {
+      if (maxts < m_dcomref[li])
+	{
+	  maxts = m_dcomref[li];
+	  maxts_index = (int)li;
+	}
+    }	  
+  lTIM.timestamp = maxts;
+  
+  // Now try to compute the average speed 
+  // realized by the pattern generator during the two calls 
+  // to this control law.
+  if (m_prevLInitialized)
+    {
+      double min_diffts=fabs(maxts-m_prevL.timestamp);
+      double max_diffts = min_diffts;
+      int prevts_index=maxts_index;
+      
+      double distance_realized[6] = {0.0,0.0,0.0, 0.0,0.0,0.0};
+
+      for(int li=maxts_index;
+	  li>=0;li-=7)
+	{
+	  double ldiffts = fabs(m_dcomref[li]-m_prevL.timestamp);
+	  if (min_diffts>ldiffts)
+	    {
+	      min_diffts=ldiffts;
+	      for(unsigned int lj=0;lj<6;lj++)
+		distance_realized[lj] += m_dcomref[li+lj+1] * 0.005;
+	    }
+	}
+
+      for(int li=m_dcomref.size()-7;
+	  li>maxts_index;li-=7)
+	{
+	  double ldiffts = fabs(m_dcomref[li]-m_prevL.timestamp);
+	  if (min_diffts>ldiffts)
+	    {
+	      min_diffts=ldiffts;
+	      for(unsigned int lj=0;lj<6;lj++)
+		distance_realized[lj] += m_dcomref[li+lj+1] * 0.005;
+	    }
+	}
+
+      // The average speed realized is:
+      for(unsigned int lj=0;lj<6;lj++)
+	average_speed[lj]= distance_realized[lj]/max_diffts;
+      
+    }
+  else
+    for(unsigned int lj=0;lj<6;lj++)
+      average_speed[lj] = 0.0;
+
+  // Once the average speed is computed,
+  // compute bk
+  vpColVector bk(6);
+  bk[0] = m_prevL.velref[0] - average_speed[0];
+  bk[1] = m_prevL.velref[1] - average_speed[1];
+  bk[2] = bk[3] = bk[4] = 0.0;
+  bk[5] = m_prevL.velref[2] - average_speed[5];
+    
+  // Compute the equivalent error in the feature space.
+  vpColVector new_e;
+  new_e = m_prevL.L * bk;  
+
+  m_IntegralLbk = new_e + m_IntegralLbk;
+}
 
 int HRP2ComputeControlLawProcessIROS2010::loadcMh(vpHomogeneousMatrix& cMh)
 {
@@ -402,10 +489,11 @@ int HRP2ComputeControlLawProcessIROS2010:: pInitializeTheProcess()
 
   m_Task.print() ;
 #endif
-
-  
   
   m_ProcessInitialized =true;
+
+  m_prevLInitialized = false;
+
 
 #if 1
 
@@ -453,10 +541,11 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
   // the stop criterion is based on the infinity norm of
   // a 3ddl vector corresponding to the 3 controled ddl X [0],Z[2] and Ry[4]
   // in the camera frame
-  vpColVector error3ddl(3);
+  vpColVector error3ddl(3),error6d;
   double error3ddlInfinityNorm=100;
   double errorThreshold=0.1;
-  
+  TimedInteractionMatrix lTIM;
+
   if ( m_nmbt->m_trackerTrackSuccess )
     {
       m_nmbt->GetOutputcMo(m_cMo);
@@ -472,17 +561,17 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
-      TimedInteractionMatrix lTIM;
       lTIM.L = m_Task.L;
-      struct timeval ats;
-      gettimeofday(&ats,0);
-
-      lTIM.timestamp = ats.tv_sec + 0.000001 * ats.tv_usec;
       
+      DealWithDComRef(lTIM);
+
+      ODEBUG3("Interaction matrix:" << lTIM.L);
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
       
       // build the 3ddl error vector from the 6 ddl one
+      error6d = m_Task.error;
+
       error3ddl[0]= m_Task.error[0];
       error3ddl[1]= m_Task.error[2];
       error3ddl[2]= m_Task.error[4];
@@ -507,8 +596,6 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
 	{
 	  m_CTS->ReadHeadRPYSignals(headprpy);
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
-	
-      
 	  //Create homogeneousMatrix to store the head position in foot frame   
 	  vpHomogeneousMatrix  fMh;
 
@@ -542,9 +629,21 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
       ODEBUG3( "Error in Compute control law >> the tracking failed !!!"); 
       r=-3;
     }
-
+  
   VelocitySaturation(m_ComputeV,velref);
 
+  
+  
+  // Store the current information for further treatment.
+  lTIM.velref[0] = velref[0];  lTIM.velref[1] = velref[1];  lTIM.velref[2] = velref[2];
+  m_prevL = lTIM;
+
+  vpColVector Lnew_e = m_Task.L.pseudoInverse()  * (error6d - m_IntegralLbk);
+  vpColVector cVelocity2 = -m_Lambda * Lnew_e;
+
+  
+  double velref2[3];
+  VelocitySaturation(cVelocity2,velref2);
 
   // Test the stop criteria
   if(error3ddlInfinityNorm<errorThreshold)
@@ -566,10 +665,8 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
 
   if (m_CTS!=0)
     {
-      ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
-      m_CTS-> WriteVelocityReference(velref);
-
-      m_CTS-> ReaddComRefSignals(m_dcomref);
+      ODEBUG3("velref : " << velref2[0] << " "<< velref2[1] << " "<< velref2[2] );
+      m_CTS-> WriteVelocityReference(velref2);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
     }

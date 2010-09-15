@@ -39,6 +39,7 @@ struct TimedInteractionMatrix
 {
   vpMatrix L;
   double timestamp;
+  double velref[3];
 } ;
 
 /*!  \brief This class implements tracks an object model on a VISP image
@@ -119,6 +120,9 @@ class HRP2ComputeControlLawProcessIROS2010 : public HRP2VisionBasicProcess
 
   /*! Put Velocity value at zero when lower than 0.02  */
   int ZeroVelocity(double * VelRef);
+
+  /*! Deal with reference CoM velocity. */
+  void DealWithDComRef(TimedInteractionMatrix &lTIM);
 
 public:
 
@@ -227,10 +231,13 @@ public:
   std::string m_internalState; 
 
   /*! \brief Additional term to compute the integral term of the control law. */
-  double m_Lbk;
+  vpColVector m_IntegralLbk;
 
   /*! \brief Previous Interaction Matrix. */
   TimedInteractionMatrix m_prevL;
+
+  /*! \brief Previous Interaction Matrix initialized ?. */
+  bool m_prevLInitialized;
 
   /*! \brief History of com speed reference. */
   vector<double> m_dcomref;
