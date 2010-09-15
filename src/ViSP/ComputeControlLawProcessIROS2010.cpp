@@ -37,7 +37,7 @@ using namespace llvs;
 
 HRP2ComputeControlLawProcessIROS2010::HRP2ComputeControlLawProcessIROS2010()
 {
-  m_ProcessName ="ComputeControlLawProcess";
+  m_ProcessName ="ComputeControlLawProcessIROS2010";
   init();
 }
 
@@ -558,7 +558,7 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
       ODEBUG3("m.cdMc : "<<m_cdMc);
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
-      
+     
   
       ODEBUG3("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
