@@ -468,16 +468,6 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 	    }
 	}
 
-      {
-	static unsigned long int lindex=0;
-	ofstream aof;
-	char Buffer[1028];
-	sprintf(Buffer,"I-%02d-%04ld.pgm",cameraNumber,lindex++);
-	aof.open(Buffer,ofstream::out);
-	aof << "P5\n640 480\n255\n";
-	aof.write((char *)ImgSrc,640*480);
-	aof.close();
-      }
     }
 
 
@@ -629,6 +619,17 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 		}
 	    }
 	}
+
+      {
+	static unsigned long int lindex=0;
+	ofstream aof;
+	char Buffer[1028];
+	sprintf(Buffer,"I-%02d-%04ld.pgm",cameraNumber,lindex++);
+	aof.open(Buffer,ofstream::out);
+	aof << "P5\n640 480\n255\n";
+	aof.write((char *)ImgSrc,640*480);
+	aof.close();
+      }
 
     }
 
