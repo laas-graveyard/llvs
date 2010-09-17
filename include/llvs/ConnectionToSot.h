@@ -39,7 +39,7 @@
 #ifndef _CONNECTION_TO_SOT_H_
 #define _CONNECTION_TO_SOT_H_
 
-#define _OLD_INTERFACE_H_
+//#define _OLD_INTERFACE_H_
 #ifdef OMNIORB4
 #include <omniORB4/CORBA.h>
 
