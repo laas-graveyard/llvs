@@ -9,43 +9,48 @@
     $Source$
     $Log$
 
-    Copyright (c) 2003-2006, 
+    Copyright (c) 2003-2006,
     @author Olivier Stasse
-   
+
     JRL-Japan, CNRS/AIST
 
     All rights reserved.
-   
-    Redistribution and use in source and binary forms, with or without modification, 
+
+    Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
-   
-    * Redistributions of source code must retain the above copyright notice, 
+
+    * Redistributions of source code must retain the above copyright notice,
     this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
+    * Redistributions in binary form must reproduce the above copyright notice,
     this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of the CNRS and AIST nor the names of its contributors 
+    * Neither the name of the CNRS and AIST nor the names of its contributors
     may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-    OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-    AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+    OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+    OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
     IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <dc1394/IEEE1394DCImagesInputMethod.h>
 
 /*! Includes system */
-#include <fstream>
-#include <sstream>
-#include <iomanip>
+
 #include <strings.h>   //bzero
-#include <string.h>    //strcmp
-#include <stdlib.h>    //atoi
+
+#include <cstring>    //strcmp
+#include <cstdlib>    //atoi
+
+#include <iomanip>
+#include <fstream>
 #include <sstream>     //stringstream
+#include <stdexcept>
+
+#include <boost/foreach.hpp>
 
 /*! Includes dc1394 library */
 #include <dc1394/conversions.h>
@@ -59,36 +64,108 @@
   operand without any explicit cast).*/
 #define LOCAL_IMAGE_TYPE unsigned char *
 
-/************************************************************************
- *  static functions							*
- ************************************************************************/
-
-
 using namespace llvs;
 
 VisionSystemProfile::VisionSystemProfile()
-{
-}
+{}
 
 VisionSystemProfile::~VisionSystemProfile()
 {
-  for(unsigned int i=0;i<m_CameraParameters.size();i++)
-    {
-      if (m_CameraParameters[i]!=0)
-	delete m_CameraParameters[i];
-    }
+  for (unsigned int i = 0; i < m_CameraParameters.size(); ++i)
+    if (m_CameraParameters[i])
+      delete m_CameraParameters[i];
 }
+
+
+namespace
+{
+  std::string messageFromError (dc1394error_t error);
+
+  std::string messageFromError (dc1394error_t error)
+  {
+    switch (error)
+      {
+      case DC1394_SUCCESS:
+	return "success";
+      case DC1394_FAILURE:
+	return "failure";
+      default:
+	return "unknown error";
+      }
+  }
+} // end of anonymous namespace.
+
+class Dc1394Exception : public std::runtime_error
+{
+public:
+  Dc1394Exception (dc1394error_t error)
+    : std::runtime_error (messageFromError (error))
+  {}
+};
+
+#define LLVS_DC1394_CHECK(X)			\
+  do						\
+    {						\
+      dc1394error_t error = X;			\
+      if (error != DC1394_SUCCESS)		\
+	throw Dc1394Exception (error);		\
+    }						\
+  while (0)
+
+namespace dc1394
+{
+  class Camera : boost::noncopyable
+  {
+  public:
+    Camera (dc1394_t& handle, dc1394camera_id_t id)
+      : camera (0)
+    {
+      camera = dc1394_camera_new_unit (&handle, id.guid, id.unit);
+      if (!camera)
+	throw "failed to create camera";
+    }
+
+    ~Camera ()
+    {
+      dc1394_camera_free (camera);
+    }
+
+    dc1394camera_t* camera;
+  };
+
+  struct CameraList
+  {
+    CameraList (dc1394_t& handle)
+    {
+      dc1394camera_list_t* list = 0;
+
+      // FIXME: check that this macro is exception safe.
+      LLVS_DC1394_CHECK (dc1394_camera_enumerate (&handle, &list));
+
+      if (!list)
+	throw "failed to retrieve camera list";
+      ids.resize (list->num);
+      for (unsigned i = 0; i < list->num; ++i)
+	ids[i] = list->ids[i];
+      dc1394_camera_free_list (list);
+    }
+    std::vector<dc1394camera_id_t> ids;
+  };
+} // end of namespace dc1394.
 
 /**************************************************************
  * class Images Input                                         *
  **************************************************************/
-HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const char*)
+HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod ()
+throw (const char*)
   : HRP2ImagesInputMethod(),
     m_ModeRaw2RGB(HRP2IEEE1394DCImagesInputMethod::YUV422_TO_RGB),
     m_HandleDC1394(0),
     m_AtLeastOneCameraPresent(false),
     m_CurrentVisionSystemProfileID(-1)
 {
+  dc1394_log_set_default_handler (DC1394_LOG_DEBUG);
+
   /* Create input mutex to avoid concurrent access */
   pthread_mutex_init(&m_mutex_device, NULL);
 
@@ -107,7 +184,7 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
       pSetParameter(VisionSystemProfileDefault,
 		   VSPDValue);
     }
-  
+
   /* File descriptor to the frame grabber. */
   ODEBUG("Through the constructor ");
   InitializeBoard();
@@ -117,7 +194,9 @@ HRP2IEEE1394DCImagesInputMethod::HRP2IEEE1394DCImagesInputMethod() throw(const c
   ODEBUG("After setting the parameters.");
 }
 
-void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(std::string aCamera, std::string aFeature, std::string &aValue)
+void
+HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue
+(std::string aCamera, std::string aFeature, std::string &aValue)
 {
 
   int iCamera=0;
@@ -161,7 +240,7 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(std::string aCamera,
   if(Is1394Feature)
     {
       u_int avalue=0;
-      
+
       pthread_mutex_lock(&m_mutex_device);
       dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue);
       pthread_mutex_unlock(&m_mutex_device);
@@ -172,7 +251,8 @@ void HRP2IEEE1394DCImagesInputMethod::GetCameraFeatureValue(std::string aCamera,
     }
 }
 
-void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(std::string aCamera, std::string aFeature, std::string aValue)
+void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue
+(std::string aCamera, std::string aFeature, std::string aValue)
 {
   dc1394feature_info_t lFeature;
   bool Is1394Feature=true;
@@ -227,22 +307,23 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue(std::string aCamera,
 
   dc1394_feature_get_mode(m_DC1394Cameras[iCamera],lFeature.id,&amode);
   ODEBUG("Mode: " <<amode);
-  
+
   //  StopContinuousShot();
   u_int avalue;
   avalue = atoi(aValue.c_str());
   ODEBUG(aFeature <<" : " << avalue);
   dc1394error_t errorcode;
-  if ((errorcode=dc1394_feature_set_value(m_DC1394Cameras[iCamera],lFeature.id,avalue))<0)
+  if ((errorcode=dc1394_feature_set_value
+       (m_DC1394Cameras[iCamera],lFeature.id,avalue)) < 0)
     {
     }
   ODEBUG("Error code : " << errorcode);
- 
+
   dc1394_feature_get_value(m_DC1394Cameras[iCamera],lFeature.id,&avalue2);
   ODEBUG("Value taken from dc1394 after : " << avalue2);
   ODEBUG("-------------------------------------------------");
 
-  //  StartContinuousShot();  
+  //  StartContinuousShot();
 }
 
 HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
@@ -330,9 +411,8 @@ void HRP2IEEE1394DCImagesInputMethod::Cleanup()
 
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image, 
-						const unsigned int& SemanticCamera, 
-						double &timestamp)
+HRP2IEEE1394DCImagesInputMethod::GetSingleImage
+(unsigned char** Image, const unsigned int& SemanticCamera, double& timestamp)
 {
   unsigned int cameraNumber;
   unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
@@ -358,10 +438,11 @@ HRP2IEEE1394DCImagesInputMethod::GetSingleImage(unsigned char **Image,
 }
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber)
+HRP2IEEE1394DCImagesInputMethod::CaptureDequeue
+(const unsigned int& cameraNumber)
 {
   unsigned int dc1394result;
-	
+
   //FIXME: Mutex might be specific to the physical camera. This method
   // works but add a useless constraint on all cameras.
   pthread_mutex_lock(&m_mutex_device);
@@ -370,8 +451,8 @@ HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber
       //FIXME: If camera is unplugged during the execution,
       //DC1394_CAPTURE_POLICY_WAIT might not be the good solution
       //since it will never return.
-      dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber], 
-					    DC1394_CAPTURE_POLICY_WAIT, 
+      dc1394result = dc1394_capture_dequeue(m_DC1394Cameras[cameraNumber],
+					    DC1394_CAPTURE_POLICY_WAIT,
 					    &m_VideoFrames[cameraNumber]);
     }
   catch(std::exception &except)
@@ -390,9 +471,8 @@ HRP2IEEE1394DCImagesInputMethod::CaptureDequeue(const unsigned int& cameraNumber
 }
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
-						   const unsigned int& cameraNumber,
-						   double &timestamp)
+HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM
+(unsigned char **Image, const unsigned int& cameraNumber, double &timestamp)
 {
   unsigned char * ImagesDst;
   struct timeval tval;
@@ -464,7 +544,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 		    }
 		}
 
-	      ImgDst[indexd] = (unsigned char ) (localsum/(intervalh*intervalw));
+	      ImgDst[indexd] =
+		(unsigned char) (localsum/(intervalh*intervalw));
 	    }
 	}
     }
@@ -473,7 +554,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
   if (m_VideoFrames[cameraNumber])
     {
       pthread_mutex_lock(&m_mutex_device);
-      dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+      dc1394_capture_enqueue
+	(m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
       pthread_mutex_unlock(&m_mutex_device);
     }
 
@@ -482,9 +564,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM(unsigned char **Image,
 }
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image, 
-                                                   const unsigned int& cameraNumber,
-                                                   double &timestamp)
+HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB
+(unsigned char **Image, const unsigned int& cameraNumber, double &timestamp)
 {
   unsigned char * ImagesDst;
   struct timeval tval;
@@ -506,8 +587,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	}
       timestamp=m_VideoFrames[cameraNumber]->timestamp*1e-6;
 
-      ODEBUG3("Before converting " << m_BoardImagesWidth[cameraNumber] << " " 
-	     <<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: " 
+      ODEBUG3("Before converting " << m_BoardImagesWidth[cameraNumber] << " "
+	     <<      m_BoardImagesHeight[cameraNumber] << "  m_ModelRaw2RGB: "
 	     << m_ModeRaw2RGB );
       switch(m_ModeRaw2RGB)
 	{
@@ -545,10 +626,10 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	{
 	  return result;
 	}
-      
-      timestamp=m_VideoFrames[cameraNumber]->timestamp*1e-6;
 
- 
+      timestamp=m_VideoFrames[cameraNumber]->timestamp * 1e-6;
+
+
       ODEBUG("dequeue finished");
       switch(m_ModeRaw2RGB)
 	{
@@ -614,7 +695,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	      for(int n=0;n<3;n++)
 		{
 		  //ODEBUG("indedx : " << indexd << " n: " << n );
-		  ImgDst[indexd+n] = (unsigned char ) (localsum[n]/(intervalh*intervalw));
+		  ImgDst[indexd+n] =
+		    (unsigned char ) (localsum[n]/(intervalh*intervalw));
 		}
 	    }
 	}
@@ -624,20 +706,20 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
   if (m_VideoFrames[cameraNumber])
     {
       pthread_mutex_lock(&m_mutex_device);
-      dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+      dc1394_capture_enqueue
+	(m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
       pthread_mutex_unlock(&m_mutex_device);
     }
-  m_LastGrabbingTime[cameraNumber]= timestamp;   
+  m_LastGrabbingTime[cameraNumber]= timestamp;
   ODEBUG("GetImageSingleRGB cam: " << cameraNumber << " Finished" );
   return RESULT_OK;
 }
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
-						   const unsigned int& cameraNumber,
-                                                   double &timestamp)
+HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw
+(unsigned char** Image, const unsigned int& cameraNumber, double& timestamp)
 {
-  unsigned char * ImagesDst;
+  unsigned char* ImagesDst = 0;
 
   ODEBUG("GetImageSinglePGM cam: " << cameraNumber);
   LOCAL_IMAGE_TYPE ImagesTab[1];
@@ -653,7 +735,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 	  return result;
 	}
      timestamp=m_VideoFrames[cameraNumber]->timestamp*1e-6;
- 
+
     }
   else
     {
@@ -669,7 +751,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 	  return result;
 	}
      timestamp=m_VideoFrames[cameraNumber]->timestamp*1e-6;
- 
+
 
       //m_Board->get_images(ImagesTab);
       ODEBUG("Get Images finito...");
@@ -714,28 +796,37 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRaw(unsigned char **Image,
 		    }
 		}
 
-	      ImgDst[indexd+0] = (unsigned char ) ((float)localsum[0]/(float)(intervalh*intervalw));
-	      ImgDst[indexd+1] = (unsigned char ) ((float)localsum[1]/(float)(intervalh*intervalw));
-	      ImgDst[indexd+m_ImagesWidth[cameraNumber]+0] = (unsigned char ) ((float)localsum[2]/(float)(intervalh*intervalw));
-	      ImgDst[indexd+m_ImagesWidth[cameraNumber]+1] = (unsigned char ) ((float)localsum[3]/(float)(intervalh*intervalw));
-
+	      ImgDst[indexd+0] =
+		(unsigned char)
+		((float)localsum[0]/(float)(intervalh*intervalw));
+	      ImgDst[indexd+1] =
+		(unsigned char)
+		((float)localsum[1]/(float)(intervalh*intervalw));
+	      ImgDst[indexd+m_ImagesWidth[cameraNumber]+0] =
+		(unsigned char)
+		((float)localsum[2]/(float)(intervalh*intervalw));
+	      ImgDst[indexd+m_ImagesWidth[cameraNumber]+1] =
+		(unsigned char)
+		((float)localsum[3]/(float)(intervalh*intervalw));
 	    }
 	}
     }
   if (m_VideoFrames[cameraNumber])
     {
       pthread_mutex_lock(&m_mutex_device);
-      dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber], m_VideoFrames[cameraNumber]);
+      dc1394_capture_enqueue (m_DC1394Cameras[cameraNumber],
+			      m_VideoFrames[cameraNumber]);
       pthread_mutex_unlock(&m_mutex_device);
     }
 
-  m_LastGrabbingTime[cameraNumber]= timestamp;    
+  m_LastGrabbingTime[cameraNumber]= timestamp;
   return RESULT_OK;
 }
 
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, const unsigned int& SemanticCamera)
+HRP2IEEE1394DCImagesInputMethod::SetImageSize
+(int lw, int lh, const unsigned int& SemanticCamera)
 {
   unsigned int cameraNumber;
   unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
@@ -743,19 +834,19 @@ HRP2IEEE1394DCImagesInputMethod::SetImageSize(int lw, int lh, const unsigned int
     {
       return result;
     }
-  
+
   m_ImagesWidth[cameraNumber] = lw;
   m_ImagesHeight[cameraNumber] = lh;
   ODEBUG("Debug images");
   ODEBUG("Allocation for m_TmpImage");
-  
+
   return RESULT_OK;
 }
 
 
 unsigned int
-HRP2IEEE1394DCImagesInputMethod::GetImageSize(int &lw, int &lh, const unsigned int& SemanticCamera)
-  const
+HRP2IEEE1394DCImagesInputMethod::GetImageSize
+(int &lw, int &lh, const unsigned int& SemanticCamera) const
 {
   lw = -1;
   lh = -1;
@@ -795,8 +886,9 @@ HRP2IEEE1394DCImagesInputMethod::GetFormat(const unsigned int& SemanticCamera)
     }
 }
 
-unsigned int 
-HRP2IEEE1394DCImagesInputMethod::SetFormat(std::string aFormat, const unsigned int& SemanticCamera)
+unsigned int
+HRP2IEEE1394DCImagesInputMethod::SetFormat
+(std::string aFormat, const unsigned int& SemanticCamera)
 {
   unsigned int cameraNumber;
   unsigned int result = GetCameraId(SemanticCamera, cameraNumber);
@@ -828,12 +920,13 @@ HRP2IEEE1394DCImagesInputMethod::SetFormat(std::string aFormat, const unsigned i
     {
       return ERROR_UNKNOWN_FORMAT;
     }
-  
+
   return RESULT_OK;
 }
 
 
-int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::string aValue)
+int HRP2IEEE1394DCImagesInputMethod::pSetParameter
+(std::string aParameter, std::string aValue)
 {
   std::string CameraPrefix;
   unsigned char IsACamera = 0;
@@ -859,13 +952,15 @@ int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::
   else if (CameraPrefix=="vvv:")
     {
       lpos=4;
-      std::string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      std::string ProfileName =
+	aParameter.substr (lpos,aParameter.length()-lpos);
       ReadConfigurationFileVVVFormat(aValue,ProfileName);
     }
   else if (CameraPrefix=="vsp:")
     {
       lpos=4;
-      std::string ProfileName = aParameter.substr(lpos,aParameter.length()-lpos);
+      std::string ProfileName =
+	aParameter.substr(lpos,aParameter.length()-lpos);
       ReadConfigurationFileVSPFormat(aValue,ProfileName);
     }
 
@@ -873,7 +968,7 @@ int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::
     {
       ODEBUG("Is a camera");
       unsigned char IsFeature=0;
-      
+
       std::string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
       for(unsigned int i=0;i<m_Features.size();i++)
 	if (lFeature == m_Features[i])
@@ -881,10 +976,11 @@ int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::
 	    IsFeature=1;
 	    break;
 	  }
-      
+
       if (IsFeature)
 	{
-	  ODEBUG(" Modificatio of camera parameters: " << CameraPrefix << " " << lFeature << " " << aValue);
+	  ODEBUG(" Modificatio of camera parameters: "
+		 << CameraPrefix << " " << lFeature << " " << aValue);
 	  SetCameraFeatureValue(CameraPrefix,lFeature,aValue);
 	}
     }
@@ -899,7 +995,7 @@ int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::
       else if (CameraPrefix=="WIDE")
 	lindex =3 ;
 
-      SetFormat(aValue,lindex);      
+      SetFormat(aValue,lindex);
     }
   return 0;
 }
@@ -907,117 +1003,97 @@ int HRP2IEEE1394DCImagesInputMethod::pSetParameter(std::string aParameter, std::
 void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
 {
   ODEBUG("Start InitializeBoard");
-  try 
+
+  m_HandleDC1394 = dc1394_new ();
+  if (!m_HandleDC1394)
+    throw "failed to get a dc1394 handle.";
+
+  dc1394::CameraList list (*m_HandleDC1394);
+
+  m_DC1394Cameras.reserve (list.ids.size ());
+  BOOST_FOREACH (const dc1394camera_id_t& cameraId, list.ids)
     {
-
-      /*! List of camera. */
-      dc1394camera_list_t * list;
-  
-      m_HandleDC1394 =  dc1394_new ();
-      dc1394error_t err;
-      err = dc1394_camera_enumerate(m_HandleDC1394, &list);
-
-      m_DC1394Cameras.resize(list->num);
-      unsigned int j=0;
-      for (unsigned i = 0; i < list->num; i++) {
-        m_DC1394Cameras[j] = dc1394_camera_new (m_HandleDC1394, list->ids[i].guid);
-        if (!m_DC1394Cameras[j]) {
-	  dc1394_log_warning("Failed to initialize camera with guid %llx", list->ids[i].guid);
-	  continue;
-        }
-	else
-	  {
-	    ODEBUG("Created " << i << " camera with guid "<< hex << list->ids[i].guid);
-	  }
-        j++;
-      }
-      dc1394_camera_free_list (list);
-
-    }
-  catch(...)
-    {
-      throw("InitializeBoad(): Unable to access firewire cameras");
-    }
-  if( !DetectTheBestVisionSystemProfile() )
-    {
-      throw("InitializeBoad(): No profile available for the connected cameras");
-    }
-
-  if (m_DC1394Cameras.size()==0)
-    m_AtLeastOneCameraPresent = false;
-  else
-    m_AtLeastOneCameraPresent = true;
-    
-  
-  m_VideoFrames.resize(m_DC1394Cameras.size());
-  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
-    m_VideoFrames[k] = 0;
-
-  m_BoardImagesWidth.resize(4);
-  m_BoardImagesHeight.resize(4);
-
-  bool reallocate=false;
-  if ((m_ImagesWidth.size()==0) &&
-      (m_ImagesHeight.size()==0))
-    {
-      m_ImagesWidth.resize(4);
-      m_ImagesHeight.resize(4);
-    }
-  else 
-    {
-      if (m_ImagesWidth.size()!=m_DC1394Cameras.size())
+      dc1394camera_t* camera =
+	dc1394_camera_new_unit (m_HandleDC1394, cameraId.guid, cameraId.unit);
+      if (camera)
 	{
-	  ODEBUG("Please recall manually the size of the grabber !");
+	  m_DC1394Cameras.push_back (camera);
+	  dc1394_reset_bus (camera);
 	}
-      reallocate=true;
+      else
+	dc1394_log_warning
+	  ("Failed to initialize camera with guid %llx",
+	   cameraId.guid);
     }
 
-  m_GrabbingPeriod.resize(m_DC1394Cameras.size());
-      
+  if( !DetectTheBestVisionSystemProfile() )
+    throw "no profile available for the connected cameras";
+
+  m_AtLeastOneCameraPresent = m_DC1394Cameras.size () > 0;
+
+  m_VideoFrames.resize (m_DC1394Cameras.size (), 0);
+
+  const int nCameras = 4;
+  m_BoardImagesWidth.resize (nCameras);
+  m_BoardImagesHeight.resize (nCameras);
+
+  bool reallocate = !m_ImagesWidth.empty () || !m_ImagesHeight.empty ();
+  if (!reallocate)
+    m_ImagesWidth.resize (nCameras), m_ImagesHeight.resize (nCameras);
+  else
+    if (m_ImagesWidth.size () != m_DC1394Cameras.size ())
+      {
+	ODEBUG("Please recall manually the size of the grabber !");
+      }
+
+  m_GrabbingPeriod.resize (m_DC1394Cameras.size ());
+
   InitializeCameras();
 
-  m_TmpImage.resize(4);
-  for(unsigned k=0;k<m_ImagesWidth.size();k++)
+  m_TmpImage.resize (nCameras);
+  for(unsigned k = 0; k < m_ImagesWidth.size (); ++k)
     {
-      ODEBUG(" Size of m_TmpImage["<<k<<"]:" << 
-	     m_BoardImagesWidth[k] << " * " <<
-	     m_BoardImagesHeight[k] << " * 4" );
-      m_TmpImage[k] = new unsigned char[m_BoardImagesWidth[k] * 
-					m_BoardImagesHeight[k] * 4];
+      ODEBUG(" Size of m_TmpImage[" << k << "]:"
+	     << m_BoardImagesWidth[k] << " * "
+	     << m_BoardImagesHeight[k] << " * "
+	     << nCameras);
+      size_t size = m_BoardImagesWidth[k] * m_BoardImagesHeight[k] * nCameras;
+      m_TmpImage[k] = new unsigned char[size];
     }
 
-  m_LastGrabbingTime.resize(m_DC1394Cameras.size());
-  m_Format.resize(m_DC1394Cameras.size());
-  for(unsigned int li=0;li<m_DC1394Cameras.size();li++)
+  m_LastGrabbingTime.resize (m_DC1394Cameras.size ());
+  m_Format.resize (m_DC1394Cameras.size ());
+  for (unsigned int li = 0; li < m_DC1394Cameras.size (); ++li)
     {
-      m_LastGrabbingTime[li]=-1.0;
+      m_LastGrabbingTime[li] = -1.0;
       m_Format[li] = "RGB";
     }
 
-  m_GrabbingPeriod.resize(4);
- 
+  m_GrabbingPeriod.resize (nCameras);
 
-  for(unsigned int i=0;i<m_DC1394Cameras.size();i++)
-    FromFrameRateToTime(i);
+  for (unsigned int i = 0;i < m_DC1394Cameras.size (); ++i)
+    FromFrameRateToTime (i);
 
   m_Computing = 0;
   ODEBUG("End of InitializeBoard");
 }
 
 
-void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t &aCamera,
-								 dc1394video_mode_t &res,
-								 dc1394framerate_t &fps,
-								 const unsigned int& CameraNb)
+void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera
+(dc1394camera_t &aCamera, dc1394video_mode_t &res, dc1394framerate_t &fps,
+ const unsigned int& CameraNb)
 {
-  ODEBUG3("Vendor name :" << aCamera.vendor << " aCamera name " << aCamera.model);
+  ODEBUG3("Vendor name :" << aCamera.vendor
+	  << " aCamera name " << aCamera.model);
+
   if (m_CurrentVisionSystemProfileID!=-1)
     {
-      IEEE1394DCCameraParameters *aCam = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+      IEEE1394DCCameraParameters *aCam =
+	m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters[CameraNb];
-      
+
       if (aCam->GetFPS()== "60fps")
-	fps = DC1394_FRAMERATE_60;      
+	fps = DC1394_FRAMERATE_60;
       if (aCam->GetFPS()== "30fps")
 	fps = DC1394_FRAMERATE_30;
       else if (aCam->GetFPS()== "15fps")
@@ -1025,7 +1101,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 
       if (aCam->GetFormat()=="640x480-Y(mono)")
 	{
-	  res =     DC1394_VIDEO_MODE_640x480_MONO8;
+	  res = DC1394_VIDEO_MODE_640x480_MONO8;
 	  m_BoardImagesWidth[CameraNb]= 640;
 	  m_BoardImagesHeight[CameraNb]= 480;
 	}
@@ -1035,7 +1111,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 	  m_BoardImagesWidth[CameraNb]= 320;
 	  m_BoardImagesHeight[CameraNb]= 240;
 	}
-      
+
     }
   if (!strcmp(aCamera.vendor,"Unibrain"))
     {
@@ -1055,7 +1131,7 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
   if (!strcmp(aCamera.vendor,"Point Grey Research"))
     {
 
-      if ((!strcmp(aCamera.model,"Flea FLEA-COL")) 
+      if ((!strcmp(aCamera.model,"Flea FLEA-COL"))
 	  ||(!strcmp(aCamera.model,"Flea2 FL2-03S2C"))
 	  )
 	{
@@ -1071,10 +1147,11 @@ void HRP2IEEE1394DCImagesInputMethod::DecideBasicFeatureOnCamera(dc1394camera_t 
 	}
     }
   ODEBUG("ModelRaw2RGB:" << m_ModeRaw2RGB);
-		  
+
 }
 
-void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameters &CamParams)
+void HRP2IEEE1394DCImagesInputMethod::InitializeCamera
+(IEEE1394DCCameraParameters &CamParams)
 {
   unsigned int CamId = CamParams.GetCameraNumberInUserSemantic();
   std::string iCamera, aFeature, aValue;
@@ -1090,20 +1167,20 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameter
   std::ostringstream oss;
 
 
-  aFeature="BRIGHTNESS"; 
+  aFeature="BRIGHTNESS";
   ODEBUG("Checking - Brightness: " << CamParams.GetBrightness());
   oss << CamParams.GetBrightness();
   aValue = oss.str();
   ODEBUG("Checking 2 - Brightness: " << aValue);
   SetCameraFeatureValue(iCamera,aFeature,aValue);
 
-  aFeature="AUTO_EXPOSURE"; 
+  aFeature="AUTO_EXPOSURE";
   oss.str("");
   oss << CamParams.GetExposure();
   aValue = oss.str();
   SetCameraFeatureValue(iCamera,aFeature,aValue);
 
-  aFeature="WHITE_BALANCE"; 
+  aFeature="WHITE_BALANCE";
   oss.str("");
   unsigned int WB[2];
   CamParams.GetWhiteBalance(WB);
@@ -1111,88 +1188,81 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCamera(IEEE1394DCCameraParameter
   aValue = oss.str();
   SetCameraFeatureValue(iCamera,aFeature,aValue);
 
-  aFeature="GAMMA"; 
+  aFeature="GAMMA";
   oss.str("");
   oss << CamParams.GetExposure();
   aValue = oss.str();
   SetCameraFeatureValue(iCamera,aFeature,aValue);
 
-  aFeature="SHUTTER"; 
+  aFeature="SHUTTER";
   oss.str("");
   oss << CamParams.GetShutter();
   ODEBUG("Shutter=" <<aValue);
   aValue = oss.str();
   SetCameraFeatureValue(iCamera,aFeature,aValue);
 
-  aFeature="GAIN"; 
+  aFeature="GAIN";
   oss.str("");
   oss << CamParams.GetGain();
   ODEBUG("Checking - Gain: " << CamParams.GetGain());
-  aValue = oss.str();  
+  aValue = oss.str();
   ODEBUG("Gain=" <<aValue);
   SetCameraFeatureValue(iCamera,aFeature,aValue);
-  
-  
+
+
 }
 
 void HRP2IEEE1394DCImagesInputMethod::InitializeCameras() throw(const char*)
 {
-  VisionSystemProfile *aVSP = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID];
+  VisionSystemProfile *aVSP =
+    m_VisionSystemProfiles[m_CurrentVisionSystemProfileID];
 
   ODEBUG("Begin InitializeCameras()");
   if (!m_AtLeastOneCameraPresent)
     return;
 
-  for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++) 
+  for (unsigned int i = 0; i < m_DC1394Cameras.size(); i++)
     {
       std::ostringstream oss;
-      
+
       oss << "0x";
       oss.flags(ios::hex | ios::fixed);
       oss.precision(16);
       oss.width(16);
       oss <<setfill('0');
       oss << (*m_DC1394Cameras[i]).guid;
-      
+
       dc1394video_mode_t res=DC1394_VIDEO_MODE_320x240_YUV422;
       dc1394framerate_t fps=DC1394_FRAMERATE_30;
-      
+
       DecideBasicFeatureOnCamera(*m_DC1394Cameras[i],res,fps,i);
       dc1394error_t err;
       unsigned int NUM_BUFFERS=8;
-      
+
       ODEBUG("Speed");
       err=dc1394_video_set_iso_speed(m_DC1394Cameras[i], DC1394_ISO_SPEED_400);
       DC1394_ERR(err,"Could not set ISO speed");
-      
+
       ODEBUG("Resolution");
       err=dc1394_video_set_mode(m_DC1394Cameras[i], res);
       DC1394_ERR(err,"Could not set video mode");
-      
+
       ODEBUG("FPS");
       err=dc1394_video_set_framerate(m_DC1394Cameras[i], fps);
       DC1394_ERR(err,"Could not set framerate");
 
-      for(unsigned int VSPCamId=0;VSPCamId<aVSP->m_CameraParameters.size();VSPCamId++)
+      for(unsigned int VSPCamId = 0;
+	  VSPCamId<aVSP->m_CameraParameters.size (); ++VSPCamId)
 	{
-	  ODEBUG(aVSP->m_CameraParameters[VSPCamId]->GetGUID()<< " " << oss.str());
+	  ODEBUG(aVSP->m_CameraParameters[VSPCamId]->GetGUID()
+		 << " " << oss.str());
 	  if (aVSP->m_CameraParameters[VSPCamId]->GetGUID()==oss.str())
-	    {
-	      
-	      InitializeCamera(*aVSP->m_CameraParameters[VSPCamId]);
-	    }
+	    InitializeCamera(*aVSP->m_CameraParameters[VSPCamId]);
 	}
-      /*
-	SetCameraFeatureValue(string("LEFT"),string("SHUTTER"),string("300"));
-	SetCameraFeatureValue(string("RIGHT"),string("SHUTTER"),string("300"));
 
-	SetCameraFeatureValue(string("LEFT"),string("GAIN"),string("512"));
-	SetCameraFeatureValue(string("RIGHT"),string("GAIN"),string("512"));
-      
-
-      */
       ODEBUG("NbBuffers");
-      err=dc1394_capture_setup(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
+      err = dc1394_capture_setup
+	(m_DC1394Cameras[i],NUM_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
       if(err == DC1394_FAILURE)
 	{
 	  throw("Can not access to physical camera");
@@ -1210,8 +1280,6 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeCameras() throw(const char*)
     }
   ODEBUG("End InitializeCameras()");
 }
-    
-
 
 
 void HRP2IEEE1394DCImagesInputMethod::StartContinuousShot()
@@ -1260,7 +1328,7 @@ void HRP2IEEE1394DCImagesInputMethod::StopBoard()
   if (m_HandleDC1394!=0)
     dc1394_free (m_HandleDC1394);
   CleanMemory();
-  
+
   ODEBUG("End of StopBoard");
 }
 
@@ -1270,14 +1338,16 @@ unsigned int HRP2IEEE1394DCImagesInputMethod::GetNumberOfCameras()
   return m_DC1394Cameras.size();
 }
 
-void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime(const unsigned int& CameraNumber)
+void HRP2IEEE1394DCImagesInputMethod::FromFrameRateToTime
+(const unsigned int& CameraNumber)
   const
 {
-  
+
 }
 
 
-double HRP2IEEE1394DCImagesInputMethod::NextTimeForGrabbing(const unsigned int& CameraNumber)
+double HRP2IEEE1394DCImagesInputMethod::NextTimeForGrabbing
+(const unsigned int& CameraNumber)
 {
   return m_LastGrabbingTime[CameraNumber]+ m_GrabbingPeriod[CameraNumber];
 }
@@ -1289,25 +1359,25 @@ HRP2IEEE1394DCImagesInputMethod::CameraPresent()
   return m_AtLeastOneCameraPresent;
 }
 
-void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFileName,
-								     std::string ProfileName)
+void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat
+(std::string aFileName, std::string ProfileName)
 {
-  ifstream aif;
+  std::ifstream aif;
   unsigned int lBoardNumber;
   unsigned int lNbOfCameras;
 
-  VisionSystemProfile *aVSP;
+  VisionSystemProfile* aVSP = 0;
 
-  aif.open((const char *)aFileName.c_str(),ifstream::in);
-  if (aif.is_open())
+  aif.open((const char *) aFileName.c_str (), ifstream::in);
+  if (aif.is_open ())
     {
-      aVSP = new VisionSystemProfile();
+      aVSP = new VisionSystemProfile ();
       aVSP->m_Name = ProfileName;
       aVSP->m_FileNameDescription = aFileName;
       ODEBUG("Profile Name : " << aVSP->m_Name);
       aif >> lBoardNumber;
       aif >> lNbOfCameras;
-      
+
       aVSP->m_CameraParameters.resize(lNbOfCameras);
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
@@ -1317,7 +1387,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
 	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(i);
 	  aVSP->m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
-	  
+
 	  aif >> lGUID;
 	  aVSP->m_CameraParameters[i]->SetGUID(lGUID);
 	  ODEBUG("GUID:" << lGUID);
@@ -1351,7 +1421,8 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	      aif >> lWhiteBalance[0];
 	      aif >> lWhiteBalance[1];
 	      aVSP->m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
-	      ODEBUG("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
+	      ODEBUG("WhiteBalance : " << lWhiteBalance[0]
+		     << " "  << lWhiteBalance[1]);
 	    }
 	  aif >> tmp;
 	  if (tmp=="GAMMA")
@@ -1361,7 +1432,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	      aVSP->m_CameraParameters[i]->SetGamma(lGamma);
 	      ODEBUG("Gamma : " << lGamma);
 	    }
-	  
+
 	  aif >> tmp;
 	  if (tmp=="SHUTTER")
 	    {
@@ -1379,9 +1450,9 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
 	      aVSP->m_CameraParameters[i]->SetGain(lGain);
 	      ODEBUG("Gain : " << lGain);
 	    }
-	  
+
 	}
-      
+
       aif.close();
 
       m_VisionSystemProfiles.insert(m_VisionSystemProfiles.end(),
@@ -1389,16 +1460,16 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVVVFormat(string aFil
     }
 }
 
-void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFileName,
-								     std::string ProfileName)
+void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat
+(std::string aFileName, std::string ProfileName)
 {
-  ifstream aif;
+  std::ifstream aif;
   unsigned int lBoardNumber;
   unsigned int lNbOfCameras;
 
   VisionSystemProfile *aVSP;
 
-  aif.open((const char *)aFileName.c_str(),ifstream::in);
+  aif.open((const char *) aFileName.c_str(),ifstream::in);
   if (aif.is_open())
     {
       aVSP = new VisionSystemProfile();
@@ -1407,7 +1478,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
       ODEBUG("Profile Name : " << aVSP->m_Name);
       aif >> lBoardNumber;
       aif >> lNbOfCameras;
-      
+
       aVSP->m_CameraParameters.resize(lNbOfCameras);
 
       for(unsigned int i=0;i<lNbOfCameras;i++)
@@ -1415,10 +1486,10 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 	  std::string lGUID,lFormat,tmp,lFPS;
 	  unsigned int lBrightness, lExposure;
 	  aVSP->m_CameraParameters[i] = new IEEE1394DCCameraParameters();
-	  
+
 	  std::string Semantic;
 	  aif >> Semantic;
-	  
+
 	  int iCamera=0;
 
 	  if (Semantic=="LEFT")
@@ -1434,7 +1505,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 
 	  aVSP->m_CameraParameters[i]->SetCameraNumberInUserSemantic(iCamera);
 	  aVSP->m_CameraParameters[i]->SetBoardNumber(lBoardNumber);
-	  
+
 	  aif >> lGUID;
 	  aVSP->m_CameraParameters[i]->SetGUID(lGUID);
 	  ODEBUG("GUID:" << lGUID);
@@ -1451,7 +1522,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 	  if (tmp=="BRIGHTNESS")
 	    {
 	      aif >> lBrightness;
-	   
+
 	      aVSP->m_CameraParameters[i]->SetBrightness(lBrightness);
 	      std::stringstream out;
 	      out << lBrightness;
@@ -1474,7 +1545,8 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 	      aif >> lWhiteBalance[0];
 	      aif >> lWhiteBalance[1];
 	      aVSP->m_CameraParameters[i]->SetWhiteBalance(lWhiteBalance);
-	      ODEBUG("WhiteBalance : " << lWhiteBalance[0] << " " <<lWhiteBalance[1]);
+	      ODEBUG("WhiteBalance : " << lWhiteBalance[0]
+		     << " " <<lWhiteBalance[1]);
 	    }
 	  aif >> tmp;
 	  if (tmp=="GAMMA")
@@ -1487,7 +1559,7 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 
 	      ODEBUG("Gamma : " << lGamma);
 	    }
-	  
+
 	  aif >> tmp;
 	  if (tmp=="SHUTTER")
 	    {
@@ -1508,12 +1580,12 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
 	      aVSP->m_CameraParameters[i]->SetGain(lGain);
 	      std::stringstream out;
 	      out << lGain;
-	      
+
 	      ODEBUG("Gain : " << lGain);
 	    }
-	  
+
 	}
-      
+
       aif.close();
 
       m_VisionSystemProfiles.insert(m_VisionSystemProfiles.end(),
@@ -1521,14 +1593,17 @@ void HRP2IEEE1394DCImagesInputMethod::ReadConfigurationFileVSPFormat(string aFil
     }
 }
 
-int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera(const unsigned int& lCameraIndexOnComputer)
+int HRP2IEEE1394DCImagesInputMethod::GetSemanticOfCamera
+(const unsigned int& lCameraIndexOnComputer)
 {
   if ((lCameraIndexOnComputer>=0) &&
-      ((unsigned int )lCameraIndexOnComputer< m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->
-       m_CameraParameters.size()))
-    
+      ((unsigned) lCameraIndexOnComputer <
+       m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+       ->m_CameraParameters.size ()))
+
     return m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->
-      m_CameraParameters[lCameraIndexOnComputer]->GetCameraNumberInUserSemantic();
+      m_CameraParameters[lCameraIndexOnComputer]
+      ->GetCameraNumberInUserSemantic();
 
   return -1;
 }
@@ -1574,8 +1649,9 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
       ODEBUG("Detection: " << m_VisionSystemProfiles[i]->m_Name);
       lScoreCandidates[i] = 0;
 
-      // For each camera inside the profile 
-      for(unsigned int j=0;j<m_VisionSystemProfiles[i]->m_CameraParameters.size();j++)
+      // For each camera inside the profile
+      for(unsigned int j = 0;
+	  j<m_VisionSystemProfiles[i]->m_CameraParameters.size(); ++j)
 	{
 	  std::string sVSPCameraGUID = m_VisionSystemProfiles[i]
 	    ->m_CameraParameters[j]->GetGUID();
@@ -1583,7 +1659,7 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
 	  for(unsigned int k=0;k<m_DC1394Cameras.size();k++)
 	    {
-	      ODEBUG("Test :" << hex << VSPCameraGUID << " and " 
+	      ODEBUG("Test :" << hex << VSPCameraGUID << " and "
 		      << hex << m_DC1394Cameras[k]->guid);
 	      if (VSPCameraGUID==m_DC1394Cameras[k]->guid)
 		lScoreCandidates[i]++;
@@ -1624,34 +1700,36 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
   // If there is less cameras in the profile than
   // connected, the ones not inside the profile should be
   // dismissed.
-  if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_CameraParameters.size()
+  if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+      ->m_CameraParameters.size()
       != m_DC1394Cameras.size())
     {
-      if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_CameraParameters.size()
+      if (m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+	  ->m_CameraParameters.size()
 	  < m_DC1394Cameras.size())
 	{
 	  // Try to find the camera connected inside the list
 	  // of profiled camera.
-	  vector<dc1394camera_t *>::iterator it_DC1394Camera = m_DC1394Cameras.begin();
+	  std::vector<dc1394camera_t *>::iterator it_DC1394Camera =
+	    m_DC1394Cameras.begin();
 	  while(it_DC1394Camera!=m_DC1394Cameras.end())
 	    {
-	      
 	      bool FoundTheCamera=false;
-	      
+
 	      for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 		    ->m_CameraParameters.size();k++)
 		{
 		  std::string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 		    ->m_CameraParameters[k]->GetGUID();
 		  uint64_t VSPCameraGUID=0;
-		  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
+		  sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
 		  if (VSPCameraGUID==(*it_DC1394Camera)->guid)
 		    {
 		      FoundTheCamera=true;
 		      break;
 		    }
 		}
-	      
+
 	      // If the camera is not find in the profile
 	      if(!FoundTheCamera)
 		{
@@ -1664,26 +1742,27 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 		  it_DC1394Camera++;
 		}
 	    }
-	    
+
 	}
       else
 	{
-	  ODEBUG("The vision system profile elected did not find all the listed cameras ");
-	  ODEBUG("among the connected ones. The system might work in a deprecated mode.");
+	  ODEBUG("The vision system profile selected did"
+		 " not find all the listed cameras among the connected ones.");
+	  ODEBUG("The system might work in a deprecated mode.");
 	}
-	  
     }
 
-  // Make sure that the order in the internal representation is the same than in the 
-  // profile one.
-  vector<dc1394camera_t *> NewDC1394Cameras;
+  // Make sure that the order in the internal representation is the
+  // same than in the profile one.
+  std::vector<dc1394camera_t *> NewDC1394Cameras;
   for(unsigned int k=0;k<m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters.size();k++)
     {
-      std::string sVSPCameraGUID = m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
+      std::string sVSPCameraGUID =
+	m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]
 	->m_CameraParameters[k]->GetGUID();
       uint64_t VSPCameraGUID=0;
-      sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);		  
+      sscanf(sVSPCameraGUID.c_str(),"%llx", &VSPCameraGUID);
       ODEBUG("Order " << k << " : " <<sVSPCameraGUID << " " << VSPCameraGUID);
       // Try to find the profiled camera  inside the list
       // of connected camera.
@@ -1692,20 +1771,18 @@ bool HRP2IEEE1394DCImagesInputMethod::DetectTheBestVisionSystemProfile()
 	  it_DC1394Camera!=m_DC1394Cameras.end();
 	  it_DC1394Camera++)
 	{
-	  
-	  
 	  if (VSPCameraGUID==(*it_DC1394Camera)->guid)
 	    {
-	      NewDC1394Cameras.insert(NewDC1394Cameras.end(), (*it_DC1394Camera));
+	      NewDC1394Cameras.insert
+		(NewDC1394Cameras.end(), (*it_DC1394Camera));
 	      break;
 	    }
 	}
     }
 
   m_DC1394Cameras = NewDC1394Cameras;
-	
-   
-  ODEBUG("Current Vision System Profile:" << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
+
+  ODEBUG("Current Vision System Profile:"
+	 << m_VisionSystemProfiles[m_CurrentVisionSystemProfileID]->m_Name);
   return true;
 }
-
