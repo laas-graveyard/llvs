@@ -286,7 +286,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   SetImagesGrabbedSize(CAMERA_LEFT,640,480);
   SetImagesGrabbedSize(CAMERA_RIGHT,640,480);
   SetImagesGrabbedSize(CAMERA_UP,640,480);
-  SetImagesGrabbedSize(CAMERA_WIDE,320,240);
+  //SetImagesGrabbedSize(CAMERA_WIDE,320,240);
+  SetImagesGrabbedSize(CAMERA_WIDE,640,480);
 
   /* Set the calibration directory  */
   SetCalibrationDirectory(lCalibDir);
