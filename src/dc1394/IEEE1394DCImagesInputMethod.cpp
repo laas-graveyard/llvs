@@ -636,6 +636,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 			     ImgSrc[lpixid+1] +
 			     ImgSrc[lpixid+2])/3.0;
 		aof << (unsigned char)lv;
+		lpixid++;
 	      }
 	  }
 	aof.close();
