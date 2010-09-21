@@ -1,9 +1,8 @@
 *~
 *.hh
 *SK.cc
-./include/llvs/llvsConfig.h
 *#*
 *#
 build/*
 dump*ppm
-include/llvs/llvsConfig.h
+CMakeFiles/
