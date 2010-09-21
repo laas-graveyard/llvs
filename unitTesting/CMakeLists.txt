@@ -1,52 +1,37 @@
+# Copyright (C) 2010 Claire Dune, Thomas Moulard, CNRS-AIST JRL, CNRS/AIST.
 #
-# Authors:
-# Claire Dune 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
-#############################################################################
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Build process propagation in the sub directories
-# If you add/remove a directory, modify here
-SUBDIRS(
-  ModelTracker
-  ViSP
-  PointTracker
-  Asser3D
-)
+SUBDIRS(ModelTracker ViSP PointTracker Asser3D)
 
-# customize clean target 
-SET_DIRECTORY_PROPERTIES(PROPERTIES 
-  ADDITIONAL_MAKE_CLEAN_FILES "core*;*~;gmon.out;DartTestfile.txt"
-)
 
 #############################################################################
 # ADD_UNIT_TEST(<source1> <source2> ...)
 #
 # Useful macro to serialize test creation
-# <source> variables corresponds to the 
+# <source> variables corresponds to the
 # list of all the sources to build binaries.
-# The generated binary name comes by removing 
+# The generated binary name comes by removing
 # the .cpp extension to the source name.
+MACRO(ADD_UNIT_TEST)
+  FOREACH(source ${ARGN})
+    # Compute the name of the binary to create.
+    GET_FILENAME_COMPONENT(binary ${source} NAME_WE)
 
-macro(ADD_UNIT_TEST)
+    ADD_LLV_CLIENT(${binary} SOURCES ${source}
+      LINK_WITH ${${PROJECT_NAME}_LIBRARY_NAME})
 
-	# rule for binary build
-	foreach(source ${ARGN})
-
-		# Compute the name of the binary to create
-		get_filename_component(binary ${source} NAME_WE)
-
-		# Create the binary
-		ADD_LLV_CLIENT(${binary} SOURCES ${source} 
-  	               LINK_WITH ${${PROJECT_NAME}_LIBRARY_NAME})
-	 
-		# Add test
-		add_test(${binary} ${binary})
-
-	endforeach(source)
-
-	# customize clean target 
-	set_directory_properties(PROPERTIES 
-		ADDITIONAL_MAKE_CLEAN_FILES "core*;*~;gmon.out;DartTestfile.txt"
-	)
-
-endmacro(ADD_UNIT_TEST)
+    ADD_TEST(${binary} ${binary})
+  ENDFOREACH(source)
+ENDMACRO(ADD_UNIT_TEST)
