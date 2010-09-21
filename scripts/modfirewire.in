@@ -196,7 +196,7 @@ module_reload()
 
 version()
 {
-    echo 'modfirewire
+    echo 'modfirewire - provided by @PROJECT_NAME@ @PROJECT_VERSION@
 Copyright (C) 2010 JRL, CNRS/AIST.
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
@@ -213,7 +213,8 @@ Actions:
   unload, u		      Unload modules.
   version, v		      Unload modules.
 
-Report bugs to <hpp@laas.fr>'
+Report bugs to <@PROJECT_EMAIL@>.
+For more information, see @PROJECT_URL@'
 }
 
   # ------------------- #
