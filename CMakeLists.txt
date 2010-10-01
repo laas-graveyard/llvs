@@ -21,7 +21,7 @@ INCLUDE(warning.cmake)
 
 # Meta-information.
 PROJECT(LLVS CXX) # FIXME: lowercase that.
-SET(PROJECT_VERSION 0.1)
+SET(PROJECT_VERSION 1.0.0.99)
 SET(PROJECT_DESCRIPTION "the Low Lever Vision Server")
 SET(PROJECT_EMAIL "hpp@laas.fr")
 SET(PROJECT_URL "https://jrlserver.muse.aist.go.jp/")
