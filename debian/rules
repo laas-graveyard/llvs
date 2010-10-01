@@ -10,7 +10,9 @@
 #export DH_VERBOSE=1
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DSEARCH_FOR_VISP=ON
+	PKG_CONFIG_PATH="" dh_auto_configure -- -DModules_DIR=/usr/share/cmake \
+-DLLVT_ROOT_DIR=/usr \
+-DSEARCH_FOR_VISP=ON -DVISP_ROOT_DIR=/usr -DVISP_DIR=/usr/lib
 
 %:
 	dh  $@
