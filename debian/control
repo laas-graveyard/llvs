@@ -1,0 +1,51 @@
+Source: llvs
+Priority: extra
+Maintainer: Thomas Moulard <thomas.moulard@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~), cmake (>= 2.6),
+	       pkg-config (>= 0.22),
+	       libboost-dev (>= 1.33.1),
+	       libvisp-dev (>= 2.4.5),
+	       libdc1394-22-dev (>= 2.1.2),
+	       omniidl4 (>= 4.1.2),
+	       libomniorb4-dev (>= 4.1.2),
+	       libcv-dev (>= 2.0.0)
+Standards-Version: 3.8.4
+#Vcs-Git:
+#Vcs-browser:
+Section: libs
+#Homepage:
+
+Package: libllvs-dev
+Section: libdevel
+Architecture: any
+Depends: libboost-dev (>= 1.33.1), libvisp-dev (>= 2.4.5), libdc1394-22-dev (>= 2.1.2), libomniorb4-dev (>= 4.1.2), libcv-dev (>= 2.0.0), libllvs1.0.0.99 (= ${binary:Version}), ${misc:Depends}
+Description: the low-level vision server development package
+ llvs stands for low-level vision server. It is a vision server which
+ processes images from camera and apply algorithms on it
+ non-interactively. It has been developed for robotics purpose and is
+ able to communicate with the dynamic-graph framework.
+ .
+ This package contains development files (headers and pkg-config file).
+
+
+Package: llvs1.0.0.99
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: the low-level vision server libraries
+ llvs stands for low-level vision server. It is a vision server which
+ processes images from camera and apply algorithms on it
+ non-interactively. It has been developed for robotics purpose and is
+ able to communicate with the dynamic-graph framework.
+ .
+ This package contains the unversioned shared libraries.
+
+Package: libllvs1.0.0.99
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: the low-level vision server
+ llvs stands for low-level vision server. It is a vision server which
+ processes images from camera and apply algorithms on it
+ non-interactively. It has been developed for robotics purpose and is
+ able to communicate with the dynamic-graph framework.
+ .
+ This package contains the server binary.
