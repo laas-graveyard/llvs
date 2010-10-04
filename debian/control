@@ -20,7 +20,7 @@ Section: libs
 Package: libllvs-dev
 Section: libdevel
 Architecture: any
-Depends: libboost-dev (>= 1.33.1), libvisp-dev (>= 2.4.5), libdc1394-22-dev (>= 2.1.2), libomniorb4-dev (>= 4.1.2), libcv-dev (>= 2.1.0), libllvt-dev (>= 1.0.0.99), libllvs1.0.0.99 (= ${binary:Version}), ${misc:Depends}
+Depends: libboost-dev (>= 1.33.1), libvisp-dev (>= 2.4.4), libdc1394-22-dev (>= 2.1.2), libomniorb4-dev (>= 4.1.2), libcv-dev (>= 2.1.0), libllvt-dev (>= 1.0.0.99), libllvs1.0.0.99 (= ${binary:Version}), ${misc:Depends}
 Description: the low-level vision server development package
  llvs stands for low-level vision server. It is a vision server which
  processes images from camera and apply algorithms on it
