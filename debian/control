@@ -33,6 +33,7 @@ Description: the low-level vision server development package
 Package: llvs1.0.0.99
 Architecture: any
 Depends: libllvs1.0.0.99 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Recommends: omniorb4-nameserver (>= 4.1.2)
 Description: the low-level vision server libraries
  llvs stands for low-level vision server. It is a vision server which
  processes images from camera and apply algorithms on it
