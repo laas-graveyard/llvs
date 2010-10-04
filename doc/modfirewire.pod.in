@@ -25,9 +25,13 @@ B<Important:> this script has to be run as root to work.
 =head1 COMMANDS
 
 B<l> , B<load>		load kernel modules
+
 B<u> , B<unload>	unload kernel modules
+
 B<r> , B<restart>	restart kernel modules
+
 B<v> , B<version>	display software version
+
 B<h> , B<help>	 	produce help message
 
 
@@ -54,6 +58,7 @@ see the list of all contributors.
 
 
 =head1 SEE ALSO
+
        llvs-server(1)
 
 See also <@PROJECT_URL@> for additional resources.
