@@ -88,6 +88,7 @@ ADD_PKGCONFIG_FILE()
 
 
 # Include subdirectories.
+ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(scripts)
 ADD_SUBDIRECTORY(src)

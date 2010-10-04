@@ -1,0 +1,56 @@
+=head1 NAME
+
+llvs-server - the low-level vision server
+
+=head1 SYNOPSIS
+
+llvs-server [options]
+
+=head1 DESCRIPTION
+
+The low-level vision server provides a service for non-interactive
+image processing. Image processing is represented by a graph where the
+input symbolizes the image acquisition device such as camera and
+output the processing results.
+
+llvs has been designed to easily interact with dynamic-graph/stack of
+tasks framework.
+
+
+=head1 OPTIONS
+
+B<-fg> enable the frame-grabbing mode
+
+B<-sim> enable the simulator mode (connects to OpenHRP to grab images)
+
+B<-synchro> specify the synchronization mode for image acquisition
+            (trigger or flow)
+
+=head1 EXAMPLES
+
+To grab for live images, no options are required:
+
+          llvs-server
+
+
+To grab from an OpenHRP simulation, the simulation has to be enabled:
+
+          llvs-server -sim
+
+The image are transferred through CORBA which might induce a delay
+between the simulation and the real image processing.
+
+
+
+=head1 AUTHORS
+
+This software has been developed at JRL and LAAS-CNRS laboratories.
+
+See <@CMAKE_INSTALL_PREFIX@/share/doc/libllvs-dev/AUTHORS> to
+see the list of all contributors.
+
+
+=head1 SEE ALSO
+       modfirewire(1)
+
+See also <@PROJECT_URL@> for additional resources.

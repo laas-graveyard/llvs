@@ -1,0 +1,59 @@
+=head1 NAME
+
+modfirewire - reload FireWire camera kernel modules
+
+=head1 SYNOPSIS
+
+modfirewire COMMAND
+
+=head1 DESCRIPTION
+
+FireWire acquisition can be quite fragile under Linux: a badly written
+program or an unexpected program exit can let the FireWire grabbing
+system in a state where grabbing is difficult to resume. To
+work-around these problems, this script reloads the kernel modules
+related to FireWire and FireWire cameras to make sure grabbing
+capabilities can be restored safely.
+
+Please, keep in mind that this script is only a work-around and cannot
+replace robust frame-grabbing.
+
+
+B<Important:> this script has to be run as root to work.
+
+
+=head1 COMMANDS
+
+B<l> , B<load>		load kernel modules
+B<u> , B<unload>	unload kernel modules
+B<r> , B<restart>	restart kernel modules
+B<v> , B<version>	display software version
+B<h> , B<help>	 	produce help message
+
+
+=head1 ENVIRONMENT VARIABLES
+
+Several environment variables can customize this script behavior:
+
+B<INSMOD>, B<RMMOD> and B<MODPROBE> can be used to specify how to call
+insmod, rmmod and modprobe.
+
+The list of loaded/unloaded kernel modules can be overloaded by
+B<MODFIREWIRE_MODULES>.
+The default list is: "ieee1394 ohci1394 raw1394 video1394".
+Modules will be loaded using the left-to-right order and unloaded
+using the right-to-left order.
+
+
+=head1 AUTHORS
+
+This software has been developed at CNRS/AIST and LAAS-CNRS laboratories.
+
+See <@CMAKE_INSTALL_PREFIX@/share/doc/libllvs-dev/AUTHORS> to
+see the list of all contributors.
+
+
+=head1 SEE ALSO
+       llvs-server(1)
+
+See also <@PROJECT_URL@> for additional resources.
