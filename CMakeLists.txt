@@ -44,6 +44,8 @@ CXX_WARNINGS()
 # Be verbose by default.
 SET(CMAKE_VERBOSE_MAKEFILE TRUE)
 
+# Search for Boost.
+FIND_PACKAGE(Boost 1.34 COMPONENTS filesystem system program_options)
 
 # Search for dependencies.
 FIND_PACKAGE(
