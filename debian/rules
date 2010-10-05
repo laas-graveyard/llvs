@@ -13,6 +13,10 @@ override_dh_auto_configure:
 	PKG_CONFIG_PATH="" dh_auto_configure -- -DModules_DIR=/usr/share/cmake \
 -DLLVT_ROOT_DIR=/usr \
 -DSEARCH_FOR_VISP=ON -DVISP_ROOT_DIR=/usr -DVISP_DIR=/usr/lib
+-DSEARCH_FOR_DC_1394_V2=ON \
+-DDC_1394_V2_ROOT_DIR=/usr \
+-DDC_1394_V2_INCLUDE_DIRS=/usr/include \
+-DDC_1394_V2_LIBRARY_DIRS=/usr/lib
 
 %:
 	dh  $@
