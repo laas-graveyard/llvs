@@ -18,6 +18,7 @@ SET(VISION_PROFILES_DATA
   llvs/profiles/default.vsp
   llvs/profiles/default-wide.vsp
   llvs/profiles/flea2.vsp
+  llvs/profiles/flea2-thomas.vsp
   llvs/profiles/hrp2014.vsp
   llvs/profiles/unibrain2.vsp
   llvs/profiles/unibrain-double.vsp
