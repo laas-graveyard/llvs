@@ -1,13 +1,6 @@
 /** @doc This object implements a visual process
     to compute a disparity map from 2 camera images.
     
-    CVS Information:
-   $Id$
-   $Author$
-   $Date$
-   $Revision$
-   $Source$
-   $Log$
 
    Copyright (c) 2003-2010,
    @author Claire Dune
@@ -209,6 +202,12 @@ protected:
 
   /*! perspective type*/
   vpCameraParameters::vpCameraParametersProjType m_projType;
+
+  /*! \brief Store the CoG of the object */
+  vpColVector m_ObjectCoG(3);
+
+  /*! \brief Store the CoG of the object projected into the camera */
+  vpColVector m_projectedObjectCoG(2);
 
  public:
   bool m_inputImagesLoaded;
