@@ -630,11 +630,11 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB(unsigned char **Image,
 	unsigned int lpixid=0;
 	for(unsigned int j=0;j<m_ImagesHeight[cameraNumber];j++)
 	  {
-	    for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i++)
+ 	    for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i++)
 	      {
-		double lv = (ImgSrc[lpixid] +
-			     ImgSrc[lpixid+1] +
-			     ImgSrc[lpixid+2])/3.0;
+		double lv = ((double)ImgSrc[lpixid] +
+			     (double)ImgSrc[lpixid+1] +
+			     (double)ImgSrc[lpixid+2])/3.0;
 		aof << (unsigned char)lv;
 		lpixid++;
 	      }
