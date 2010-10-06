@@ -211,6 +211,36 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
 
 }
 
+void ConnectionToSot::WriteObjectCoG(double ObjectCoG[2])
+{
+  ODEBUG("Enter WriteObjectCoG ");
+
+  try
+    {
+      struct timeval ats;
+	    
+
+      nsCorba::DoubleSeq_var DSObjectCoG;
+      ODEBUG("Enter WriteObjectCoG 1 ");
+      DSObjectCoG = new nsCorba::DoubleSeq;
+      DSObjectCoG->length(2);
+      ODEBUG("Enter WriteObjectCoG 2 ");
+      for(unsigned int li=0;li<2;li++)
+	DSObjectCoG[li]= ObjectCoG[li];
+      ODEBUG("Enter WriteObjectCoG 3 " << m_ObjectCoGSignalRank);
+      m_SOT_Server_Command->writeOutputVectorSignal(m_ObjectCoGSignalRank,
+						    DSObjectCoG);      
+
+    }
+  catch(...)
+    {
+      cout << "Unable to write signal of rank . " << m_ObjectCoGSignalRank<< endl;
+      
+    }
+  ODEBUG("Go out of WriteObjectCoG");
+
+}
+
 void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 				       double waistattitude[3])
 {
@@ -427,7 +457,8 @@ bool ConnectionToSot::Init()
                         "dComRef",
                         "comattitudeabsolute"};
 
-  string OutSignal[1] = {"VelRef"};
+  string OutSignal[2] = {"VelRef",
+                         "ObjectCoG"};
   ODEBUG("Before creating the signals: " << status);
   for(unsigned int li=0;li<6;li++)
     {
@@ -460,20 +491,29 @@ bool ConnectionToSot::Init()
       ODEBUG("Creation of signal: " << CstSignaux[li]);
     }
 
-  try
+  for(unsigned int li=0;li<2;li++)
     {
-      m_VelRefSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[0].c_str());
-      ODEBUG("Creation of signal: " << OutSignal[0] << " " << m_VelRefSignalRank);
-      {
-	double velref[3] = {0.0,0.0,0.0};
-	WriteVelocityReference(velref);
-      }
-
-    }
-  catch(...)
-    {
-      cerr << "Tried to create signal " << OutSignal[0] << endl;
-      exit(-1);
+      
+      try
+	{
+	  if (li==0)
+	    m_VelRefSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[li].c_str());
+	  else if (li==1)
+	    m_ObjectCoGSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[li].c_str());
+	  
+	  ODEBUG("Creation of signal: " << OutSignal[0] << " " << m_VelRefSignalRank);
+	  
+	  {
+	    double velref[3] = {0.0,0.0,0.0};
+	    WriteVelocityReference(velref);
+	  }
+	  
+	}
+      catch(...)
+	{
+	  cerr << "Tried to create signal " << OutSignal[li] << endl;
+	  exit(-1);
+	}
     }
   
   ODEBUG("After creating the signals: " );

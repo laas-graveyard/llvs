@@ -90,8 +90,11 @@ namespace llvs
       /*! \brief Read com attitude values from pg .*/
       void ReadComAttitudeSignals(double comattitude[3]);
 
-      /*! \brief Write waist velocity commande.*/
+      /*! \brief Write waist velocity command.*/
       void WriteVelocityReference(double velref[3]);
+
+      /*! \brief Write waist velocity command.*/
+      void WriteObjectCoG(double velref[2]);
 
       /*! \brief Create the signals, and plkug them. */
       bool Init();
@@ -132,6 +135,7 @@ namespace llvs
       CORBA::Long m_ComAttitudeSignalRank;
 
       CORBA::Long m_VelRefSignalRank;
+      CORBA::Long m_ObjectCoGSignalRank;
 
       /*! \brief Store the rank of waist control signal. */
       CORBA::Long m_dComRefSignalRank;

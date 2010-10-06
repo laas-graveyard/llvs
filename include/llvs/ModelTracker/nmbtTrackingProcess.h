@@ -204,10 +204,10 @@ protected:
   vpCameraParameters::vpCameraParametersProjType m_projType;
 
   /*! \brief Store the CoG of the object */
-  vpColVector m_ObjectCoG(3);
+  vpColVector m_ObjectCoG;
 
   /*! \brief Store the CoG of the object projected into the camera */
-  vpColVector m_projectedObjectCoG(2);
+  vpColVector m_projectedObjectCoG;
 
  public:
   bool m_inputImagesLoaded;

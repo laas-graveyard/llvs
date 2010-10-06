@@ -1,13 +1,5 @@
 /** @doc This object implements a visual process to get a disparity map.
 
-    CVS Information:
-   $Id$
-   $Author$
-   $Date$
-   $Revision$
-   $Source$
-   $Log$
-
    Copyright (c) 2003-2010,
    @author Torea Foissotte
 
@@ -54,18 +46,21 @@
 Default constructor
  -------------------------------------*/
 
-HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
+HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
+  m_me_modified(false),
+  m_ObjectCoG(3),
+  m_projectedObjectCoG(2),
+  m_inputImagesLoaded(false),
+  m_cameraParamLoaded(false),
+  m_modelLoaded(false),
+  m_trackerTrackSuccess(false),
+  m_initPoseLoaded(false),
+  m_inputVispImage(0x0),
+  m_logData(false)
+
 
 {
-  m_ProcessName = "nmbtTrackingProcess";
-  m_cameraParamLoaded = false;
-  m_initPoseLoaded = false;
-  m_inputImagesLoaded = false;
-  m_modelLoaded = false;
-  m_trackerTrackSuccess =false;
-  m_inputVispImage=0x0;
-  m_me_modified = false;
-  m_logData = false;
+  m_ProcessName="nmbtTrackingProcess";
   SetDefaultParam();
   
 }
@@ -712,8 +707,8 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  
 	  vpColVector projectedCoG = m_cam.get_K() * m_invOutputcMo * m_ObjectCoG;
 
-	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCog[2];
-	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCog[2];
+	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCoG[2];
+	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCoG[2];
 	  
 	}
 #if 0
