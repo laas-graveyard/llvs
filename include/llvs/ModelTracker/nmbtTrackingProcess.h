@@ -143,7 +143,10 @@ class HRP2nmbtTrackingProcess : public HRP2VisionBasicProcess
 
   /// Log data on disk.
   void logData();
- 
+
+  // Get projected coordinates of the object in the image plane.
+  void GetProjectedObj(vpColVector &avec); 
+
 private:
   
   // Keep internal track of the tracking parameters.

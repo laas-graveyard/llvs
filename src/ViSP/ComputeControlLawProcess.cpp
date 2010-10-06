@@ -442,11 +442,16 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   // store the velocity in waist frame
   vpColVector wVelocity(6);
 
+  // store the projection of the object CoG .
+  vpColVector vpProjectedCoG(2);
+
   // store the velocity send to SoT
   double velref[3];
 
-  vpHomogeneousMatrix fMo;
+  // store the projection of the object CoG send to SoT
+  double projectedCoG[2];
 
+  vpHomogeneousMatrix fMo;
 
   // the stop criterion is based on the infinity norm of
   // a 3ddl vector corresponding to the 3 controled ddl X [0],Z[2] and Ry[4]
@@ -457,7 +462,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   
   if ( m_nmbt->m_trackerTrackSuccess )
     {
+      // Get data from the tracker.
       m_nmbt->GetOutputcMo(m_cMo);
+      m_nmbt->GetProjectedObj(vpProjectedCoG);
+      projectedCoG[0] = vpProjectedCoG[0];
+      projectedCoG[1] = vpProjectedCoG[1];
+      
       ODEBUG("m.cMo : "<<m_cMo);
       ODEBUG("m.cdMo : "<<m_cdMo);
       m_cdMc = m_cdMo*m_cMo.inverse();
@@ -560,9 +570,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
       m_CTS-> WriteVelocityReference(velref);
 
+      m_CTS-> WriteObjectCoG(projectedCoG);
+
       m_CTS-> ReaddComRefSignals(waistcom);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
+      
     }
   else
     {

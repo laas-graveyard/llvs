@@ -62,7 +62,13 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
 {
   m_ProcessName="nmbtTrackingProcess";
   SetDefaultParam();
-  
+  m_projectedObjectCoG[0] = 0.0;
+  m_projectedObjectCoG[1] = 0.0;
+
+  m_ObjectCoG[0] = 0.0;
+  m_ObjectCoG[1] = 1.5;
+  m_ObjectCoG[2] = 0.0;
+
 }
 
 
@@ -158,6 +164,11 @@ void  HRP2nmbtTrackingProcess::GetHeight(int&height)
 void  HRP2nmbtTrackingProcess::GetWidth(int&_width)
 {
   _width = m_imageWidth;
+}
+
+void HRP2nmbtTrackingProcess::GetProjectedObj(vpColVector &avec)
+{
+  avec = m_projectedObjectCoG;
 }
 
 /*!-------------------------------------
