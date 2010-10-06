@@ -328,8 +328,8 @@ void HRP2IEEE1394DCImagesInputMethod::SetCameraFeatureValue
 
 HRP2IEEE1394DCImagesInputMethod::~HRP2IEEE1394DCImagesInputMethod()
 {
-  if (!m_Computing)
-    StopBoard();
+  //  if (!m_Computing)
+  StopBoard();
 
   for(unsigned int i=0;i<m_VisionSystemProfiles.size();i++)
     {
@@ -701,7 +701,8 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB
 		}
 	    }
 	}
-
+      
+      if (0)
       {
 	static unsigned long int lindex=0;
 	ofstream aof;
@@ -1041,7 +1042,7 @@ void HRP2IEEE1394DCImagesInputMethod::InitializeBoard() throw(const char*)
       if (camera)
 	{
 	  m_DC1394Cameras.push_back (camera);
-	  dc1394_reset_bus (camera);
+	  //dc1394_reset_bus (camera);
 	}
       else
 	dc1394_log_warning
@@ -1344,6 +1345,7 @@ void HRP2IEEE1394DCImagesInputMethod::StopBoard()
       pthread_mutex_lock(&m_mutex_device);
       dc1394_capture_stop(m_DC1394Cameras[i]);
       dc1394_video_set_transmission(m_DC1394Cameras[i], DC1394_OFF);
+      dc1394_reset_bus(m_DC1394Cameras[i]);
       dc1394_camera_free(m_DC1394Cameras[i]);
       pthread_mutex_unlock(&m_mutex_device);
 
