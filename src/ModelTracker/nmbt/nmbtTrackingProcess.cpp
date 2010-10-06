@@ -67,6 +67,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess()
   m_me_modified = false;
   m_logData = false;
   SetDefaultParam();
+  
 }
 
 
@@ -705,6 +706,15 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 
 	  // set the resulting transform between the object and the image
 	  m_tracker.getPose(m_outputcMo);
+
+	  // Compute the center of the object projected in the camera image plane.
+	  vpHomogeneousMatrix m_invOutputcMo = m_outputcMo.inverse();
+	  
+	  vpColVector projectedCoG = m_cam.get_K() * m_invOutputcMo * m_ObjectCoG;
+
+	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCog[2];
+	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCog[2];
+	  
 	}
 #if 0
       static vpDisplayX display(*m_inputVispImage,0,0,"Tracking Server");

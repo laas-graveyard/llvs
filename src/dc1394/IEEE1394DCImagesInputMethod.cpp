@@ -548,6 +548,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSinglePGM
 		(unsigned char) (localsum/(intervalh*intervalw));
 	    }
 	}
+
     }
 
 
@@ -700,6 +701,28 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB
 		}
 	    }
 	}
+
+      {
+	static unsigned long int lindex=0;
+	ofstream aof;
+	char Buffer[1028];
+	sprintf(Buffer,"I-%02d-%04ld.pgm",cameraNumber,lindex++);
+	aof.open(Buffer,ofstream::out);
+	aof << "P5\n640 480\n255\n";
+	unsigned int lpixid=0;
+	for(unsigned int j=0;j<m_ImagesHeight[cameraNumber];j++)
+	  {
+ 	    for(unsigned int i=0;i<m_ImagesWidth[cameraNumber];i++)
+	      {
+		double lv = ((double)ImgSrc[lpixid] +
+			     (double)ImgSrc[lpixid+1] +
+			     (double)ImgSrc[lpixid+2])/3.0;
+		aof << (unsigned char)lv;
+		lpixid++;
+	      }
+	  }
+	aof.close();
+      }
 
     }
 
