@@ -66,8 +66,8 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   m_projectedObjectCoG[1] = 0.0;
 
   m_ObjectCoG[0] = 0.0;
-  m_ObjectCoG[1] = 1.5;
-  m_ObjectCoG[2] = 0.0;
+  m_ObjectCoG[1] = 1.45;
+  m_ObjectCoG[2] = 0.48;
   m_ObjectCoG[3] = 1.0;
 
 }
