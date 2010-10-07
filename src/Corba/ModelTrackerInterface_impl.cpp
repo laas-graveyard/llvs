@@ -209,10 +209,8 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   aDIOv->aData.cMo[3][2]=0;
   aDIOv->aData.cMo[3][3]=1;
 
-  vpColVector &avec;
-  m_LLVS->m_CBonNMBT->GetProjectedObj(avec);
-  aDIOv->CoG[0] = avec;
-  aDIOv->CoG[1] = avec;
+  aDIOv->CoG[0] = m_CBTD.CoG[0];
+  aDIOv->CoG[1] = m_CBTD.CoG[1];
 #else
   aDIOv->anImgData.longData[0] = 0;
   aDIOv->anImgData.longData[1] = 0;

@@ -24,6 +24,7 @@ struct CBTrackerData
   vpImage<unsigned char> * image;
   double* timestamp;
   vpHomogeneousMatrix cMo;
+  double CoG[2];
 
   CBTrackerData(){};
   CBTrackerData(const CBTrackerData &aCBTD)
@@ -31,6 +32,8 @@ struct CBTrackerData
     image = aCBTD.image;
     timestamp = aCBTD.timestamp;
     cMo = aCBTD.cMo;
+    CoG[0] = aCBTD.CoG[0];
+    CoG[1] = aCBTD.CoG[1];
   }
   void operator=(const CBTrackerData &);
 };
@@ -73,7 +76,12 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
  protected:
   int pRealizeTheProcess()
   {
+    
     m_nmbt->GetOutputcMo(m_Datum->cMo);
+    vpColVector avec;
+    m_nmbt->GetProjectedObj(avec);
+    m_Datum->CoG[0] = avec[0];
+    m_Datum->CoG[1] = avec[1];
     CircularBuffer<CBTrackerData>::pRealizeTheProcess();
 
     return 0;
