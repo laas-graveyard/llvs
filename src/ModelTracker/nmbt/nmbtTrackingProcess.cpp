@@ -50,7 +50,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   m_me_modified(false),
   m_inputVispImage(0x0),
   m_ObjectCoG(4),
-  m_projectedObjectCoG(2),
+  m_projectedObjectCoG(3),
   m_inputImagesLoaded(false),
   m_cameraParamLoaded(false),
   m_modelLoaded(false),
@@ -64,6 +64,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   SetDefaultParam();
   m_projectedObjectCoG[0] = 0.0;
   m_projectedObjectCoG[1] = 0.0;
+  m_projectedObjectCoG[2] = 1.0;
 
   m_ObjectCoG[0] = 0.0;
   m_ObjectCoG[1] = 0.0;
@@ -727,7 +728,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 
 	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCoG[2];
 	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCoG[2];
-	  
+	  m_projectedObjectCoG[2] = projectedCoG[2];
 	  
 	  m_projectedObjectCoG[0] = (m_projectedObjectCoG[0] -160.0)/320.0;
 	  m_projectedObjectCoG[1] = (m_projectedObjectCoG[1] -120.0)/240.0;

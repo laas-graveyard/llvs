@@ -10,6 +10,6 @@ void CBTrackerData::operator=(const CBTrackerData &a)
   cMo = a.cMo;
   CoG[0] = a.CoG[0];
   CoG[1] = a.CoG[1];
-
+  CoG[2] = a.CoG[2];
 }
 
