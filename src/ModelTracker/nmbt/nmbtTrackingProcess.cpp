@@ -66,8 +66,8 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   m_projectedObjectCoG[1] = 0.0;
 
   m_ObjectCoG[0] = 0.0;
-  m_ObjectCoG[1] = 1.45;
-  m_ObjectCoG[2] = 0.48;
+  m_ObjectCoG[1] = 0.0;
+  m_ObjectCoG[2] = 0.0;
   m_ObjectCoG[3] = 1.0;
 
 }
@@ -717,7 +717,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  // Compute the center of the object projected in the camera image plane.
 	  vpHomogeneousMatrix m_invOutputcMo = m_outputcMo.inverse();
 	  
-	  vpColVector intermediate = m_invOutputcMo * m_ObjectCoG;
+	  vpColVector intermediate = m_outputcMo * m_ObjectCoG;
 	  vpColVector intermediate2(3);
 	  intermediate2[0] = intermediate[0];
 	  intermediate2[1] = intermediate[1];
@@ -728,6 +728,9 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCoG[2];
 	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCoG[2];
 	  
+	  
+	  m_projectedObjectCoG[0] = (m_projectedObjectCoG[0] -160.0)/320.0;
+	  m_projectedObjectCoG[1] = (m_projectedObjectCoG[1] -120.0)/240.0;
 	}
 #if 0
       static vpDisplayX display(*m_inputVispImage,0,0,"Tracking Server");

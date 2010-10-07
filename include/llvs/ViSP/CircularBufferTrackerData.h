@@ -35,7 +35,7 @@ struct CBTrackerData
     CoG[0] = aCBTD.CoG[0];
     CoG[1] = aCBTD.CoG[1];
   }
-  void operator=(const CBTrackerData &);
+  void operator=(const CBTrackerData&);
 };
 
 class CircularModelTrackerData:public CircularBuffer<CBTrackerData>

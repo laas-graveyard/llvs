@@ -211,6 +211,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
 
   aDIOv->CoG[0] = m_CBTD.CoG[0];
   aDIOv->CoG[1] = m_CBTD.CoG[1];
+  //  std::cout<< "m_CBTD: " << m_CBTD.CoG[0] << " " << m_CBTD.CoG[1] << std::endl;
 #else
   aDIOv->anImgData.longData[0] = 0;
   aDIOv->anImgData.longData[1] = 0;

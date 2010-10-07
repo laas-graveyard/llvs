@@ -567,7 +567,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   
   if (m_CTS!=0)
     {
-      ODEBUG3("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
+      ODEBUG("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
       m_CTS-> WriteVelocityReference(velref);
 
       m_CTS-> WriteObjectCoG(projectedCoG);
