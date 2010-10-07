@@ -48,14 +48,14 @@ Default constructor
 
 HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   m_me_modified(false),
-  m_ObjectCoG(3),
+  m_inputVispImage(0x0),
+  m_ObjectCoG(4),
   m_projectedObjectCoG(2),
   m_inputImagesLoaded(false),
   m_cameraParamLoaded(false),
   m_modelLoaded(false),
   m_trackerTrackSuccess(false),
   m_initPoseLoaded(false),
-  m_inputVispImage(0x0),
   m_logData(false)
 
 
@@ -68,6 +68,7 @@ HRP2nmbtTrackingProcess::HRP2nmbtTrackingProcess():
   m_ObjectCoG[0] = 0.0;
   m_ObjectCoG[1] = 1.5;
   m_ObjectCoG[2] = 0.0;
+  m_ObjectCoG[3] = 1.0;
 
 }
 
@@ -419,7 +420,7 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
 //--------VPME------------//
   if(isAVpMeParam)
     {
-      static unsigned int paramnb=0;
+      //static unsigned int paramnb=0;
       ODEBUG(" ENTER VPME CASE " << paramnb++);
 
 
@@ -431,13 +432,13 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
       //fill the appropriate vpMe field
       if (paramId=="MAS")//"VPME_MASK_SIZE"
 	{
-	  m_me.setMaskSize(value);
+	  m_me.setMaskSize((int)value);
 	  ODEBUG(" ENTER setMaskSize CASE value : "<<value );
 
 	}
       else if (paramId=="RAN")//"VPME_RANGE"
 	{
-	  m_me.setRange(value);
+	  m_me.setRange((int)value);
 	  ODEBUG(" ENTER setRange CASE value : "<<value );
 	}
       else if (paramId=="THR")//"VPME_THRESHOLD"
@@ -716,7 +717,13 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  // Compute the center of the object projected in the camera image plane.
 	  vpHomogeneousMatrix m_invOutputcMo = m_outputcMo.inverse();
 	  
-	  vpColVector projectedCoG = m_cam.get_K() * m_invOutputcMo * m_ObjectCoG;
+	  vpColVector intermediate = m_invOutputcMo * m_ObjectCoG;
+	  vpColVector intermediate2(3);
+	  intermediate2[0] = intermediate[0];
+	  intermediate2[1] = intermediate[1];
+	  intermediate2[2] = intermediate[2];
+
+	  vpColVector projectedCoG = m_cam.get_K() * intermediate2;
 
 	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCoG[2];
 	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCoG[2];
