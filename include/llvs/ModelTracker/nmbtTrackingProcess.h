@@ -52,7 +52,7 @@
 #include <visp/vpHomogeneousMatrix.h>
 
 //include lagadic tracking lib files
-#include <visp/vpMbtTracker.h>
+#include <visp/vpMbEdgeTracker.h>
 
 
 /*!
@@ -173,7 +173,7 @@ private:
 protected:
 
   // lagadic tracker
-  vpMbtTracker m_tracker;
+  vpMbEdgeTracker m_tracker;
    
   /*! visp images*/
   vpImage<unsigned char> *m_inputVispImage;
