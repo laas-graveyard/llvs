@@ -11,7 +11,7 @@ HRP2ImageDifferenceProcess::HRP2ImageDifferenceProcess()
 {
   m_IndexOfImage =0;
   m_Computing=0;
-  
+
   m_ProcessName = "Image Difference Process";
   for(int i=0;i<3;i++)
     m_ImagesOnWhichToProcess[i]=0;
@@ -44,16 +44,16 @@ void HRP2ImageDifferenceProcess::SaveImages()
  of.open(Buffer,ofstream::out);
  if (of.is_open())
    {
-     
+
      for(int i=0;i<33*3*m_NbOfSecondsToGrab;i++)
        {
-	 sprintf(Buffer,"%20.10f", 
+	 sprintf(Buffer,"%20.10f",
 		 m_BufferOfTimeStamp[i]);
 	 of << Buffer << endl;
-		
+
        }
      of.close();
-   }  
+   }
   unsigned char * src= (unsigned char *)m_BufferOfImages;
   int size=m_InputImage[0].Width*m_InputImage[0].Height;
   for(int i=0;i<33*3*m_NbOfSecondsToGrab;i++)
@@ -63,9 +63,9 @@ void HRP2ImageDifferenceProcess::SaveImages()
       of.open(Buffer,ofstream::out);
       if (of.is_open())
 	{
-	  sprintf(Buffer,"P5\n# TimeStamp: %20.10f\n%d %d\n255\n", 
+	  sprintf(Buffer,"P5\n# TimeStamp: %20.10f\n%d %d\n255\n",
 		  m_BufferOfTimeStamp[i],
-		  m_InputImage[0].Width, 
+		  m_InputImage[0].Width,
 		  m_InputImage[0].Height);
 	  of << Buffer;
 	  of.write((char *)src,size);
@@ -111,7 +111,7 @@ int HRP2ImageDifferenceProcess::RealizeTheProcess()
   ODEBUG("Flag 1");
   if (!m_Computing)
     return 0;
-  
+
   ODEBUG("Flag 2");
   for(int i=0;i<3;i++)
     {
@@ -119,32 +119,32 @@ int HRP2ImageDifferenceProcess::RealizeTheProcess()
 	{
 	  unsigned char *src1 = (unsigned char *)m_InputImage[i].Image;
 	  unsigned char *src2 = (unsigned char *)m_PrevInputImage[i].Image;
-		    
+
 	  if (!m_BufferImage)
 	    {
 	      unsigned char *dst = (unsigned char *)m_DifferenceOfImages[i].Image;
-	      for( int k=0;k<m_InputImage[i].Height * 
+	      for( int k=0;k<m_InputImage[i].Height *
 		    m_InputImage[i].Width;k++)
 		{
 		  int aChar= *src1 - *src2;
 		  if (aChar<0)
 		    *dst++ = (unsigned char)-aChar;
-		  else 
+		  else
 		    *dst++ = (unsigned char)aChar;
 		  *src2++ = *src1++;
-		}	  
+		}
 	    }
 	  else
 	    {
-	      
+
 	      unsigned char *dst = (unsigned char *)(m_BufferOfImages+(m_IndexOfImage*m_InputImage[0].Width*m_InputImage[0].Height));
-	      for(int k=0;k<m_InputImage[i].Height * 
+	      for(int k=0;k<m_InputImage[i].Height *
 		    m_InputImage[i].Width;k++)
 		{
 		  int aChar= *src1/* - *src2*/;
 		  if (aChar<0)
 		    *dst++ = (unsigned char)-aChar;
-		  else 
+		  else
 		    *dst++ = (unsigned char)aChar;
 
 		  *src2++ = *src1++;
@@ -198,17 +198,17 @@ int HRP2ImageDifferenceProcess::SetParameter(string aParameter, string aValue)
 {
   int r=-1;
   unsigned char ok = 1;
-  
+
   if (aParameter=="BufferImage")
     {
       if (aValue=="false")
 	m_BufferImage = false;
       else if (aValue=="true")
 	m_BufferImage = true;
-      else 
+      else
 	ok = 0;
     }
-  
+
   if (aParameter=="SaveImage")
     {
       if (aValue=="1")
@@ -219,10 +219,10 @@ int HRP2ImageDifferenceProcess::SetParameter(string aParameter, string aValue)
 
   if (ok)
     r = HRP2VisionBasicProcess::SetParameter(aParameter, aValue);
-  
+
 
   return r;
-  
+
 }
 
 

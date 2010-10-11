@@ -1,6 +1,6 @@
 /** @doc This object implements a visual process
     to compute a disparity map from 2 camera images.
-    
+
     CVS Information:
    $Id$
    $Author$
@@ -11,29 +11,29 @@
 
    Copyright (c) 2003-2010,
    @author Torea Foissotte
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _HRP2_STEREO_VISION_PROCESS_H_
@@ -58,7 +58,7 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
 {
 
  public:
- 
+
   /*! Constructor */
   HRP2StereoVisionProcess();
 
@@ -71,16 +71,16 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
 
   /*! Realize the process */
   int pRealizeTheProcess();
-  
+
   /*! Cleanup the process */
   int pCleanUpTheProcess();
 
   /* Set the type of Stereo Vision algorithm to use */
   int setStereoAlgorithmType( StereoAlgoType stereoAlgo );
-  
+
   /* Get which type of Stereo Vision algorithm is enabled */
   int getStereoAlgorithmType() { return m_StereoAlgo; };
-  
+
   /* Set the parameters for the used stereo vision algorithm
      The meaning of the values depends on the algorithm used
 	 and the order of the values is thus important!  */
@@ -105,14 +105,14 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
 
   /* Use the rectified input images to generate a range map */
   int ComputeRangeMap();
-  
+
   /* Get the output image: copy the obtained range map to the given image */
   int GetOutputImage( Mat& OutputImage );
-  
+
   /* Get the point of 3D points computed using the disparity map.
    * ComputeRangeMap() should have been succesfully executed before */
   int Get3DPoints( Mat &xyz );
-  
+
 
   /* Free the images for internal purposes */
   void FreeImages();
@@ -125,33 +125,33 @@ class HRP2StereoVisionProcess : public HRP2VisionBasicProcess
   /* the set of parameters for the stereo algorithms
    * the meaning of each value depends on the algorithm active: default values in ()
    *  - STEREO_BM:
-   *  preFilterCap (31), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (15), 
+   *  preFilterCap (31), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (15),
    *  speckleWindowSize (100), speckleRange (32), disp12MaxDiff (1), textureThreshold (10)
-   * 
+   *
    *  - STEREO_SGBM and STEREO_HH:
-   *  preFilterCap (63), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (10), 
+   *  preFilterCap (63), SADWindowSize (9), numberOfDisparities (256), uniquenessRatio (10),
    *  speckleWindowSize (100), speckleRange (32), disp12MaxDiff (1)
-   * 
+   *
    *  - STEREO_GC:
    *  numberOfDisparities (256), maxIters (2)
    */
   std::vector<int> m_parameters;
-  
+
 
   Mat m_InputImages[2];
   Mat m_OutputImage;
-  
+
   Mat m_Q;
 
   Size m_imgSize;
   Mat m_rectifyMap[2][2];
-  
+
   bool m_imgSizeKnown;
   bool m_inputImagesLoaded;
   bool m_cameraParamLoaded;
   bool m_imgRectified;
   bool m_rangeMapComputed;
-	
+
   StereoBM *m_stereoBM;
   StereoSGBM *m_stereoSGBM;
   CvStereoGCState *m_stereoGCstate;

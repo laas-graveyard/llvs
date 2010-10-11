@@ -1,8 +1,8 @@
-/** @doc  
+/** @doc
     This class evaluates the camera position and build
     a sparse map of the world.
     It relies on the Scene library developped by Andrew Davison.
-    
+
 
    CVS Information:
    $Id$
@@ -12,31 +12,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef __HRP2_SingleCameraSLAM_H__
@@ -74,7 +74,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
   HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
 			      CosNaming::NamingContext_var cxt,
 			      LowLevelVisionServer * aLLVS);
-  
+
   /*! Destructor */
   virtual ~HRP2SingleCameraSLAMProcess();
 
@@ -91,7 +91,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
   /*! Set Parameter */
   virtual int SetParameter(string aParameter, string aValue);
 
-  /*! Set the input images 
+  /*! Set the input images
    * This method is needed to set up the reference to the input images.
    * They should be specified only once. The first image is the left image.
    * The second image is the second image. It is assume that those images
@@ -99,7 +99,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
    */
   int SetInputImages(EPBM * lInputImages);
 
-  /*! Get the position and the associated covariance 
+  /*! Get the position and the associated covariance
    *
    */
   int GetPositionAndCovariance(double Position[7], double Covariance[9]);
@@ -110,7 +110,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
 
   /*! Creates a copy of the object scene */
   int CreateCopyOfScene(SceneObject_var &aSO_var);
-  
+
   /*! Creates the connection with GGAA */
   void GetCorbaConnectionToGGAAplugin();
 
@@ -119,7 +119,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
 				   double lWaistVelocity[2], double lOrientation[7]);
 
   /* Reference to the object allowing to do the link
-     between the wide lens camera and the narrow ones. 
+     between the wide lens camera and the narrow ones.
      It also computes the matrix from the head reference frame to
      the wide lens camera.
      Therefore the matrix from the first calibration reference frame
@@ -127,11 +127,11 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
   */
   int SetFindFeaturesFromWideImage(FindFeaturesFromWideImage * aFFFWI,
 				   double headTorg[16]);
-  
-  
+
+
  protected:
 
-  /*! State to the tracking 
+  /*! State to the tracking
    * True: Start to evaluate the position and follow the features across the video stream.
    * False: Stop.
    */
@@ -142,7 +142,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
    * False : No new features allowed.
    */
   bool m_MappingState;
-  
+
   /*! State of the vision:
    * True : Search for new features.
    * False : Do not include informations from vision.
@@ -175,7 +175,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
    * False : do not include it.
    */
   bool m_OrientationFlag;
-  
+
   /* ! Reference to image input */
   EPBM * m_InputImage;
 
@@ -197,7 +197,7 @@ class HRP2SingleCameraSLAMProcess : public HRP2VisionBasicProcess
   /* ! Instance of the Monocular SLAM interface object. */
   MonoSLAMHRP *m_MonoSLAMHRP;
 
-  /*! Instance of the object allowing to do the link 
+  /*! Instance of the object allowing to do the link
     between the wide lens and the narrow lens. */
   FindFeaturesFromWideImage * m_FFFWI;
 

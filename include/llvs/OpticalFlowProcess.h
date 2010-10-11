@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _HRP2_OPTICAL_FLOW_PROCESS_H_
@@ -55,7 +55,7 @@ using namespace std;
  *
  */
 
- 
+
 class HRP2OpticalFlowProcess : public HRP2VisionBasicProcess
 {
  public:
@@ -132,12 +132,12 @@ class HRP2OpticalFlowProcess : public HRP2VisionBasicProcess
  /*! Set the method to compute Harris detector
   */
  int SetHarrisDetectorMethod(int aMethod);
- 
+
  /*!Get the method to compute the Harris detector
   */
  int GetHarrisDetectorMethod();
 
- /*! Get the optical flow 
+ /*! Get the optical flow
   *  returns a pointer in the structure aFlow.
   * This will give the :
   * * The temporal and spatial derivative.
@@ -160,9 +160,9 @@ class HRP2OpticalFlowProcess : public HRP2VisionBasicProcess
  /*! This method allows to set a parameter.
   */
  int SetParameter(string aParameter, string aValue);
- 
+
  protected:
-  
+
  /*! MMX Matrix for computing Optical Flow and filtered image. */
 
  /*! The right image */
@@ -246,14 +246,14 @@ class HRP2OpticalFlowProcess : public HRP2VisionBasicProcess
 
  /*! Temporary image for filtering */
  IplImage * m_tempImage;
- 
+
  /*! Input Image in the Ipl format */
  IplImage * m_IplInputImage;
 
  /*! Level of dumping for intermediates images */
  int m_DumpingLevel;
 
- /*! Method to use for computing Harris detector 
+ /*! Method to use for computing Harris detector
   */
  int m_HarrisMethod;
 };

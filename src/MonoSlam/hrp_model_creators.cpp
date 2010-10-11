@@ -23,7 +23,7 @@ Internal_Measurement_Model* HRP_Internal_Measurement_Model_Creator::
 create_model(const std::string& type, Motion_Model *motion_model)
 {
   // Try creating each model that we can and see if the name is the same
-  std::cout << "Creating a " << type << " internal measurement model" 
+  std::cout << "Creating a " << type << " internal measurement model"
             << std::endl;
   Internal_Measurement_Model* pModel;
 
@@ -33,21 +33,21 @@ create_model(const std::string& type, Motion_Model *motion_model)
     return pModel;
   else
     delete pModel;
-  
+
   pModel = new
     ThreeD_Gyro_Internal_Measurement_Model(motion_model);
   if(pModel->internal_type == type)
     return pModel;
   else
     delete pModel;
-  
+
   pModel = new
     Waist_Velocity_Internal_Measurement_Model(motion_model);
   if(pModel->internal_type == type)
     return pModel;
   else
     delete pModel;
-  
+
   pModel = new Orientation_Internal_Measurement_Model(motion_model);
   if(pModel->internal_type == type)
     return pModel;
@@ -65,7 +65,7 @@ Motion_Model* HRP2MonoSLAM_Motion_Model_Creator::create_model(const std::string&
   // Try creating each model that we can and see if the name is the same
   std::cout << "Creating a " << type << " motion model" << std::endl;
   Motion_Model* pModel;
-	
+
   pModel = new ZeroOrder_ThreeD_Motion_Model;
   if(pModel->motion_model_type == type)
     return pModel;

@@ -47,11 +47,11 @@ WPG_ThreeD_Motion_Model::~WPG_ThreeD_Motion_Model()
 {}
 
 void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
-                                     const VNL::Vector<double> &xv, 
-				     const VNL::Vector<double> &u, 
+                                     const VNL::Vector<double> &xv,
+				     const VNL::Vector<double> &u,
 				     const double delta_t)
 {
-  VW::Vector3D rold, vold, omegaold, 
+  VW::Vector3D rold, vold, omegaold,
     rnew, vnew, omeganew;
   VW::Quaternion qold, qnew;
 
@@ -95,9 +95,9 @@ void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
   // Put it all together
   compose_xv(rnew, qnew, vnew, omeganew, fvRES);
 
-  // ODEBUG3("rold qold vold omegaold" << rold << qold 
+  // ODEBUG3("rold qold vold omegaold" << rold << qold
   //      << vold << omegaold);
-  // ODEBUG3( "rnew qnew vnew omeganew" << rnew << qnew 
+  // ODEBUG3( "rnew qnew vnew omeganew" << rnew << qnew
   //      << vnew << omeganew);
 
   // Now on to the Jacobian...
@@ -114,7 +114,7 @@ void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
   // qnew = qold x qRoldRnew  ( = q3 = q2 x q1 in Scene/newbits.cc language)
   ODEBUG3("wpg11");
 
-  VNL::MatrixFixed<4,4,double> Temp44A = dq3_by_dq2(qRoldRnew); 
+  VNL::MatrixFixed<4,4,double> Temp44A = dq3_by_dq2(qRoldRnew);
   ODEBUG3("wpg12");
 
   dfv_by_dxvRES.Update(Temp44A, 3, 3);
@@ -122,18 +122,18 @@ void WPG_ThreeD_Motion_Model::func_fv_and_dfv_by_dxv(
   // ODEBUG3( "dfv_by_dxvRES" << dfv_by_dxvRES );
 }
 
-void WPG_ThreeD_Motion_Model::func_Q(const VNL::Vector<double> &xv, 
-					 const VNL::Vector<double> &, 
+void WPG_ThreeD_Motion_Model::func_Q(const VNL::Vector<double> &xv,
+					 const VNL::Vector<double> &,
 					 const double delta_t)
 {
   ODEBUG3("func_Q begin ");
   const double Z_REDUCTION_FACTOR = 3;
 
   // Fill Q with very simple constant value for now
-  double r_component_noise_variance = 
-    SD_r_component_filter * SD_r_component_filter; 
-  double q_component_noise_variance = 
-    SD_q_component_filter * SD_q_component_filter; 
+  double r_component_noise_variance =
+    SD_r_component_filter * SD_r_component_filter;
+  double q_component_noise_variance =
+    SD_q_component_filter * SD_q_component_filter;
 
   QxRES.Fill(0.0);
   QxRES.Put(0, 0, r_component_noise_variance);
@@ -148,9 +148,9 @@ void WPG_ThreeD_Motion_Model::func_Q(const VNL::Vector<double> &xv,
   //  ODEBUG3( "QxRES" << QxRES );
 }
 
-// 
+//
 // FUNC XP
-/** Extract the position and orientation from the state vector. (This is the 
+/** Extract the position and orientation from the state vector. (This is the
 first seven elements in this case.)
 **/
 void WPG_ThreeD_Motion_Model::func_xp(const VNL::Vector<double> &xv)
@@ -183,7 +183,7 @@ func_dxp_by_dxv(const VNL::Vector<double> &)
 // Noisy process equation for simulation
 // Simply perturb xv with Gaussian noise and send it through func_fv
 void WPG_ThreeD_Motion_Model::
-func_fv_noisy(const VNL::Vector<double> &xv_true, 
+func_fv_noisy(const VNL::Vector<double> &xv_true,
 	      const VNL::Vector<double> &u_true, const double delta_t)
 {
   ODEBUG3("Hello from func_fv_noisy... what are you doing in here???");
@@ -200,9 +200,9 @@ const VNL::Vector<double> &xv, const VNL::Vector<double> &xpdef)
 
   // We can mainly use the stuff from the general redefinition of axes in
   // position coordinates, but need to change it a little bit
-  // State is          
+  // State is
   //               x, y, z, q0, qx, qy, qz, vx, vy, vz, omegax, omegay, omegaz
-  // Position state is 
+  // Position state is
   //               x, y, z, q0, qx, qy, qz
 
   func_xp(xv);
@@ -228,10 +228,10 @@ func_xvnorm_and_dxvnorm_by_dxv(const VNL::Vector<double> &xv)
   // Most parts of Jacobian are identity
   dxvnorm_by_dxvRES.SetIdentity();
 
-  // Extract quaternion  
+  // Extract quaternion
   func_xp(xv);
   func_q(xpRES);
-  
+
   VW::Quaternion Tempqa = qRES;
 
   VW::Quaternion Tempqb = (Tempqa);
@@ -249,10 +249,10 @@ func_xvnorm_and_dxvnorm_by_dxv(const VNL::Vector<double> &xv)
 values.
 **/
 void WPG_ThreeD_Motion_Model::extract_r_q_v_omega(
-                                         const VNL::Vector<double> &xv, 
-					 VW::Vector3D &r, 
-					 VW::Quaternion &q, 
-					 VW::Vector3D &v, 
+                                         const VNL::Vector<double> &xv,
+					 VW::Vector3D &r,
+					 VW::Quaternion &q,
+					 VW::Vector3D &v,
 					 VW::Vector3D &omega)
 {
   ODEBUG3("func_extract_r_q_v_omega begin ");
@@ -272,10 +272,10 @@ void WPG_ThreeD_Motion_Model::extract_r_q_v_omega(
 // EXTRACT R Q V OMEGA
 /** Create a state vector \f$ x_v \f$ from its component parts. Puts the matrices r, q, v, omega into their right places.
 **/
-void WPG_ThreeD_Motion_Model::compose_xv(const VW::Vector3D &r, 
+void WPG_ThreeD_Motion_Model::compose_xv(const VW::Vector3D &r,
 					     const VW::Quaternion &q,
-					     const VW::Vector3D &v, 
-					     const VW::Vector3D &omega, 
+					     const VW::Vector3D &v,
+					     const VW::Vector3D &omega,
 					     VNL::Vector<double> &xv)
 {
   ODEBUG3("compose_Xv begin ");
@@ -284,7 +284,7 @@ void WPG_ThreeD_Motion_Model::compose_xv(const VW::Vector3D &r,
   xv.Update(q.GetRXYZ(), 3);
 
   xv.Update(v.GetVNL3(), 7);
-  
+
   xv.Update(omega.GetVNL3(), 10);
 
   ODEBUG3("compose_Xv end ");
@@ -294,46 +294,46 @@ void WPG_ThreeD_Motion_Model::compose_xv(const VW::Vector3D &r,
 // DQOMEGADT BY DOMEGA
 /// Calculate commonly used Jacobian part \f$ \partial q(\omega * \Delta t) / \partial \omega \f$.
 void WPG_ThreeD_Motion_Model::
-dqomegadt_by_domega(const VW::Vector3D &omega, 
+dqomegadt_by_domega(const VW::Vector3D &omega,
 		    const double delta_t,
 		    VNL::MatrixFixed<4,3,double> &dqomegadt_by_domega)
 {
   ODEBUG3("dqomegadt_by_domega begin");
   // Modulus
-  double omegamod = sqrt(omega.GetX() * omega.GetX() + 
-			 omega.GetY() * omega.GetY() + 
+  double omegamod = sqrt(omega.GetX() * omega.GetX() +
+			 omega.GetY() * omega.GetY() +
 			 omega.GetZ() * omega.GetZ());
 
   // Use generic ancillary functions to calculate components of Jacobian
-  dqomegadt_by_domega.Put(0, 0, 
+  dqomegadt_by_domega.Put(0, 0,
 			  dq0_by_domegaA(omega.GetX(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(0, 1, 
+  dqomegadt_by_domega.Put(0, 1,
 			  dq0_by_domegaA(omega.GetY(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(0, 2, 
+  dqomegadt_by_domega.Put(0, 2,
 			  dq0_by_domegaA(omega.GetZ(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(1, 0, 
+  dqomegadt_by_domega.Put(1, 0,
 			  dqA_by_domegaA(omega.GetX(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(1, 1, 
+  dqomegadt_by_domega.Put(1, 1,
 			  dqA_by_domegaB(omega.GetX(), omega.GetY(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(1, 2, 
+  dqomegadt_by_domega.Put(1, 2,
 			  dqA_by_domegaB(omega.GetX(), omega.GetZ(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(2, 0, 
+  dqomegadt_by_domega.Put(2, 0,
 			  dqA_by_domegaB(omega.GetY(), omega.GetX(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(2, 1, 
+  dqomegadt_by_domega.Put(2, 1,
 			  dqA_by_domegaA(omega.GetY(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(2, 2, 
+  dqomegadt_by_domega.Put(2, 2,
 			  dqA_by_domegaB(omega.GetY(), omega.GetZ(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 0, 
+  dqomegadt_by_domega.Put(3, 0,
 			  dqA_by_domegaB(omega.GetZ(), omega.GetX(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 1, 
+  dqomegadt_by_domega.Put(3, 1,
 			  dqA_by_domegaB(omega.GetZ(), omega.GetY(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 2, 
+  dqomegadt_by_domega.Put(3, 2,
 			  dqA_by_domegaA(omega.GetZ(), omegamod, delta_t));
 
   ODEBUG3("dqomegadt_by_domega end");
@@ -351,8 +351,8 @@ dqomegadt_by_domega(const VW::Vector3D &omega,
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaA is one of omegax, omegay, omegaz.
 **/
-double WPG_ThreeD_Motion_Model::dq0_by_domegaA(const double omegaA, 
-						   const double omega, 
+double WPG_ThreeD_Motion_Model::dq0_by_domegaA(const double omegaA,
+						   const double omega,
 						   const double delta_t)
 {
   return (-delta_t / 2.0) * (omegaA / omega) * sin(omega * delta_t / 2.0);
@@ -363,11 +363,11 @@ double WPG_ThreeD_Motion_Model::dq0_by_domegaA(const double omegaA,
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaA is one of omegax, omegay, omegaz and similarly with qA.
 **/
-double WPG_ThreeD_Motion_Model::dqA_by_domegaA(const double omegaA, 
+double WPG_ThreeD_Motion_Model::dqA_by_domegaA(const double omegaA,
 						   const double omega,
 						   const double delta_t)
 {
-  return (delta_t / 2.0) * omegaA * omegaA / (omega * omega) 
+  return (delta_t / 2.0) * omegaA * omegaA / (omega * omega)
     * cos(omega * delta_t / 2.0)
     + (1.0 / omega) * (1.0 - omegaA * omegaA / (omega * omega))
     * sin(omega * delta_t / 2.0);
@@ -378,12 +378,12 @@ double WPG_ThreeD_Motion_Model::dqA_by_domegaA(const double omegaA,
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaB is one of omegax, omegay, omegaz and similarly with qA.
 **/
-double WPG_ThreeD_Motion_Model::dqA_by_domegaB(const double omegaA, 
-						   const double omegaB, 
-						   const double omega, 
+double WPG_ThreeD_Motion_Model::dqA_by_domegaB(const double omegaA,
+						   const double omegaB,
+						   const double omega,
 						   double delta_t)
 {
-  return (omegaA * omegaB / (omega * omega)) * 
+  return (omegaA * omegaB / (omega * omega)) *
     ( (delta_t / 2.0) * cos(omega * delta_t / 2.0)
       - (1.0 / omega) * sin(omega * delta_t / 2.0) );
 }

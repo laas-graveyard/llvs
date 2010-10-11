@@ -1,6 +1,6 @@
 /** @doc This object implements a visual process
     to build boundary representation.
-    
+
     CVS Information:
    $Id$
    $Author$
@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <iostream>
@@ -103,7 +103,7 @@ int HRP2BRepDetectionProcess::RealizeTheProcess()
 {
   if (!m_Computing)
     return 0;
-    
+
   int EAt_orig = m_opt.param.eth;
 
   for(int i=0;i<3;i++)
@@ -115,7 +115,7 @@ int HRP2BRepDetectionProcess::RealizeTheProcess()
 	}
     }
   //  brep_msave("output.brp",&m_BRep[0],3,0);
-		     
+
   return 0;
 }
 
@@ -141,10 +141,10 @@ int HRP2BRepDetectionProcess::BuildBrepVar(CBREPSeq_var & aBrepVar)
   for(int i=0;i<3;i++)
     if (m_ImagesOnWhichToProcess[i]!=0)
       NbOfImagesToProcess++;
-    
+
   aBrepVar = new CBREPSeq;
   aBrepVar->length(NbOfImagesToProcess);
-  
+
   for(int i=0,k=0;i<NbOfImagesToProcess;i++)
     if (m_ImagesOnWhichToProcess[i]!=0)
       FromBREPToCorbaBREP(aBrepVar[k++],i);
@@ -167,7 +167,7 @@ int HRP2BRepDetectionProcess::FromBREPToCorbaBREP(CBREP &aBREP_var, int anImage)
   aBREP_var.colstart = m_BRep[anImage].colstart;
   aBREP_var.rowstart = m_BRep[anImage].rowstart;
   aBREP_var.ncol = m_BRep[anImage].ncol;
-  aBREP_var.nrow = m_BRep[anImage].nrow;  
+  aBREP_var.nrow = m_BRep[anImage].nrow;
   aBREP_var.CameraID = anImage;
 
   aBREP_var.region.length(aBREP_var.nregion);
@@ -187,8 +187,8 @@ int HRP2BRepDetectionProcess::FromBREPToCorbaBREP(CBREP &aBREP_var, int anImage)
     {
       FromBREPCnetToCorbaBREPCnet(&m_BRep[anImage].cnet[i],aBREP_var.cnet[i]);
     }
-  
-  
+
+
   return 0;
 }
 
@@ -207,7 +207,7 @@ int HRP2BRepDetectionProcess::FromBREPPointToCorbaBREPPoint(BREP_Point *abrepp, 
   aBREP_Point_var.y = abrepp->y;
   aBREP_Point_var.z = abrepp->z;
   aBREP_Point_var.normals = abrepp->normal;
-  
+
   for(int i=0;i<3;i++)
     {
       aBREP_Point_var.Normal[i] = abrepp->Normal[i];
@@ -238,7 +238,7 @@ int HRP2BRepDetectionProcess::FromBREPCnetToCorbaBREPCnet(BREP_Cnet * aBREP_Cnet
   aBREP_Cnet_var.red = aBREP_Cnet->red;
   aBREP_Cnet_var.green = aBREP_Cnet->green;
   aBREP_Cnet_var.blue = aBREP_Cnet->blue;
-  
+
 
   return 0;
 }
@@ -256,7 +256,7 @@ int HRP2BRepDetectionProcess::FromBREPRegionToCorbaBREPRegion(BREP_Region * aBRE
   aBREP_Region_var.type = aBREP_Region->type;
   aBREP_Region_var.intensity = aBREP_Region->intensity;
   aBREP_Region_var.std_deviation  = aBREP_Region->std_deviation;
-  
+
   aBREP_Region_var.bound.length(aBREP_Region->nbound);
   for(int i=0;i<aBREP_Region->nbound;i++)
     FromBREPBoundaryToCorbaBREPBoundary(aBREP_Region->bound+i, aBREP_Region_var.bound[i]);
@@ -272,7 +272,7 @@ int HRP2BRepDetectionProcess::FromBREPRegionToCorbaBREPRegion(BREP_Region * aBRE
   aBREP_Region_var.cnet.length(aBREP_Region->ncnet);
   for(int i=0;i<aBREP_Region->ncnet;i++)
     FromBREPCnetToCorbaBREPCnet(aBREP_Region->cnet+i, aBREP_Region_var.cnet[i]);
-  
+
   return 0;
 }
 
@@ -290,7 +290,7 @@ int HRP2BRepDetectionProcess::FromBREPBoundaryToCorbaBREPBoundary(BREP_Bound * a
   aBREP_Boundary_var.point.length(aBREP_Boundary->npoint);
   for(int i=0;i<aBREP_Boundary->npoint;i++)
     FromBREPPointToCorbaBREPPoint(aBREP_Boundary->point+i, aBREP_Boundary_var.point[i]);
-  
+
   return 0;
 }
 
@@ -311,7 +311,7 @@ int HRP2BRepDetectionProcess::FromBREPSegmentToCorbaBREPSegment(BREP_Segment * a
   aBREP_Segment_var.red = aBREP_Segment->red;
   aBREP_Segment_var.green = aBREP_Segment->green;
   aBREP_Segment_var.blue = aBREP_Segment->blue;
-  
+
   return 0;
 }
 
@@ -321,7 +321,7 @@ int HRP2BRepDetectionProcess::SetParameter(string aParameter, string aValue)
   int r;
 
   r = HRP2VisionBasicProcess::SetParameter(aParameter, aValue);
-  
+
   if (aParameter=="Threshold")
     {
       m_opt.param.eth = atoi(aValue.c_str());

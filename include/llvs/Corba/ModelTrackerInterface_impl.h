@@ -27,12 +27,12 @@ author Stephane Embarki & Claire Dune
 namespace llvs
 {
   class LowLevelVisionServer;
-  
+
   class ModelTrackerInterface_impl :
   public virtual POA_ModelTrackerInterface
   {
   protected:
-    
+
     // Ref. to LLVS to set tracker parameters.
     LowLevelVisionServer * m_LLVS;
 
@@ -41,28 +41,28 @@ namespace llvs
     CBTrackerData m_CBTD;
 
 #endif
-    
-    
+
+
   public:
-    
+
     ModelTrackerInterface_impl(LowLevelVisionServer * LLVS);
-    
+
     ~ModelTrackerInterface_impl();
-    
+
     virtual CORBA::Boolean SetcMo(const ModelTrackerInterface::HomogeneousMatrix& acMo);
 
     virtual CORBA::Boolean SetcdMo(const ModelTrackerInterface::HomogeneousMatrix& aHM);
-   
+
     virtual CORBA::Boolean GetcMo(ModelTrackerInterface::HomogeneousMatrix &acMo);
 
     virtual CORBA::Boolean GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO);
-    
-    
+
+
   };
-  
-  
+
+
 };
 
 #include "LowLevelVisionServer.h"
 
-#endif 
+#endif

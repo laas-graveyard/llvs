@@ -1,9 +1,9 @@
 /** @doc This file implements test for vispConvertImage.cpp
 
 
-   Copyright (c) 2010, 
+   Copyright (c) 2010,
    @author Stephane EMBARKI,
-   
+
    JRL-Japan, CNRS/AIST
 
    See license file for information on license.
@@ -65,11 +65,11 @@ int main(void)
   	G.setLegend( 1, 0, "X after saturation");
 	G.setLegend( 1, 1, "Y after saturation");
 	G.setLegend( 1, 2, "Z after saturation");
-  
+
 
 	HRP2ComputeControlLawProcess * CCLProcess;
 	CCLProcess = new HRP2ComputeControlLawProcess;
-	
+
 	CCLProcess->pSetParameter("VEL_MAX","0.2:0.1:0.1");
 
 	vpColVector V0(3);
@@ -100,7 +100,7 @@ int main(void)
 	    G.plot(1,2,t,SatVel[2]);
 
 	  }
-	
+
 #else
 
 std::cout <<std::endl<<"Need ViSP with libplotter to execute this example"<<std::endl;

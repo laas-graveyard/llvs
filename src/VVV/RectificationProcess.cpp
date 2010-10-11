@@ -36,16 +36,16 @@ HRP2RectificationProcess::~HRP2RectificationProcess()
 void HRP2RectificationProcess::SetInputImages(EPBM InputImages[3])
 {
   int i;
-  
+
   for(i=0;i<3;i++)
     m_InputImages[i] = InputImages[i];
-  
+
 }
 
 void HRP2RectificationProcess::SetOutputImages(EPBM OutputImages[3])
 {
   int i;
-  
+
   for(i=0;i<3;i++)
     m_OutputImages[i] = OutputImages[i];
 }
@@ -80,7 +80,7 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
   double fromCur2OrigX,fromCur2OrigY;
   double ImageNR[2];
 
-  
+
 
   for (chkl = 0, chkr = 0, i = 0; i < 3; i++) {
     for (j = 0; j < 4; j++) {
@@ -102,7 +102,7 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
     fprintf(stderr,"scm_ConvertImage: EPBM DATA IS NOT GOOD");
     return -1;
   }
-  
+
   /* From currently corrected image to original corrected image. */
   fromCur2OrigX = (double)OriginalWidth/(double)I->Width;
   fromCur2OrigY = (double)OriginalHeight/(double)I->Height;
@@ -110,7 +110,7 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
   /* Compute the "virtual" size of the original none corrected image */
   scr[0] = (double)OriginalWidth;
   scr[1] = (double)OriginalHeight;
-  
+
   scm_SCMcr2cr(sp, lcv, scr, ImageNR);
 
   /* From original none corrected image to currently non corrected image */
@@ -127,15 +127,15 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
   if (I->Magic2 == EPBM_BINARY_GRAY) {
     for (scm_row = 0; scm_row < O->Height; scm_row++) {
       for (scm_col = 0; scm_col < O->Width; scm_col++) {
-	
+
 	/*	fprintf(stderr,"(%d %d %d %d)\n",
 		OriginalWidth,OriginalHeight,
 		I->Width,I->Height);
 
 	fprintf(stderr,"{%f %f %f %f}\n",
 		fromCur2OrigX,fromCur2OrigY,
-		fromOrig2CurX,fromOrig2CurY); 
-	*/	
+		fromOrig2CurX,fromOrig2CurY);
+	*/
 	scr[0] = fromCur2OrigX*(double)scm_col;
 	scr[1] = fromCur2OrigY*(double)scm_row;
 	scm_SCMcr2cr(sp, lcv, scr, cr);
@@ -143,8 +143,8 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
 	frow = fromOrig2CurY*cr[1] - (double)nrow;
 	ncol = (int)floor(fromOrig2CurX*cr[0]);
 	fcol = fromOrig2CurX*cr[0] - (double)ncol;
-	
-	
+
+
 	if ((nrow < 0) || (I->Height - 1 <= nrow) ||
 	    (ncol < 0) || (I->Width - 1 <= ncol))
 	  epbm_uc_getpixel(O, scm_row, scm_col) = 0;
@@ -158,11 +158,11 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
 	       epbm_uc_getpixel(I, nrow + 1, ncol + 1) * frow * fcol +
 	       0.5);
 	    /*
-	    fprintf(stderr,"%d %d %f %f %f %f %d %d %f %f %f %f %d %d\n", 
+	    fprintf(stderr,"%d %d %f %f %f %f %d %d %f %f %f %f %d %d\n",
 		    scm_col,scm_row,scr[0],scr[1],cr[0],cr[1],
-		    ncol, nrow, ImageNR[0], ImageNR[1], fromOrig2CurX, fromOrig2CurY, OriginalWidth, OriginalHeight); 
+		    ncol, nrow, ImageNR[0], ImageNR[1], fromOrig2CurX, fromOrig2CurY, OriginalWidth, OriginalHeight);
 	    */
-		
+
 	  }
       }
     }
@@ -225,7 +225,7 @@ HRP2RectificationProcess::scm_ConvertImageLocal(CONST SCM_PARAMETER *sp, CONST E
 }
 
 int HRP2RectificationProcess::RealizeTheProcess()
-{     
+{
 
   ODEBUG3( m_Computing << " " << m_sp );
   if (m_Computing==0)
@@ -236,11 +236,11 @@ int HRP2RectificationProcess::RealizeTheProcess()
   //int op_zoom = SCM_PINHOLE_F_NULL;
   int op_zoom = 0;
   /* 画像枚数が２、３枚以外のとき */
-  if (n != 2 && n != 3) 
+  if (n != 2 && n != 3)
     {
       return -1;
     }
-  
+
   if (m_sp==0)
     return -2;
 
@@ -250,7 +250,7 @@ int HRP2RectificationProcess::RealizeTheProcess()
   if (first_time==1)
     {
       calib_check_epbm(&m_InputImages[0], &m_InputImages[1], 0);
-      
+
       for(i=0;i<2;i++)
 	{
 	  m_OutputImages[i].Width = m_CalibrationWidth[i];
@@ -269,7 +269,7 @@ int HRP2RectificationProcess::RealizeTheProcess()
 
   /* L,Rの画像が同一のものではないかすでに変換されている */
 
-  for (i = 0; i < n; i++) 
+  for (i = 0; i < n; i++)
     {
       char FileName[256];
       scm_ConvertImageLocal(m_sp, &m_InputImages[i], &m_OutputImages[i], m_CalibrationWidth[i],m_CalibrationHeight[i]);
@@ -284,6 +284,6 @@ int HRP2RectificationProcess::RealizeTheProcess()
       m_OutputImages[i].Label |= EPBM_CONVERTED_SCM_MASK;
       m_OutputImages[i].PinHoleParameter->f = m_sp->f;
     }
-  
+
   return 0;
 }

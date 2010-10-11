@@ -30,7 +30,7 @@ const unsigned int & IEEE1394DCCameraParameters::GetCameraNumberInUserSemantic()
   return m_CameraNumberInUserSemantic;
 }
 
-void IEEE1394DCCameraParameters::SetCameraNumberInUserSemantic(const unsigned int & aCamNbInUserSemantic) 
+void IEEE1394DCCameraParameters::SetCameraNumberInUserSemantic(const unsigned int & aCamNbInUserSemantic)
 {
   m_CameraNumberInUserSemantic = aCamNbInUserSemantic;
 }
@@ -40,7 +40,7 @@ const string & IEEE1394DCCameraParameters::GetGUID() const
   return m_GUID;
 }
 
-void IEEE1394DCCameraParameters::SetGUID(const string &aGUID) 
+void IEEE1394DCCameraParameters::SetGUID(const string &aGUID)
 {
   m_GUID = aGUID;
 }
@@ -50,7 +50,7 @@ const string & IEEE1394DCCameraParameters::GetFormat() const
   return m_Format;
 }
 
-void IEEE1394DCCameraParameters::SetFormat(const string &aFormat) 
+void IEEE1394DCCameraParameters::SetFormat(const string &aFormat)
 {
   m_Format = aFormat;
 }

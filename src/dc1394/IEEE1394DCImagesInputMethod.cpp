@@ -701,7 +701,7 @@ HRP2IEEE1394DCImagesInputMethod::GetImageSingleRGB
 		}
 	    }
 	}
-      
+
       if (0)
       {
 	static unsigned long int lindex=0;

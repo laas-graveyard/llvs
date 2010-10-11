@@ -1,6 +1,6 @@
 /** @doc This object implements an abstract class
     of camera.
-    
+
 CVS Information:
    $Id$
    $Author$
@@ -9,31 +9,31 @@ CVS Information:
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _CAMERA_IMPL_H_
@@ -74,23 +74,23 @@ namespace llvs
   class Camera_impl : public virtual POA_HRP2Camera
     {
     public:
-  
+
       /*! Constructor*/
       Camera_impl(const char * location,LowLevelVisionServer *aLLVS);
-  
+
       /*! Destructor */
       ~Camera_impl();
 
       /*! Interface : destroy() method */
       void destroy();
-  
+
       /*! Interface : returns the camera parameter */
       virtual HRP2Camera::CameraParameter * GetCameraParameter()
 	throw(CORBA::SystemException);
 
       /*! Interface : returns the intrinsic parameters */
       virtual HRP2Camera::IntrinsicParameters GetIntrinsicParameters()
-	throw(CORBA::SystemException) ; 
+	throw(CORBA::SystemException) ;
 
       /*! Interface : returns the projective parameters */
       virtual HRP2Camera::ProjectiveParameters GetProjectiveParameters()
@@ -99,13 +99,13 @@ namespace llvs
       /*! Interface : returns the depth Buffer */
       virtual CORBA::Long SetAcquisitionSize(CORBA::Long aWidth, CORBA::Long aHeight)
 	throw(CORBA::SystemException);
-  
+
       /*! Set the father */
       void SetFather(LowLevelVisionServer *aFather);
 
       /*! Get the father */
       LowLevelVisionServer * GetFather();
-    
+
       /*! Set the identifier */
       void SetIdentifier(int anID);
 
@@ -157,7 +157,7 @@ namespace llvs
 
       /*! Camera parameter */
       HRP2Camera::CameraParameter m_CameraParameter;
-  
+
       /*! Intrinsic camera parameters */
       HRP2Camera::IntrinsicParameters m_IntrinsicParameter;
 

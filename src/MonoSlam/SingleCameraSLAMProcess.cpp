@@ -1,6 +1,6 @@
 /** @doc This object implements a visual process
     to get single camera Self Localization and map building.
-    
+
     CVS Information:
    $Id$
    $Author$
@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <LowLevelVisionServer.h>
@@ -72,7 +72,7 @@ HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
     m_MAX_LAMBDA(5.0),
     m_NUMBER_OF_PARTICLES(100),
     m_STANDARD_DEVIATION_DEPTH_RATIO(0.3),
-    m_MIN_NUMBER_OF_PARTICLES(20), 
+    m_MIN_NUMBER_OF_PARTICLES(20),
     m_PRUNE_PROBABILITY_THRESHOLD(0.05),
     m_ERASE_PARTIALLY_INIT_FEATURE_AFTER_THIS_MANY_ATTEMPTS(10)
 {
@@ -83,7 +83,7 @@ HRP2SingleCameraSLAMProcess::HRP2SingleCameraSLAMProcess(CORBA::ORB_var orb,
   m_TrackingState = false;
   m_MappingState = false;
   m_ProcessName = "Single Camera SLAM";
-  
+
   /* Default value for the Vision state and the mapping state */
   string aParameter = "TrackingState";
   string aValue = "false";
@@ -174,7 +174,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
   VNL::Vector<double> waist_velocity(3);
   VNL::Vector<double> camera_height(1);
   VNL::Vector<double> posorientation(7);
-      
+
   ODEBUG("Went through HERE !");
   if (!m_Computing)
     return 0;
@@ -191,7 +191,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       // Compute now the matrix from the head to the wide lens camera.
       if (m_FFFWI!=0)
 	{
-	  // Take the wide lens extrinsic parameters inside the 
+	  // Take the wide lens extrinsic parameters inside the
 	  // first vision reference frame.
 	  VNL::Matrix<double> FromCamToW(4,4);
 	  FromCamToW.SetIdentity();
@@ -228,30 +228,30 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       int NbOfFramePassed;
       ldelta_t = time1 - prev_time;
       //      NbOfFramePassed = (int) ceil(ldelta_t * 30.0);
-      //      ldelta_t = 0.033 * NbOfFramePassed;      
+      //      ldelta_t = 0.033 * NbOfFramePassed;
     }
 
-  //  cerr << "Frame acquired: absolute time = " << time1 - time0 
+  //  cerr << "Frame acquired: absolute time = " << time1 - time0
   //      << " seconds." << endl;
 
   ODEBUG("Before test on Gyro And Accelerometer");
   if (!CORBA::is_nil(m_GyroAndAccelerometer))
     {
-      
+
       double timeref = time1 - 0.033;
       if (GetGyroAcceleroFromTimeStamp(lGyro,lAccelerometer,timeref,lWaistVelocity,lPosOrientation)<0)
 	{
 	  lGyro[0] = 0; lGyro[1]= 0; lGyro[2] = 0.0;
-	  lAccelerometer[0] = 
-	    lAccelerometer[1] = 
+	  lAccelerometer[0] =
+	    lAccelerometer[1] =
 	    lAccelerometer[2] = 0.0;
-	  lWaistVelocity[0] = 
+	  lWaistVelocity[0] =
 	    lWaistVelocity[1] = 0.0;
 	  for(int li=0;li<7;li++)
 	    lPosOrientation[li] = 0.0;
 	}
 
-      // Update using the gyro values....      
+      // Update using the gyro values....
       gyro(0) = lGyro[0];
       gyro(1) = lGyro[1];
       gyro(2) = lGyro[2];
@@ -259,7 +259,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       waist_velocity(0) = lWaistVelocity[0];
       waist_velocity(1) = lWaistVelocity[1];
       waist_velocity(2) = 0.0;
-      
+
       //      camera_height(0) = 1.40;
 
       for(int li=0;li<7;li++)
@@ -291,7 +291,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       for(int i=0;i<3;i++)
 	  for(int j=0;j<3;j++)
 	    R[i][j]=M[i][j];
-      
+
       // Put it back in quaternion + position.
       VW::Quaternion qf(R);
       // right now just the position.
@@ -301,7 +301,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       camera_height(0) = posorientation(6);
 
     }
-  else 
+  else
     {
       //      cout << "NO GYRO TAKING INTO ACCOUNT " << endl;
     }
@@ -342,9 +342,9 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
       ODEBUG("Perform MonoSLAMHRP "
 	      << m_MappingState << " "
 	      << m_TrackingState << " "
-	      << m_VisionFlag << " " 
+	      << m_VisionFlag << " "
 	      << m_GyroFlag << " "
-	      << m_WaistVelocityFlag << " " 
+	      << m_WaistVelocityFlag << " "
 	      << m_CameraHeightFlag );
       ODEBUG3("Orientation : " << posorientation << " " << lPosOrientation[7] <<
 	      " 0 0 " << sin(0.5*lPosOrientation[7]) << " " << cos(0.5*lPosOrientation[7]) );
@@ -353,7 +353,7 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
 	      "m_MonoSLAMHRP->GetRobotNoConst() :" << m_MonoSLAMHRP->GetRobotNoConst() << endl);
       m_MonoSLAMHRP->GetRobotNoConst()->load_new_image(m_grabbed_image);
       ODEBUG("here ");
-      m_MonoSLAMHRP->GoOneStepHRP(m_grabbed_image, 
+      m_MonoSLAMHRP->GoOneStepHRP(m_grabbed_image,
 				  0.033,
 				  m_MappingState,
 				  m_VisionFlag,
@@ -366,14 +366,14 @@ int HRP2SingleCameraSLAMProcess::pRealizeTheProcess()
 				  camera_height,
 				  posorientation,
 				  u);
-    }    
-	    
+    }
+
   ODEBUG("HandleNewFrame() finished");
   struct timeval tod2;
   double time2;
   gettimeofday(&tod2, NULL);
   time2 = tod2.tv_sec + tod2.tv_usec / 1000000.0;
-  //cerr << "Computation time SLAM alone " << time2 - time1 
+  //cerr << "Computation time SLAM alone " << time2 - time1
   //<< " seconds." << endl;
   prev_time = time1;
   lFirstTime = 0;
@@ -391,14 +391,14 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 {
   int r=-1;
   unsigned char ok = 1;
-  
+
   if (aParameter=="TrackingState")
     {
       if (aValue=="false")
 	m_TrackingState = false;
       else if (aValue=="true")
 	m_TrackingState = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -408,7 +408,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_MappingState = false;
       else if (aValue=="true")
 	m_MappingState = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -418,7 +418,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_VisionFlag = false;
       else if (aValue=="true")
 	m_VisionFlag = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -428,7 +428,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_GyroFlag = false;
       else if (aValue=="true")
 	m_GyroFlag = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -438,7 +438,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_WaistVelocityFlag = false;
       else if (aValue=="true")
 	m_WaistVelocityFlag = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -448,7 +448,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_CameraHeightFlag = false;
       else if (aValue=="true")
 	m_CameraHeightFlag = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -458,7 +458,7 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
 	m_OrientationFlag = false;
       else if (aValue=="true")
 	m_OrientationFlag = true;
-      else 
+      else
 	ok = 0;
     }
 
@@ -477,9 +477,9 @@ int HRP2SingleCameraSLAMProcess::SetParameter(string aParameter, string aValue)
     }
   if (ok)
     r = HRP2VisionBasicProcess::SetParameter(aParameter, aValue);
-  
+
   return r;
-  
+
 }
 
 
@@ -493,14 +493,14 @@ int HRP2SingleCameraSLAMProcess::GetPositionAndCovariance(double Position[7], do
 {
   VNL::Vector<double> xv;
   VNL::Matrix<double> Pxx;
-  
+
   Scene_Single * scene;
   scene = (Scene_Single *)m_MonoSLAMHRP->GetScene();
 
   // Takes the data from the scene object.
   xv = scene->get_xv();
   Pxx = scene->get_Pxx();
-  
+
   for(unsigned int i=0;i<xv.size();i++)
     Position[i] = xv[i];
 
@@ -515,7 +515,7 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
 {
   VNL::Vector<double> xv;
   VNL::Matrix<double> Pxx;
-  
+
   Scene_Single * scene;
   scene = (Scene_Single *)m_MonoSLAMHRP->GetScene();
 
@@ -538,7 +538,7 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
   for(unsigned int i=0;i<xv.size();i++)
     aSO_var->xv.data[i] = xv[i];
 
-   
+
   // Covariance matrix
   int lncols;
   aSO_var->Pxx.data.length(Pxx.size());
@@ -547,7 +547,7 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
   for(unsigned int j=0;j<Pxx.Rows();j++)
     for(unsigned int i=0;i<Pxx.Cols();i++)
       aSO_var->Pxx.data[j*lncols + i] = Pxx[j][i];
- 
+
   aSO_var->Features.length(scene->get_no_features());
   vector<Feature *> ListOfFeatures = scene->get_feature_list_noconst();
   int r = ListOfFeatures.size();
@@ -559,7 +559,7 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       VNL::Vector<double> y;
       VNL::Matrix<double> S;
       VNL::Matrix<double> Pyy;
-      
+
       ODEBUG("Feature "<< l);
       y = ListOfFeatures[l]->get_y();
       aSO_var->Features[l].y.data.length(y.size());
@@ -570,8 +570,8 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
 	  aSO_var->Features[l].y.data[i] = y[i];
 	}
 
-      	
-      
+
+
       Pyy = ListOfFeatures[l]->get_Pyy();
       aSO_var->Features[l].Pyy.data.length(Pyy.size());
       aSO_var->Features[l].Pyy.nrows = Pyy.Rows();
@@ -583,14 +583,14 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       aSO_var->Features[l].label = ListOfFeatures[l]->get_label();
       aSO_var->Features[l].SuccessfulMeasurementFlag = ListOfFeatures[l]->get_successful_measurement_flag();
       aSO_var->Features[l].SelectedFlag = ListOfFeatures[l]->get_selected_flag();
-	
+
       h = ListOfFeatures[l]->get_h();
       aSO_var->Features[l].h.data.length(h.size());
       aSO_var->Features[l].h.nrows = h.size();
       aSO_var->Features[l].h.ncols = 1;
       for(unsigned int i=0;i<h.size();i++)
 	aSO_var->Features[l].h.data[i] = h[i];
-	    
+
 
       z = ListOfFeatures[l]->get_z();
       aSO_var->Features[l].z.data.length(z.size());
@@ -608,11 +608,11 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       for(unsigned int j=0;j<S.Rows();j++)
 	for(unsigned int i=0;i<S.Cols();i++)
 	  aSO_var->Features[l].S.data[j*lncols + i] = S[j][i];
- 
 
-      
+
+
       RobotPatchFeature * aRPF =  (RobotPatchFeature *)ListOfFeatures[l]->get_identifier();
-      
+
       //      ImageMonoExtraData * p = (ImageMonoExtraData *)ListOfFeatures[l]->get_identifier();
       VW::ImageMono<unsigned char> *p = aRPF->big_image;
 
@@ -628,9 +628,9 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       int patchw = p->GetWidth();
       int patchh = p->GetHeight();
       unsigned char *pbuf = (unsigned char *)p->GetRawBuffer();
-      
+
       aSO_var->Features[l].Identifier.length(patchw*patchh+2*sizeof(int));
-      
+
       unsigned char *ppw = (unsigned char *)&patchw;
       unsigned int loffset = 0;
 
@@ -642,8 +642,8 @@ int HRP2SingleCameraSLAMProcess::CreateCopyOfScene(SceneObject_var &aSO_var)
       for(unsigned int i=0;i<sizeof(int);i++)
 	aSO_var->Features[l].Identifier[i+loffset] = pph[i];
       loffset+=sizeof(int);
-      
-      
+
+
       for(int j=0;j<patchh;j++)
 	for( int i=0;i<patchw;i++)
 	  aSO_var->Features[l].Identifier[loffset+j*patchw+i] =pbuf[j*patchw+i];
@@ -663,7 +663,7 @@ void HRP2SingleCameraSLAMProcess::GetCorbaConnectionToGGAAplugin()
   CORBA::Object_var ns;
   try {
     ns = m_orb -> resolve_initial_references("NameService");
-  } 
+  }
   catch (const CORBA::ORB::InvalidName&) {
     cerr << "LLVS: can't resolve `NameService'" << endl;
   }
@@ -677,7 +677,7 @@ void HRP2SingleCameraSLAMProcess::GetCorbaConnectionToGGAAplugin()
 	<< endl;
   }
 
-  CosNaming::NamingContext_var rootnc;  
+  CosNaming::NamingContext_var rootnc;
   try {
     rootnc = CosNaming::NamingContext::_narrow(ns);
     if(CORBA::is_nil(rootnc)) {
@@ -698,12 +698,12 @@ void HRP2SingleCameraSLAMProcess::GetCorbaConnectionToGGAAplugin()
 #if 0
 #ifdef ORBIXE
   cxt = rootnc;
-  
+
 #else
   ncName[0].id = CORBA::string_dup("openhrp");
   try {
     cxt = CosNaming::NamingContext::_narrow(rootnc -> resolve(ncName));
-  } catch (const CosNaming::NamingContext::NotFound&) {    
+  } catch (const CosNaming::NamingContext::NotFound&) {
     cerr << "openhrp context not found" << endl;
     cxt = rootnc -> new_context();
     rootnc -> rebind_context(ncName, cxt);
@@ -717,11 +717,11 @@ void HRP2SingleCameraSLAMProcess::GetCorbaConnectionToGGAAplugin()
   ncName[0].id = CORBA::string_dup("ggaa");
 
   CORBA::Object_ptr anObject=0;
-  
-  try 
+
+  try
     {
       anObject = m_cxt->resolve(ncName);
-    } 
+    }
   catch(...)
     {
       ODEBUG("GGAA not found");
@@ -732,7 +732,7 @@ void HRP2SingleCameraSLAMProcess::GetCorbaConnectionToGGAAplugin()
   }catch(...){
     ODEBUG("GGAA not narrowed");
   }
-  
+
   if (!CORBA::is_nil(m_GyroAndAccelerometer))
     {
     }
@@ -759,18 +759,18 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
   // The 60 ms delay
   timeref += 0.06;
 
-  
+
   double timedelay;
   ODEBUG("Going through int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp");
   if (!CORBA::is_nil(m_GyroAndAccelerometer))
     {
 
       seqGyroAndAccelerometerOutput_var aseqGGAAO;
-      
+
       ODEBUG("Going through int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp step 1");
       try
 	{
-	  
+
 	  // This part take into account the delay between the two computers.
 	  struct timeval timebegin,timeend;
 	  double dtimebegin, dtimeend;
@@ -780,11 +780,11 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 	  CORBA::Double PrevTimestamp;
 	  m_GyroAndAccelerometer->getGyroAndAccelerometer(aseqGGAAO,PrevTimestamp);
 
-	  
+
 	  gettimeofday(&timeend,0);
 	  dtimebegin = timebegin.tv_sec + 0.000001 * timebegin.tv_usec;
 	  dtimeend = timeend.tv_sec + 0.000001 * timeend.tv_usec;
-	  timedelay = 0.5 * (dtimebegin-dtimeend) + 
+	  timedelay = 0.5 * (dtimebegin-dtimeend) +
 	    PrevTimestamp - dtimebegin;
 	  timeref += timedelay;
 	  timeref2 += timedelay;
@@ -792,14 +792,14 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
       catch (...)
 	{
 	  cout << "Error while accessing GyroAndAccelerometer plugin "<<endl;
-	  
+
 	  return -1;
 	}
 
       ODEBUG("Going through int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp step 2");
       for(unsigned int j=0;j<60;j++)
 	{
-	  
+
 	  if ((r=fabs(aseqGGAAO[j].timestamp-timeref)) < timediff)
 	    {
 	      timediff = r;
@@ -840,8 +840,8 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 	  if (index1>60)
 	    index1=0;
 	  cout << " " << timeref - aseqGGAAO[index1].timestamp << endl;
-	  
-	  
+
+
 	  cout << r << " " << r2 << " " << timediff << " "<< timediff2 << endl;
 	  cout << "lPosOrientation + 0.3 :" ;
 	  for(unsigned int k=0;k<7;k++)
@@ -855,10 +855,10 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 	  cout << 180*lPosOrientation[5]/M_PI << " " << 180*lPosOrientationPast[5]/M_PI<< " " <<
 	    (lPosOrientation[5]-lPosOrientationPast[5])/0.03 << endl;
 	  static double IncTheta=0;
-	  
-      
+
+
 	  ODEBUG("Going through int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp step 3 : 60");
-      
+
 	  ODEBUG("lcounter: "<<lcounter);
 
 	  {
@@ -876,7 +876,7 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 		       << "  " << aseqGGAAO[j].Accelerometer[1]
 		       << "  " << aseqGGAAO[j].Accelerometer[2] << endl;
 		  cout << " Waist velocity: " << endl;
-		  cout << "  " << aseqGGAAO[j].WaistVelocity[0] 
+		  cout << "  " << aseqGGAAO[j].WaistVelocity[0]
 		       << "  " << aseqGGAAO[j].WaistVelocity[1] << endl;
 		  cout << " TimeStamp:" <<endl;
 		  cout << " Position- Orientation " << endl;
@@ -891,7 +891,7 @@ int HRP2SingleCameraSLAMProcess::GetGyroAcceleroFromTimeStamp(double lGyro[3],
 	  }
 	}
     }
-  else 
+  else
     {
       ODEBUG("NOT CONNECTED TO GGAA");
     }

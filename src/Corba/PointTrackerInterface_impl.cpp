@@ -1,10 +1,10 @@
 /** @doc This object implements a visual process to get a disparity map.
 
-    Copyright (c) 2010, 
+    Copyright (c) 2010,
     @author Stephane Embarki
-   
+
     JRL-Japan, CNRS/AIST
-    
+
     See license file for information on license.
 */
 
@@ -39,14 +39,14 @@ PointTrackerInterface_impl::PointTrackerInterface_impl(LowLevelVisionServer * LL
 #if (LLVS_HAVE_VISP>0)
   m_CBPTD.image = new vpImage<unsigned char>(240,320);
   m_CBPTD.timestamp = new double(0);
-#endif 
+#endif
 }
 
 
 
 PointTrackerInterface_impl::~PointTrackerInterface_impl()
 {
-   
+
 }
 
 
@@ -59,10 +59,10 @@ PointTrackerInterface_impl::Init(const PointTrackerInterface::DataTarget & aData
   if ((aData.Target.length()/3)==(aData.UV.length()/2))
     {
       int nbPoint = aData.UV.length()/2;
-      
+
       vector<vpPoint> aTarget;
       aTarget.resize(nbPoint);
-      
+
        vector<vpImagePoint*> vpIP;
        vpIP.resize(nbPoint);
 
@@ -70,7 +70,7 @@ PointTrackerInterface_impl::Init(const PointTrackerInterface::DataTarget & aData
 	 {
 	   vpIP[i]=new vpImagePoint;
 	 }
-      
+
        for(int i =0;i<nbPoint;++i )
 	{
 	  vpIP[i]->set_u(aData.UV[2*i]);
@@ -79,16 +79,16 @@ PointTrackerInterface_impl::Init(const PointTrackerInterface::DataTarget & aData
 					  aData.Target[3*i+1],
 					  aData.Target[3*i+2]);
 	}
-      
+
        m_LLVS->m_PointTrackerProcess->Init(aTarget,
 					     vpIP,
 					     nbPoint);
-      
+
       return true;
     }
-  else 
+  else
     return false;
-  
+
 #else
 
     cout<< " Need ViSP to use SetcMo function"<< endl;
@@ -101,12 +101,12 @@ PointTrackerInterface_impl::Init(const PointTrackerInterface::DataTarget & aData
 CORBA::Boolean
 PointTrackerInterface_impl::GetcMo(PointTrackerInterface::HomogeneousMatrix& acMo)
 {
- 
+
 #if (LLVS_HAVE_VISP>0)
 
 
    m_LLVS->m_CBonPointTracker->ReadData(m_CBPTD);
-  
+
 
   acMo.cMo[0][0]=m_CBPTD.cMo[0][0];
   acMo.cMo[0][1]=m_CBPTD.cMo[0][1];
@@ -131,21 +131,21 @@ PointTrackerInterface_impl::GetcMo(PointTrackerInterface::HomogeneousMatrix& acM
     cout<< " Need VISP to use GetcMo function"<< endl;
     return false;
 #endif
-  
+
   return false;
 }
 
 CORBA::Boolean
 PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoObject_out aDIO)
 {
-  
+
 #if (LLVS_HAVE_VISP>0)
 
   m_LLVS->m_CBonPointTracker->ReadData(m_CBPTD);
-  
+
 #endif
 
-  PointTrackerInterface::DebugInfoObject_var aDIOv = 
+  PointTrackerInterface::DebugInfoObject_var aDIOv =
     new PointTrackerInterface::DebugInfoObject;
 
   aDIOv->anImgData.octetData.length(320*240);
@@ -167,7 +167,7 @@ PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoO
   vpImagePoint lvpIP;
 
    aDIOv->UV.length(2*m_CBPTD.vpIP.size());
-  
+
   for(unsigned int i=0; i<m_CBPTD.vpIP.size();++i)
     {
       aDIOv-> UV[2*i]=m_CBPTD.vpIP[i]->get_u();
@@ -199,9 +199,9 @@ PointTrackerInterface_impl::GetDebugInfoObject(PointTrackerInterface::DebugInfoO
 
   aDIO = aDIOv._retn();
   return 0;
-  
-  
-  
+
+
+
 
   return false;
 }
@@ -212,17 +212,17 @@ PointTrackerInterface_impl::GetPointCoord(PointTrackerInterface::PointCoord_out 
 
 #if (LLVS_HAVE_VISP>0)
 
-  PointTrackerInterface::PointCoord_var PCv = 
+  PointTrackerInterface::PointCoord_var PCv =
     new PointTrackerInterface::PointCoord;
 
    m_LLVS->m_CBonPointTracker->ReadData(m_CBPTD);
-   
+
    double x=0;
    double y=0;
 
    vpCameraParameters cam;
    m_LLVS->m_PointTrackerProcess->GetCameraParameters(cam);
-   
+
  for(unsigned int i=0; i<m_CBPTD.vpIP.size();++i)
     {
       vpPixelMeterConversion::convertPoint( cam ,*m_CBPTD.vpIP[i] , x , y ) ;
@@ -235,7 +235,7 @@ PointTrackerInterface_impl::GetPointCoord(PointTrackerInterface::PointCoord_out 
   return 0;
 
 #else
-  return 1; 
+  return 1;
 #endif
 
 }

@@ -40,9 +40,9 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     omegaC_meas.CopyIn(a);
     //    cout << "omegaC: " << omegaC_meas << endl;
     scene->successful_internal_measurement(omegaC_meas, 0);
-    kalman->update_filter_internal_measurement_slow(scene, 
+    kalman->update_filter_internal_measurement_slow(scene,
 						    0);
-      
+
   }
 
   //  cout << "After gyro" << scene->get_xv() << endl;
@@ -57,7 +57,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     vC_meas.CopyIn(a);
 
     scene->successful_internal_measurement(vC_meas, 1);
-    kalman->update_filter_internal_measurement_slow(scene, 
+    kalman->update_filter_internal_measurement_slow(scene,
 						    1);
   }
 
@@ -67,14 +67,14 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     scene->predict_internal_measurement(2);
 
     scene->successful_internal_measurement(current_camera_height, 2);
-    kalman->update_filter_internal_measurement_slow(scene, 
+    kalman->update_filter_internal_measurement_slow(scene,
 						    2);
   }
   // cout << "after camera height" << scene->get_xv() << endl;
 
  if(use_orientation_flag)
     {
-      
+
       scene->predict_internal_measurement(3);
 
       VNL::Vector<double> vC_meas(7);
@@ -91,7 +91,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 		    current_orientation(6),
 		    qWR.R(),qWR.X(),qWR.Y(),qWR.Z()};
       vC_meas.CopyIn(a);
-      /*      cout << current_orientation(3) << " " 
+      /*      cout << current_orientation(3) << " "
 	   << current_orientation(4) << " "
 	   << current_orientation(5) << endl; */
       //      cout << "Orientation from PG : " <<qco.R() << " " << qco.X()<< " " << qco.Y() << " " << qco.Z() << endl;
@@ -102,7 +102,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
       kalman->update_filter_internal_measurement_slow(scene,3);
       //      cout << "After update " << scene->get_xv() << endl;
 
-    
+
     }
 
   // Control vector of accelerations
@@ -113,15 +113,15 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 
   kalman->predict_filter_fast(scene, u, delta_t);
 
-  unsigned int number_of_visible_features = 
+  unsigned int number_of_visible_features =
     scene->auto_select_n_features(NUMBER_OF_FEATURES_TO_SELECT);
 
   //  scene->print_selected_features();
 
   if (scene->get_no_selected() != 0)
   {
-    scene->predict_measurements(); 
-    if (VERBOSE) cout << "Time after predicting measurements " 
+    scene->predict_measurements();
+    if (VERBOSE) cout << "Time after predicting measurements "
 		      << timer1 << endl;
 
     if (use_vision_flag) {
@@ -136,11 +136,11 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 	if (VERBOSE) cout << "Time after total_update_filter " << timer1 << endl;
 
 	scene->normalise_state();
-      
+
 	if (VERBOSE) cout << "Time after normalise_state " << timer1 << endl;
       }
     }
-  }  
+  }
 
   scene->delete_bad_features();
 
@@ -158,8 +158,8 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
   double speedx = scene->get_xv()(7);
   double speedy = scene->get_xv()(8);
   double speedz = scene->get_xv()(9);
-  double speed = sqrt(speedx * speedx + 
-		      speedy * speedy + 
+  double speed = sqrt(speedx * speedx +
+		      speedy * speedy +
 		      speedz * speedz);
   if (VERBOSE) cout << "Camera speed " << speed << " ms^-1 " << endl;
   /*
@@ -168,37 +168,37 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
        << scene->get_xv()(5) << " "
        << scene->get_xv()(6) << endl;
   */
-  /* 
-  cout << speedz << " " << speedx <<  " " << current_waist_velocity(0) 
+  /*
+  cout << speedz << " " << speedx <<  " " << current_waist_velocity(0)
        << " " << current_waist_velocity(1)  << endl;
   */
   if (use_vision_flag) {
-    if (currently_mapping_flag) { 
+    if (currently_mapping_flag) {
       /*
       cout <<  number_of_visible_features <<  " "
       << scene->get_feature_init_info_vector().size() <<
       endl;
       */
-      
-      if (number_of_visible_features < NUMBER_OF_FEATURES_TO_KEEP_VISIBLE && 
-	  scene->get_feature_init_info_vector().size() < 
+
+      if (number_of_visible_features < NUMBER_OF_FEATURES_TO_KEEP_VISIBLE &&
+	  scene->get_feature_init_info_vector().size() <
 	  (unsigned int) (MAX_FEATURES_TO_INIT_AT_ONCE)) {
 	AutoInitialiseFeature(u, delta_t);
       }
     }
 
-    if (VERBOSE) cout << "Time after matching point features: " 
+    if (VERBOSE) cout << "Time after matching point features: "
 		      << timer1 << endl;
 
     MatchPartiallyInitialisedFeatures();
 
-    if (VERBOSE) cout << "Time after matching partially init. feature: " 
+    if (VERBOSE) cout << "Time after matching partially init. feature: "
 		      << timer1 << endl;
   }
 
 
   //  scene->output_state_to_file();
-  //  cout << "End of EKF : " << scene->get_xv() << endl; 
+  //  cout << "End of EKF : " << scene->get_xv() << endl;
   if (isnan(scene->get_xv()[0]))
       exit(0);
 

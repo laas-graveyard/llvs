@@ -1,13 +1,13 @@
-/** @doc Object to convert back and forth a ViSP image into a OpenCV image 
-    
+/** @doc Object to convert back and forth a ViSP image into a OpenCV image
+
 
    Copyright (c) 2003-2010,
    @author Stephane Embarki
 
    see License file for more information
    on the license applied to this code.
-   
-   
+
+
 */
 #ifndef _HRP2_VISP_IMAGE_CONVERT_PROCESS_H_
 #define _HRP2_VISP_IMAGE_CONVERT_PROCESS_H_
@@ -38,16 +38,16 @@ class HRP2vispConvertImageProcess : public HRP2VisionBasicProcess
  public:
 
   typedef enum
-    {  
+    {
 	MAT_VISPRGB,
 	MAT_VISPU8,
 	VISPRGB_MAT,
 	VISPU8_MAT
 
-    } typeConversion ;	
- 
+    } typeConversion ;
 
-  typedef struct 
+
+  typedef struct
   {
     unsigned int nChannel;
     unsigned int depth;
@@ -55,7 +55,7 @@ class HRP2vispConvertImageProcess : public HRP2VisionBasicProcess
     unsigned int widthStep;
     unsigned int height;
   } sImageParameters;
-  
+
   /*! Constructor */
   HRP2vispConvertImageProcess(HRP2vispConvertImageProcess::typeConversion type);
 
@@ -67,26 +67,26 @@ class HRP2vispConvertImageProcess : public HRP2VisionBasicProcess
 
   /*! Realize the process */
   int pRealizeTheProcess();
-  
+
    /*! Cleanup the process */
   int pCleanUpTheProcess();
- 
+
   /*! Set a parameter */
   int SetParameter(string aParameter, string aValue);
-   
+
   /*! Get the image */
-  void SetImages(vpImage<unsigned char>* & ,cv::Mat* & ); 
-  void SetImages(vpImage<vpRGBa>* &,cv::Mat* & );  
+  void SetImages(vpImage<unsigned char>* & ,cv::Mat* & );
+  void SetImages(vpImage<vpRGBa>* &,cv::Mat* & );
 
 
- 
+
 private:
 
   /*! Convert OpenCV Mat image To VISP U8 Image*/
-  void ConvertMatToViSPU8Image( bool flip=false);  
-  
+  void ConvertMatToViSPU8Image( bool flip=false);
+
   /*! Convert OpenCV Mat image To VISP RGBa Image*/
-  void ConvertMatToViSPRGBaImage( bool flip=false); 
+  void ConvertMatToViSPRGBaImage( bool flip=false);
 
   /*! Convert VISP RGBa Image To OpenCV Mat image*/
   void ConvertViSPRGBaToMatImage();
@@ -110,10 +110,10 @@ public:
   bool m_flip;
   typeConversion m_conversion;
   sImageParameters m_ImgParam;
-  /*current internal state*/ 
-  std::string m_internalState; 	
+  /*current internal state*/
+  std::string m_internalState;
 };
 
 
 
-#endif 
+#endif

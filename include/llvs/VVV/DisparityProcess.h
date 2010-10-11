@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _HRP2_DISPARITY_PROCESS_H_
@@ -61,7 +61,7 @@ typedef struct {
 } DataPoint_t;
 
 /*!
- * Data structure to store 3D point 
+ * Data structure to store 3D point
  * plus its bounding box.
  * Used to store error model parameters.
  */
@@ -77,16 +77,16 @@ typedef struct {
  * and the associate cloud of 3D points
  * using the camera parameters embedded in the EPBM image files.
  * Optionnally it also embeds an error model computation.
- * 
+ *
  * 2004 Olivier Stasse, JRL CNRS/AIST
  */
 class HRP2DisparityProcess : public HRP2VisionBasicProcess
 {
  public:
 
-  /*! Constantes for dumping 3D Points :   
-   * DUMP_MODE_3D_POINTS_OFF          : Turn it off 
-   * DUMP_MODE_3D_POINTS_MATCHING     : Dump the points which are matching 
+  /*! Constantes for dumping 3D Points :
+   * DUMP_MODE_3D_POINTS_OFF          : Turn it off
+   * DUMP_MODE_3D_POINTS_MATCHING     : Dump the points which are matching
    *                                    between two frames
    * DUMP_MODE_3D_POINTS_PLY          : Record the 3D points in the ply format.
    * DUMP_MODE_3D_RANGE_DATA          : Record the range data.
@@ -106,8 +106,8 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
   static const int ERROR_MODEL_HIRSCHMULLER = 2;     /* Use Hirschmuller error model */
   static const int ERROR_MODEL_HZ = 3;               /* Use Hartley Zimmermann error model */
 
-  /*! Constructor 
-   * If BooleanForErrorModel equals 1 then an error model 
+  /*! Constructor
+   * If BooleanForErrorModel equals 1 then an error model
    * is used for each 3D points. This error model used the interval
    * analysis to find a bouding box where the 3D box is guarranted to be.
    */
@@ -131,7 +131,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
   /*! Initialize the error model structure */
   void InitializeErrorModel();
 
-  /*! Set the input images 
+  /*! Set the input images
    * This method is needed to set up the reference to the input images.
    * They should be specified only once. The first image is the left image.
    * The second image is the second image. It is assume that those images
@@ -139,16 +139,16 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
    */
   int SetInputImages(EPBM lInputImages[2]);
 
-  /*! Find matching in the images coordinates 
+  /*! Find matching in the images coordinates
    * After calling this method, m_NbOfPoitnsWithInformation gives the number of pairs found.
    * m_PointsInImageLeft[2*i] and m_PointsInImageLeft[2*i+1] contains
    * the coordinates x and y respectivly which match the point
-   * m_PointsInImageRight[2*i] and m_PointsInImageRight[2*i+1] 
+   * m_PointsInImageRight[2*i] and m_PointsInImageRight[2*i+1]
    * in the Right image.
    */
   int FindMatchingInImagesCoordinates();
 
-  /*! Use interval analysis to compute the bouding box 
+  /*! Use interval analysis to compute the bouding box
    * If MethodToCompute equals 1 then the GAUSS_SIEDEL contractor
    * is used to compute the bouding box.
    * If MethodToCompute equals 2, a lookup table will be used.
@@ -156,7 +156,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
   int ComputeIntervalError(int MethodToCompute);
 
   /*! Use gauge based analysis to compute the covariance matrix
-   * of the 3D point. 
+   * of the 3D point.
    */
   int ComputeHZError(void);
 
@@ -167,7 +167,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
 					     TU::Matrix<double> P2,
 					     TU::Matrix<double> CovX,
 					     TU::Matrix<double> Theta);
-  /*! Read the lookup table for the camera model 
+  /*! Read the lookup table for the camera model
    * in the file LUT.dat .
    */
   int ReadLookUpTable(void);
@@ -177,10 +177,10 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
 
   /*! Get the size of the image related to the error model coded in the look up table */
   int GetImageSizeInLUT(int & width, int & height);
-  
+
   /*! Set the calibration size */
   int SetCalibrationSize(int width, int height);
-  
+
   /*! Get the calibration size */
   int GetCalibrationSize(int &width, int &height);
 
@@ -216,13 +216,13 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
   /*! Modify the parameter of the disparity process */
   virtual int SetParameter(string aParameter, string aValue);
 
-  /*! Set the error model 
+  /*! Set the error model
    * @param anErrorMode: One the constantes defined for the error model.
    * @return : 0, if the specified error model is correct, -1 otherwise.
    */
   int SetErrorModel(int anErrorModel);
 
-  /*! Get the error model 
+  /*! Get the error model
    * @return: one the error model constant defined below.
    */
   int GetErrorModel(void);
@@ -234,7 +234,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
 
   /*! Disparity image */
   EPBM m_Depbm;
-  
+
   /*! Range data */
   RANGE m_rng;
 
@@ -251,7 +251,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
   int * m_PointsInImageLeft, * m_PointsInImageRight;
   unsigned char * m_ColorInImageLeft;
 
-  /*! Store the bounding box given by the interval analysis 
+  /*! Store the bounding box given by the interval analysis
      (center x, center y, center z, radius x, radius y, radius z) */
   float * m_BoundingBox;
 
@@ -272,10 +272,10 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
 
   /*! Boolean specifying if an error model should be used or not. */
   unsigned char m_UseErrorModel;
-  
+
   /*! Integer specifying which error model to use. */
   int m_ErrorModel;
-  
+
   /*! Size of the image in the lookup table 0: Width 1: Height (80x60 by default). */
   int m_ImageSizeInLUT[2];
 
@@ -287,7 +287,7 @@ class HRP2DisparityProcess : public HRP2VisionBasicProcess
 
   /*! Textureless image */
   EPBM m_TexturelessImage[3];
-  
+
   /*! Initialization parameters for the textureless masking */
   struct InitParForIsoLuminance_s m_InitParForIsoL;
 

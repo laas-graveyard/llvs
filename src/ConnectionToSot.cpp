@@ -29,43 +29,43 @@ void * ConnectionToSotThread(void *arg)
 #if 0
 	  double waistposition[3];
 	  double waistattitude[3];
-	    
+
 	  aCST->ReadWaistSignals(waistposition,
 				 waistattitude);
 
 	  usleep(23000);
-	  ODEBUG3("Starting again. ( " 
+	  ODEBUG3("Starting again. ( "
 		 << waistposition[0] << " , "
 		 << waistposition[1] << " , "
 		 << waistposition[2] << " ) ( "
 		 << waistattitude[0] << " , "
 		 << waistattitude[1] << " , "
-		 << waistattitude[2] << " ) "); 
+		 << waistattitude[2] << " ) ");
 #else
 	  double headprpy[6];
 	  double waistprpy[6];
 #if 0
 	  aCST->ReadHeadRPYSignals(headprpy);
 	  aCST->ReadWaistRPYSignals(waistprpy);
-#endif 
+#endif
 	  usleep(5000);
 #if 0
-	  ODEBUG3("headprpy ( " 
+	  ODEBUG3("headprpy ( "
 		 << headprpy[0] << " , "
 		 << headprpy[1] << " , "
 		 << headprpy[2] << " ) ( "
 		 << headprpy[3] << " , "
 		 << headprpy[4] << " , "
-		 << headprpy[5] << " ) "); 
-	  
-	  ODEBUG3("waistprpy ( " 
+		 << headprpy[5] << " ) ");
+
+	  ODEBUG3("waistprpy ( "
 		 << waistprpy[0] << " , "
 		 << waistprpy[1] << " , "
 		 << waistprpy[2] << " ) ( "
 		 << waistprpy[3] << " , "
 		 << waistprpy[4] << " , "
-		 << waistprpy[5] << " ) "); 
-#endif	  
+		 << waistprpy[5] << " ) ");
+#endif
 
 #endif
 	}
@@ -110,7 +110,7 @@ ConnectionToSot::~ConnectionToSot()
 
 }
 
-bool ConnectionToSot::GetEndOfThreadLoop() const 
+bool ConnectionToSot::GetEndOfThreadLoop() const
 {
   return m_EndOfThreadLoop;
 }
@@ -122,10 +122,10 @@ void ConnectionToSot::StartThreadOnConnectionSot()
   /* Thread creation */
   if (0) {
     pthread_attr_t Thread_Attr;
-    
+
     pthread_attr_init(&Thread_Attr);
     pthread_create(&aThread, &Thread_Attr,ConnectionToSotThread, (void *)this);
-    
+
     ODEBUG("OmniORB thread:" << pthread_self());
   }
 
@@ -144,9 +144,9 @@ bool ConnectionToSot::SetCorbaReference()
   lServiceKind.resize(2);
   lServiceName[0]= "sot";lServiceName[1]= "coshell";
   lServiceKind[0]="context";lServiceKind[1]="servant";
-  
+
   CORBA::Object_ptr obj = m_LLVS->getObjectReference(lServiceName,lServiceKind);
-  ODEBUG( "Able to get the reference for :" << lServiceName[0] << " " 
+  ODEBUG( "Able to get the reference for :" << lServiceName[0] << " "
 	  << lServiceKind[0] );
 
   if (CORBA::is_nil(obj))
@@ -156,7 +156,7 @@ bool ConnectionToSot::SetCorbaReference()
     }
 
   ODEBUG( "Before narrowing");
-  
+
   try
     {
       m_SOT_Server_Command = nsCorba::SOT_Server_Command::_narrow(obj);
@@ -164,7 +164,7 @@ bool ConnectionToSot::SetCorbaReference()
   catch(...)
     {
        cerr << "Unable to narrow :" << lServiceName[0]
-	   << " " << lServiceKind[0] 
+	   << " " << lServiceKind[0]
 	   << "CORBAReference : "<< m_SOT_Server_Command;
       return false;
     }
@@ -172,12 +172,12 @@ bool ConnectionToSot::SetCorbaReference()
   if (CORBA::is_nil(m_SOT_Server_Command))
     {
       ODEBUG3("Unable to narrow :" << lServiceName[0]
-	      << " " << lServiceKind[0] 
+	      << " " << lServiceKind[0]
 	      << "CORBAReference : "<< m_SOT_Server_Command);
       exit(0);
     }
   ODEBUG( "After narrowing");
-  
+
   return true;
 }
 
@@ -188,7 +188,7 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSvelref;
       ODEBUG("Enter WriteVelocityReference 1 ");
@@ -199,13 +199,13 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
 	DSvelref[li]= velref[li];
       ODEBUG("Enter WriteVelocityReference 3 " << m_VelRefSignalRank);
       m_SOT_Server_Command->writeOutputVectorSignal(m_VelRefSignalRank,
-						    DSvelref);      
+						    DSvelref);
 
     }
   catch(...)
     {
       cout << "Unable to write signal of rank . " << m_VelRefSignalRank<< endl;
-      
+
     }
   ODEBUG("Go out of WriteVelocityReference ");
 
@@ -218,7 +218,7 @@ void ConnectionToSot::WriteObjectCoG(double ObjectCoG[2])
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSObjectCoG;
       ODEBUG("Enter WriteObjectCoG 1 ");
@@ -229,13 +229,13 @@ void ConnectionToSot::WriteObjectCoG(double ObjectCoG[2])
 	DSObjectCoG[li]= ObjectCoG[li];
       ODEBUG("Enter WriteObjectCoG 3 " << m_ObjectCoGSignalRank);
       m_SOT_Server_Command->writeOutputVectorSignal(m_ObjectCoGSignalRank,
-						    DSObjectCoG);      
+						    DSObjectCoG);
 
     }
   catch(...)
     {
       cout << "Unable to write signal of rank . " << m_ObjectCoGSignalRank<< endl;
-      
+
     }
   ODEBUG("Go out of WriteObjectCoG");
 
@@ -249,12 +249,12 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSwaistpos, DSwaistatt;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPositionSignalRank,
 						  DSwaistpos);
-      
+
       m_SOT_Server_Command->readInputVectorSignal(m_WaistAttitudeSignalRank,
 						  DSwaistatt);
 
@@ -266,7 +266,7 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 	{
 	  for(unsigned li=0;li<3;li++)
 	    {
-	      waistposition[li] = 
+	      waistposition[li] =
 		m_CircularBuffer[m_CircularBufferIndex++] = DSwaistpos[li];
 	    }
 	}
@@ -275,12 +275,12 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
 	{
 	  for(unsigned li=0;li<3;li++)
 	    {
-	      waistattitude[li] = 
+	      waistattitude[li] =
 		m_CircularBuffer[m_CircularBufferIndex++] = DSwaistatt[li];
 	    }
 	}
 
-     
+
       if (m_CircularBufferIndex>=m_CircularBufferIndexMax)
 	m_CircularBufferIndex = 0;
 
@@ -288,7 +288,7 @@ void ConnectionToSot::ReadWaistSignals(double waistposition[3],
   catch(...)
     {
       cout << "Unable to read waist signals. "<< endl;
-      
+
     }
   ODEBUG("Go out of  ReadWaistSignals ");
 }
@@ -300,12 +300,12 @@ void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DShead;
       m_SOT_Server_Command->readInputVectorSignal(m_HeadPRPYSignalRank,
 						  DShead);
-      
+
       if (DShead->length()==6)
 	{
 	  for(unsigned int li=0;li<6;li++)
@@ -313,7 +313,7 @@ void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
 	      headposerpy[li]= DShead[li];
 	    }
 	}
-      ODEBUG("Head Pose-RPY: " << 
+      ODEBUG("Head Pose-RPY: " <<
 	      DShead[0] << " " <<
 	      DShead[1] << " " <<
 	      DShead[2] << " " <<
@@ -336,12 +336,12 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSwaist;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPRPYSignalRank,
 						  DSwaist);
-      
+
       if (DSwaist->length()==6)
 	for(unsigned int li=0;li<6;li++)
 	  waistposerpy[li]= DSwaist[li];
@@ -349,7 +349,7 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
   catch(...)
     {
       cout << "Unable to read waist rpy signals. "<< endl;
-      
+
     }
   ODEBUG("Go out of  ReadWaistRPYSignals ");
 }
@@ -361,12 +361,12 @@ void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSwaistcom;
       m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
 						  DSwaistcom);
-      
+
       if (DSwaistcom->length()==3)
 	for(unsigned int li=0;li<3;li++)
 	  waistcom[li]= DSwaistcom[li];
@@ -374,7 +374,7 @@ void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
   catch(...)
     {
       cout << "Unable to read com ref control signals. "<< endl;
-      
+
     }
   ODEBUG("Go out of  ReaddComRefSignals ");
 }
@@ -386,22 +386,22 @@ void ConnectionToSot::ReaddComRefSignals(vector<double> &dcomref)
   try
     {
       struct timeval ats;
-	    
+
 
       nsCorba::DoubleSeq_var DSdcomref;
       m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
 						  DSdcomref);
-      
+
       if (DSdcomref->length()!=dcomref.size())
 	dcomref.resize(DSdcomref->length());
-      
+
       for(unsigned int li=0;li<DSdcomref->length();li++)
 	dcomref[li]= DSdcomref[li];
     }
   catch(...)
     {
       cout << "Unable to read dcomref control signals. "<< endl;
-      
+
     }
   ODEBUG("Go out of  ReaddComRefSignals ");
 }
@@ -413,11 +413,11 @@ void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
   try
     {
       struct timeval ats;
-	    
+
       nsCorba::DoubleSeq_var DScomattitude;
       m_SOT_Server_Command->readInputVectorSignal(m_ComAttitudeSignalRank,
 						  DScomattitude);
-      
+
       if (DScomattitude->length()==3)
 	for(unsigned int li=0;li<3;li++)
 	  comattitude[li]= DScomattitude[li];
@@ -425,7 +425,7 @@ void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
   catch(...)
     {
       cout << "Unable to read com attitude signals. "<< endl;
-      
+
     }
   ODEBUG("Go out of  ReadComAttitudeSignals ");
 }
@@ -444,7 +444,7 @@ bool ConnectionToSot::Init()
     return status;
 
   ODEBUG("Test");
-  if( CORBA::is_nil(m_SOT_Server_Command) ) 
+  if( CORBA::is_nil(m_SOT_Server_Command) )
     {
       cerr << "Failed to narrow the root naming context." << endl;
       return false;
@@ -463,7 +463,7 @@ bool ConnectionToSot::Init()
   for(unsigned int li=0;li<6;li++)
     {
 
-      /*      
+      /*
       aCS->length(CstSignaux[li].size());
       for(unsigned int j=0;j<CstSignaux[li].size();j++)
       aCS[j] = CstSignaux[li][j];*/
@@ -493,21 +493,21 @@ bool ConnectionToSot::Init()
 
   for(unsigned int li=0;li<2;li++)
     {
-      
+
       try
 	{
 	  if (li==0)
 	    m_VelRefSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[li].c_str());
 	  else if (li==1)
 	    m_ObjectCoGSignalRank = m_SOT_Server_Command->createOutputVectorSignal(OutSignal[li].c_str());
-	  
+
 	  ODEBUG("Creation of signal: " << OutSignal[0] << " " << m_VelRefSignalRank);
-	  
+
 	  {
 	    double velref[3] = {0.0,0.0,0.0};
 	    WriteVelocityReference(velref);
 	  }
-	  
+
 	}
       catch(...)
 	{
@@ -515,9 +515,9 @@ bool ConnectionToSot::Init()
 	  exit(-1);
 	}
     }
-  
+
   ODEBUG("After creating the signals: " );
-  
+
 #if 0
 #define NBCOMMANDS 4
   string SotCommand[4]= {
@@ -551,11 +551,11 @@ bool ConnectionToSot::Init()
   for(unsigned int li=0;li<NBCOMMANDS;li++)
     {
 
-      try 
-	{ 
+      try
+	{
 
 	  nsCorba::StringStreamer_var CoshellOutput;
-	  m_SOT_Server_Command->runAndRead(SotCommand[li].c_str(),CoshellOutput); 
+	  m_SOT_Server_Command->runAndRead(SotCommand[li].c_str(),CoshellOutput);
 	  ODEBUG("Launched " << SotCommand[li].c_str());
 	  string lans;
 	  lans.resize(CoshellOutput->length());
@@ -570,8 +570,8 @@ bool ConnectionToSot::Init()
 	  return false;
 	}
     }
-  
+
   ODEBUG("Launched all the commands");
-  
+
   return true;
 }

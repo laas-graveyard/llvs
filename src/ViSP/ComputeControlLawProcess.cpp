@@ -1,11 +1,11 @@
 /** @doc This object implements a visual process to get a disparity map.
 
-    Copyright (c) 2010, 
-    @author Stephane Embarki, 
+    Copyright (c) 2010,
+    @author Stephane Embarki,
     C. Dune,
-   
+
     JRL-Japan, CNRS/AIST
-    
+
     See license file for information on license.
 */
 #include <llvs/tools/Debug.h>
@@ -50,13 +50,13 @@ HRP2ComputeControlLawProcess:: ~HRP2ComputeControlLawProcess()
 {
   delete m_FT;
   delete m_FThU;
- 
+
 }
 
 
 int HRP2ComputeControlLawProcess::init()
 {
- 
+
   m_FT= new vpFeatureTranslation(vpFeatureTranslation::cdMc);
   m_FThU= new vpFeatureThetaU(vpFeatureThetaU::cdRc);
   m_Lambda = 0.6;
@@ -78,35 +78,35 @@ int HRP2ComputeControlLawProcess::init()
   m_Velzero.resize(3);
   m_Velzero=0.02;
 
-  // load 
+  // load
   vpHomogeneousMatrix cameraMhead;
   loadcMh(cameraMhead);
-	
- 
+
+
   m_headMcamera = cameraMhead.inverse();
   m_hVc.buildFrom(m_headMcamera);
-   
+
   m_ModelHeightLimit =0.9;
- 
+
   return 0 ;
 }
 
 
 int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
 {
- 
+
 
   //TODO : this file name shouldn't be written here
   ifstream file;
   string name="./data/ViSP/hrp2CamParam/cMh.3";
   file.open (name.c_str());
-  
+
   try
     {
       cMh.load(file);
     }
   catch(vpException a) // file doesn't exist
-    { 
+    {
       cout << "---- Open Exception Default---------------"<<endl;
       cout<<"----Wide camera extrinsic parameters ---- " <<endl;
       vpCTRACE << endl <<a;
@@ -117,8 +117,8 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
       cMh[2][0]=0.9853256992 ; cMh[2][1]=0.0187590039;   cMh[2][2]= -0.1696511946;  cMh[2][3]=-0.04729590458 ;
       cMh[3][0]=0; cMh[3][1]=0;cMh[3][2]= 0;  cMh[3][3]=1 ;
       return -1;
-    } 
-    
+    }
+
   file.close();
   return 0;
 }
@@ -137,33 +137,33 @@ int HRP2ComputeControlLawProcess::loadcMh(vpHomogeneousMatrix& cMh)
 
   VEL_MAX
 -------------------------------------*/
-int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter, 
+int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 					       std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
-  // A parameter can be or cannot be associated with a value, 
+  // A parameter can be or cannot be associated with a value,
   // thus an empty string for Value is correct.
-  // If the parameter already exist is value is overwritten. 
+  // If the parameter already exist is value is overwritten.
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
- 
+
   ODEBUG("Set parameter in CCL  ");
 
   if (aParameter=="LAMBDA")
     {
-     
+
       m_Lambda= atof(aValue.c_str());
-      
+
       ODEBUG("LAMBDA : "<< m_Lambda);
-      
+
       m_Task.setLambda( m_Lambda);
     }
   else if (aParameter=="MOTION_FREE")
-    { 
+    {
       SetMotionTest(FREE);
     }
   else if (aParameter=="MOTION_GROUND")
-    { 
+    {
       int found=0;
       string tmp;
       vector<double> limit(3);
@@ -176,18 +176,18 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 	  limit[i]=atof(tmp.c_str());
 	  ODEBUG("limit["<<i<<"] : "<<limit[i]);
 	}
-                 
+
       SetMotionTest(ON_GROUND,limit);
     }
  else if (aParameter=="MOTION_PLAN")
-    { 
+    {
       int found=0;
       string tmp;
       vector<double> limit(3);
 
       for ( int i=0; i<3;++i)
 	{
-	  
+
 	  found=aValue.find(":");
 	  tmp=aValue.substr(0,found);
 	  aValue.erase(0,found+1);
@@ -195,27 +195,27 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 
 	  ODEBUG("limit["<<i<<"] : "<<limit[i]);
 	}
-                 
+
       SetMotionTest(PLAN_MOTION,limit);
     }
  else if (aParameter=="MOTION_HL")
-    { 
- 
+    {
+
       vector<double> limit(1);
       limit[0]=atof(aValue.c_str());
 
       ODEBUG("limit[0] : "<<limit[0]);
-                       
+
       SetMotionTest(HEIGHT_LIMITED,limit);
     }
  else if (aParameter=="VEL_MAX")
-    { 
+    {
       int found=0;
       string tmp;
-      
+
       for ( int i=0; i<3;++i)
 	{
-	  
+
 	  found=aValue.find(":");
 	  tmp=aValue.substr(0,found);
 	  aValue.erase(0,found+1);
@@ -223,16 +223,16 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 
 	  ODEBUG("Velmax["<<i<<"] : "<< m_Velmax[i]);
 	}
-             
+
     }
  else if (aParameter=="VEL_ZERO")
-    { 
+    {
       int found=0;
       string tmp;
-      
+
       for ( int i=0; i<3;++i)
 	{
-	  
+
 	  found=aValue.find(":");
 	  tmp=aValue.substr(0,found);
 	  aValue.erase(0,found+1);
@@ -240,18 +240,18 @@ int HRP2ComputeControlLawProcess::pSetParameter(std::string aParameter,
 
 	  ODEBUG("Velzero["<<i<<"] : "<< m_Velmax[i]);
 	}
-             
+
     }
  else if (aParameter=="INTERNAL_STATE")
-    { 
-      m_internalState=aValue;             
+    {
+      m_internalState=aValue;
     }
  else
     {
-      cout << "Warning : unknown parameter :"<< aParameter << endl; 
+      cout << "Warning : unknown parameter :"<< aParameter << endl;
       return -1;
     }
-  
+
   return 0;
 }
 
@@ -269,26 +269,26 @@ void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
 
   double headprpy[6];
   double waistprpy[6];
- 
+
   // Read nom information from SoT.
   if (m_CTS!=0)
     {
       m_CTS->ReadHeadRPYSignals(headprpy);
-      
-      vpRxyzVector headInFootRxyz(headprpy[3],	
+
+      vpRxyzVector headInFootRxyz(headprpy[3],
 				  headprpy[4],
 				  headprpy[5]);
-      
+
       vpThetaUVector headInFootThU     (headInFootRxyz);
-      
+
       vpTranslationVector  headInFootT (headprpy[0],
 					headprpy[1],
-					headprpy[2]); 
-      
+					headprpy[2]);
+
       vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
-      
+
       m_LastfMo = fMh*m_headMcamera*m_cdMo;
-      
+
       m_IninitHeight = m_LastfMo[2][3];
     }
   else
@@ -310,7 +310,7 @@ void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
 						  const vector<double> &limits)
 {
   m_MotionTested = aMotion;
-  
+
   if(m_MotionTested == HEIGHT_LIMITED && limits.size()==1)
     {
       m_ModelHeightLimit = limits[0] ;
@@ -318,17 +318,17 @@ void  HRP2ComputeControlLawProcess::SetMotionTest(typeMotion aMotion,
   else if (m_MotionTested == ON_GROUND && limits.size()==3 )
     {
       m_ModelHeightLimit = limits[0] ;
-      m_RxLimit = limits[1] ; 
+      m_RxLimit = limits[1] ;
       m_RyLimit = limits[2] ;
     }
   else if (m_MotionTested == PLAN_MOTION && limits.size()==3 )
     {
       m_ModelHeightLimit = limits[0] ;
-      m_RxLimit = limits[1] ; 
+      m_RxLimit = limits[1] ;
       m_RyLimit = limits[2] ;
     }
 
-  else 
+  else
     {
       cout << " The vector<double> size doesn't match with the typeMotion"<<endl;
     }
@@ -368,7 +368,7 @@ int HRP2ComputeControlLawProcess::pStartProcess()
   else
     {
       m_Computing = 0;
-      cout<< "cdMo must be set to start the compute controle law process"; 
+      cout<< "cdMo must be set to start the compute controle law process";
       return -1;
     }
   return 0;
@@ -376,13 +376,13 @@ int HRP2ComputeControlLawProcess::pStartProcess()
 
 
 
-/*!------------------------------------- 
-  Initialize the process. 
+/*!-------------------------------------
+  Initialize the process.
   -------------------------------------*/
 int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 {
   m_Task.setServo(vpServo::EYEINHAND_CAMERA);
-  
+
   m_Task.setInteractionMatrixType(vpServo::CURRENT);
 
   m_Task.setLambda( m_Lambda);
@@ -392,7 +392,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
 
   m_FT->buildFrom(m_cdMc);
   m_FThU->buildFrom(m_cdMc);
-	
+
   m_Task.addFeature( *m_FT) ;
   m_Task.addFeature(*m_FThU) ;
 
@@ -401,8 +401,8 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   m_Task.print() ;
 #endif
 
-  
-  
+
+
   m_ProcessInitialized =true;
 
 #if 1
@@ -419,7 +419,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
       <<"/ Control in camera Frame(6 values) / Control in waist Frame(6 values)"
       <<"/ Control send to SoT (3 values) / Control from SoT in ref frame (2 values) "
       <<"/ Theta out pg (1 value)/ Control from SoT in robot frame (2 values) " <<endl;
-  
+
   aof.close();
 
 #endif
@@ -427,18 +427,18 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   return 0;
 }
 
-/*!------------------------------------- 
-  Realize the process 
+/*!-------------------------------------
+  Realize the process
   -------------------------------------*/
 int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
   m_ComputeV.resize(6);
   m_ControlLawComputed = false;
   int r=-1;
-  
+
   // store the velocity in camera frame
   vpColVector cVelocity(6);
-  
+
   // store the velocity in waist frame
   vpColVector wVelocity(6);
 
@@ -459,7 +459,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpColVector error3ddl(3);
   double error3ddlInfinityNorm=100;
   double errorThreshold=0.1;
-  
+
   if ( m_nmbt->m_trackerTrackSuccess )
     {
       // Get data from the tracker.
@@ -467,7 +467,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_nmbt->GetProjectedObj(vpProjectedCoG);
       projectedCoG[0] = vpProjectedCoG[0];
       projectedCoG[1] = vpProjectedCoG[1];
-      
+
       ODEBUG("m.cMo : "<<m_cMo);
       ODEBUG("m.cdMo : "<<m_cdMo);
       m_cdMc = m_cdMo*m_cMo.inverse();
@@ -475,20 +475,20 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       ODEBUG("m.cdMc : "<<m_cdMc);
       m_FT->buildFrom(m_cdMc) ;
       m_FThU->buildFrom(m_cdMc) ;
-      
-  
+
+
       ODEBUG("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
-      
+
       ODEBUG("Before SumSquare!");
       m_Error = m_Task.error.sumSquare();
-      
+
       // build the 3ddl error vector from the 6 ddl one
       error3ddl[0]= m_Task.error[0];
       error3ddl[1]= m_Task.error[2];
       error3ddl[2]= m_Task.error[4];
       error3ddlInfinityNorm=error3ddl.infinityNorm();
-                  
+
       // express the rotation as rx ry rz
       vpThetaUVector VthU(cVelocity[3],cVelocity[4],cVelocity[5]);
       ODEBUG("Before Vrxyz!");
@@ -502,14 +502,14 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_ControlLawComputed = true;
       double headprpy[6];
       double waistprpy[6];
-      
+
       // Get the current robot frames from SoT.
       if (m_CTS!=0)
 	{
 	  m_CTS->ReadHeadRPYSignals(headprpy);
 	  m_CTS->ReadWaistRPYSignals(waistprpy);
-	      
-	  //Create homogeneousMatrix to store the head position in foot frame   
+
+	  //Create homogeneousMatrix to store the head position in foot frame
 	  vpHomogeneousMatrix fMh;
 
 	  // Change the velocity frame from camera to waist
@@ -518,28 +518,28 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 			      headprpy,
 			      waistprpy,
 			      fMh);
-      
-	  // Compute the object position in foot frame 
+
+	  // Compute the object position in foot frame
 	  fMo = fMh*m_headMcamera*m_cMo;
-  
+
 	  if (TestObjectMotion(fMo))
 	    m_ComputeV = wVelocity;
 	  else
 	    {
-	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
+	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl;
 	      r=-1;
 	    }
 	}
-      else 
+      else
 	{
-	  ODEBUG3("Unable to contact SoT !!"); 
+	  ODEBUG3("Unable to contact SoT !!");
 	  r=-2;
 	}
     }
   else
     {
-       
-      ODEBUG3( "Error in Compute control law >> the tracking failed !!!"); 
+
+      ODEBUG3( "Error in Compute control law >> the tracking failed !!!");
       r=-3;
     }
 
@@ -564,7 +564,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   double waistcom[3];
   double comattitude[3];
-  
+
   if (m_CTS!=0)
     {
       ODEBUG("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
@@ -575,7 +575,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_CTS-> ReaddComRefSignals(waistcom);
 
       m_CTS-> ReadComAttitudeSignals(comattitude);
-      
+
     }
   else
     {
@@ -589,7 +589,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   ODEBUG("Staying alive !");
 #if 1
-  
+
   vpTranslationVector cTo(m_cMo[0][3],m_cMo[1][3],m_cMo[2][3]);
   vpThetaUVector cThUo(m_cMo);
   vpRxyzVector cRxyzo (cThUo);
@@ -612,10 +612,10 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpColVector waistCtlVelinRef(6);
   waistCtlVelinRef[0]=waistcom[0];
   waistCtlVelinRef[1]=waistcom[1];
-  
+
   vpColVector waistCtlVelRobot(6);
   waistCtlVelRobot=comVref*waistCtlVelinRef;
-  
+
   ofstream aof;
   aof.open("dumpcommand.dat",ofstream::app);
   struct timeval atv;
@@ -644,7 +644,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 #endif
 
   return r;
- 
+
 }
 
 /*
@@ -655,7 +655,7 @@ int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
 
   double* velref;
   velref=new double[3];
-  
+
   stop(velref);
   if (m_CTS!=0)
     {
@@ -663,27 +663,27 @@ int  HRP2ComputeControlLawProcess::pCleanUpTheProcess()
     }
 
   return 0;
-} 
+}
 
 /*
  Change the velocity frame
- 
+
  \brief :
  The velocituy results from the visual servoing control
  law. It is basically expressed in the camera frame
  Using the current measurements, we can compute the
  transformation between the camera frame in the waist
- 
+
  wMc and the correponding Twist wVc
- 
+
  and use it to change the velocity frame.
 
- 
+
  return : 0  if ok
           -1 if the input velocity is not of size 6
-          
-  
- warning : attention nothing garanties the size 
+
+
+ warning : attention nothing garanties the size
            of   poseHeadInFoot and poseWaistInFoot
 
  */
@@ -698,10 +698,10 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
     {
       return -1;
     }
-  
-  velWaist.resize(6); 
-  
-  //Express rotation in theta U 
+
+  velWaist.resize(6);
+
+  //Express rotation in theta U
   vpRxyzVector headInFootRxyz      (poseHeadInFoot[3],
 				    poseHeadInFoot[4],
 				    poseHeadInFoot[5]);
@@ -711,7 +711,7 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
   vpThetaUVector headInFootThU     (headInFootRxyz);
   vpThetaUVector waistInFootThU    (waistInFootRxyz);
 
-  //Create translation vectors      
+  //Create translation vectors
   vpTranslationVector  headInFootT (poseHeadInFoot[0],
 				    poseHeadInFoot[1],
 				    poseHeadInFoot[2]);
@@ -719,39 +719,39 @@ int  HRP2ComputeControlLawProcess::changeVelocityFrame(const vpColVector& velCam
 				    poseWaistInFoot[1],
 				    poseWaistInFoot[2]);
 
-  //Create the corresponding homogeneousMatrix    
+  //Create the corresponding homogeneousMatrix
   vpHomogeneousMatrix  fMh (headInFootT ,headInFootThU);
   vpHomogeneousMatrix  fMw (waistInFootT, waistInFootThU);
- 
+
   afMh=fMh;
 
   //Compute the position of the head in the waist
   vpHomogeneousMatrix wMh = fMw.inverse()*fMh;
- 
+
   //Compute the associate twist matrix
   vpVelocityTwistMatrix wVh (wMh);
- 
+
   //The position of the current camera in the head should
   // have been previously loaded
   //Change the velocity frame
   velWaist = wVh*m_hVc*velCam;
-  
+
   return 0;
 }
 
 /*! Test on object plan  Motion */
 bool HRP2ComputeControlLawProcess::planMotion(const vpHomogeneousMatrix &afMo)
 {
-  
+
   vpHomogeneousMatrix olMo = m_LastfMo.inverse()* afMo;
- 
+
   vpThetaUVector olThUo(olMo);
   vpRxyzVector   olRxyzo(olThUo);
-  
+
   if((fabs(olRxyzo[0])< m_RxLimit) &&
      (fabs(olRxyzo[1])< m_RyLimit) &&
      (fabs(olMo[2][3])< m_ModelHeightLimit ))
- 
+
     {
       return true;
     }
@@ -786,14 +786,14 @@ bool HRP2ComputeControlLawProcess::objectOnGround(const vpHomogeneousMatrix &afM
     }
   else
     {
-      return false; 
+      return false;
     }
 }
 
 
 bool HRP2ComputeControlLawProcess::heightInLimit(const vpHomogeneousMatrix &afMo)
 {
- 
+
   if( fabs( afMo[2][3] - m_IninitHeight)< m_ModelHeightLimit )
     {
       return true;
@@ -823,7 +823,7 @@ bool HRP2ComputeControlLawProcess::TestObjectMotion(const vpHomogeneousMatrix &a
     {
       r=objectOnGround(afMh);
     }
-  return r; 
+  return r;
 }
 
 /*! Velocity saturation
@@ -837,7 +837,7 @@ int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,d
   vpColVector dv(0.05*m_Velmax);
   vpColVector Vinf  = m_Velmax-dv;
   vpColVector Vsup  = m_Velmax+dv;
- 
+
 
   ///compute the 3ddl vector corresponding to the input
   vpColVector RawVel3ddl(3);
@@ -849,14 +849,14 @@ int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,d
   // temporary abs value of the input velocity
   double absRawVel;
   // normalization factor
-  double fac = 1; 
+  double fac = 1;
   // for all the coeff
   for (int i=0; i<3;++i)
-    {   
+    {
       absRawVel=fabs(RawVel3ddl[i]);
-      
+
       fac = min(fabs(fac),m_Velmax[i]/(absRawVel+0.00001));
-  
+
       // to prevent from discontinuities
       if( (Vinf[i]<=absRawVel) & (absRawVel <= Vsup[i]) )
 	{
@@ -867,9 +867,9 @@ int HRP2ComputeControlLawProcess::VelocitySaturation(const vpColVector &RawVel,d
 	  fac  = min(fabs(fac),fabs(newfac));
 	}
     }
-  
+
 for (int i=0; i<3;++i)
-    {   
+    {
       VelRef[i]=RawVel3ddl[i]*fac;
     }
  return 0;
@@ -905,6 +905,6 @@ int HRP2ComputeControlLawProcess::ZeroVelocity(double * VelRef)
     {
       VelRef[2]=0;
     }
-  
+
   return 0;
 }

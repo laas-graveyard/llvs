@@ -29,7 +29,7 @@ static std::istream&
 operator >>(std::istream& in, IEEE1394Boardv2::Camera& camera)
 {
     using namespace	std;
-    
+
     struct
     {
 	const u_int		item;
@@ -122,12 +122,12 @@ operator >>(std::istream& in, IEEE1394Boardv2::Camera& camera)
 		break;
 	    }
     }
-    
+
     if (fmt != -1 && rate != -1)
       {
-	ODEBUG("Format " << items[fmt].name << " Rate : " << items[rate].name); 
+	ODEBUG("Format " << items[fmt].name << " Rate : " << items[rate].name);
 
-	
+
 	camera.setFormatAndFrameRate(
 	    Ieee1394Camera::uintToFormat(items[fmt].item),
 	    Ieee1394Camera::uintToFrameRate(items[rate].item));
@@ -156,7 +156,7 @@ operator >>(std::istream& in, IEEE1394Boardv2::Camera& camera)
 	    break;
 	  }
       }
-    else 
+    else
       ODEBUG("No Format No Frame");
     return in;
 }
@@ -182,7 +182,7 @@ IEEE1394Boardv2::Camera::get_pixel(int col, int row)
     }
     return _grayimage[row][col];
 }
-	
+
 RGB
 IEEE1394Boardv2::Camera::get_rgbPixel(int col, int row)
 {
@@ -193,7 +193,7 @@ IEEE1394Boardv2::Camera::get_rgbPixel(int col, int row)
     }
     return _rgbimage[row][col];
 }
-	
+
 /************************************************************************
 *  class IEEE1394Boardv2							*
 ************************************************************************/
@@ -201,7 +201,7 @@ IEEE1394Boardv2::IEEE1394Boardv2(int board_id)
     :_port(board_id), _cameras()
 {
     using namespace	std;
-    
+
     string	configfile = string(VFGB_IEEE1394_CONFDIR)
 			   + "/ieee1394board." + char('0' + board_id) + string (".color");
     ifstream	in(configfile.c_str());
@@ -220,7 +220,7 @@ IEEE1394Boardv2::IEEE1394Boardv2(int board_id)
 	u_int64	uniqId = strtoull(s, 0, 0);
 	ODEBUG("CAMERA " << i << " GID: " << hex << uniqId << dec);
 	_cameras[i] = new IEEE1394Boardv2::Camera(_port, i, uniqId);
-	
+
 	ODEBUG( " Format " << _cameras[i]->getFormat() << " Rate: " << _cameras[i]->getFrameRate());
 
 	in >> *_cameras[i];
@@ -236,14 +236,14 @@ IEEE1394Boardv2::~IEEE1394Boardv2()
 }
 
 
-void 
+void
 IEEE1394Boardv2::SetFeatureForCamera(u_int camera, Ieee1394Camera::Feature aFeature, u_int avalue)
 {
   if ((camera>=0) && (camera<nchildren()))
     _cameras[camera]->setValue(aFeature,avalue);
 }
 
-void 
+void
 IEEE1394Boardv2::GetFeatureForCamera(u_int camera, Ieee1394Camera::Feature aFeature, u_int &avalue)
 {
   if ((camera>=0) && (camera<nchildren()))
@@ -337,7 +337,7 @@ HRP2IEEE1394ImagesInputMethod::HRP2IEEE1394ImagesInputMethod() : HRP2ImagesInput
     m_LastGrabbingTime[li]=-1.0;
 
   m_GrabbingPeriod.resize(m_Board->nchildren());
-  
+
   m_Format = "RGB";
 
   for(int k=0;k<4;k++)
@@ -356,21 +356,21 @@ HRP2IEEE1394ImagesInputMethod::HRP2IEEE1394ImagesInputMethod() : HRP2ImagesInput
 
   HRP2VisionBasicProcess::m_ProcessName = "IEEE1394 Image grabbing";
 
-  
+
   string aPar = "Format";
   string aValue = m_Format;
 
   SetParameter(aPar,aValue);
 
   string Prefixes[4] = { "LEFT", "RIGHT","CYCL","WIDE"};
-  string Features[5] = { "BRIGHTNESS", "AUTO_EXPOSURE","GAMMA","SHUTTER","GAIN"};  
+  string Features[5] = { "BRIGHTNESS", "AUTO_EXPOSURE","GAMMA","SHUTTER","GAIN"};
 
   for(int i=0;i<4;i++)
     m_Prefixes[i] = Prefixes[i];
-  
+
   for(int i=0;i<5;i++)
     m_Features[i] = Features[i];
-  
+
   ODEBUG("Before setting the parameters.");
 
   for(int i=0;i<4;i++)
@@ -382,12 +382,12 @@ HRP2IEEE1394ImagesInputMethod::HRP2IEEE1394ImagesInputMethod() : HRP2ImagesInput
 	  string ParameterValue;
 	  GetCameraFeatureValue(m_Prefixes[i],m_Features[j],ParameterValue);
 	  HRP2VisionBasicProcess::SetParameter(ParameterName,ParameterValue);
-	  
+
 	}
     }
   for(unsigned int i=0;i<m_Board->nchildren();i++)
     FromFrameRateToTime(i);
-    
+
   StartContinuousShot();
   ODEBUG("After setting the parameters.");
 }
@@ -399,7 +399,7 @@ void HRP2IEEE1394ImagesInputMethod::GetCameraFeatureValue(string aCamera, string
 
   int iCamera=0;
   Ieee1394Camera::Feature lFeature=Ieee1394Camera::BRIGHTNESS;
-  
+
   if (aCamera=="LEFT")
     iCamera = 0;
   else if (aCamera=="RIGHT")
@@ -424,7 +424,7 @@ void HRP2IEEE1394ImagesInputMethod::GetCameraFeatureValue(string aCamera, string
 
   u_int avalue=0;
 
-  
+
   m_Board->GetFeatureForCamera(iCamera,lFeature,avalue);
   char Buffer[1024];
   bzero(Buffer,1024);
@@ -439,7 +439,7 @@ void HRP2IEEE1394ImagesInputMethod::SetCameraFeatureValue(string aCamera, string
 
   int iCamera=0;
   Ieee1394Camera::Feature lFeature=Ieee1394Camera::BRIGHTNESS;
-  
+
   StopContinuousShot();
   if (aCamera=="LEFT")
     iCamera = 0;
@@ -466,7 +466,7 @@ void HRP2IEEE1394ImagesInputMethod::SetCameraFeatureValue(string aCamera, string
   u_int avalue;
   avalue = atoi(aValue.c_str());
   m_Board->SetFeatureForCamera(iCamera,lFeature,avalue);
-  StartContinuousShot();  
+  StartContinuousShot();
 }
 
 HRP2IEEE1394ImagesInputMethod::~HRP2IEEE1394ImagesInputMethod()
@@ -478,7 +478,7 @@ HRP2IEEE1394ImagesInputMethod::~HRP2IEEE1394ImagesInputMethod()
       m_Board->stopContinuousShot();
       delete m_Board;
     }
-  
+
   for(int i=0;i<4;i++)
     {
       if (m_TmpImage[i] != 0)
@@ -514,7 +514,7 @@ int HRP2IEEE1394ImagesInputMethod::GetSingleImage(unsigned char **Image, int cam
     StopBoard();
   if ((m_Computing==1) && (m_Board==0))
     StartProcess();
-    
+
   ODEBUG(m_Format);
   if (m_Format=="PGM")
     r = GetImageSinglePGM(Image,camera,timestamp);
@@ -523,7 +523,7 @@ int HRP2IEEE1394ImagesInputMethod::GetSingleImage(unsigned char **Image, int cam
   else if (m_Format=="RGB")
     r = GetImageSingleRGB(Image,camera,timestamp);
 
-  // Detect the change 
+  // Detect the change
   // and stop the board.
   if (m_Computing==0)
     StopBoard();
@@ -531,10 +531,10 @@ int HRP2IEEE1394ImagesInputMethod::GetSingleImage(unsigned char **Image, int cam
   return r;
 }
 
-int HRP2IEEE1394ImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char **ImageRight, 
+int HRP2IEEE1394ImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned char **ImageRight,
 					    unsigned char **ImageUp, unsigned char **ImageWide)
 {
-  int r = -1; 
+  int r = -1;
   if (m_Format=="PGM")
     r = GetImagePGM(ImageLeft,ImageRight, ImageUp, ImageWide);
   else if (m_Format=="RGB")
@@ -545,7 +545,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImage(unsigned char **ImageLeft, unsigned 
   return r;
 }
 
-int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsigned char **ImageRight, 
+int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsigned char **ImageRight,
 					       unsigned char **ImageUp, unsigned char **ImageWide)
 {
   unsigned char * ImagesDst[4];
@@ -557,8 +557,8 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsign
 
   ODEBUG("GetImage");
   LOCAL_TYPE ImagesTab[4];
-  
-  
+
+
   if ((m_TmpImage[0]==0) ||
       (m_TmpImage[1]==0) ||
       (m_TmpImage[2]==0) ||
@@ -617,7 +617,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsign
 	  BHeight = m_Board->height();
 	  intervalw = BWidth / m_ImagesWidth[k];
 	  intervalh =  BHeight/ m_ImagesHeight[k];
-	  
+
 
 	  ImgSrc = m_TmpImage[k];
 
@@ -626,7 +626,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsign
 	      for(unsigned int i=0;i<m_ImagesWidth[k];i+=2)
 		{
 		  indexd = j * m_ImagesWidth[k] + i ;
-		  
+
 		  indexs = j * intervalh * BWidth  + i * intervalw ;
 		  unsigned long localsum[4] = {0,0,0,0};
 		  for(int l=0;l<intervalh;l+=2)
@@ -654,10 +654,10 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRaw(unsigned char **ImageLeft, unsign
 	}
 
     }
-  
+
   return 0;
 }
-int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsigned char **ImageRight, 
+int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsigned char **ImageRight,
 					       unsigned char **ImageUp, unsigned char **ImageWide)
 {
   unsigned char * ImagesDst[4];
@@ -670,8 +670,8 @@ int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsign
 
   ODEBUG("GetImage");
   LOCAL_TYPE ImagesTab[4];
-  
-  
+
+
   if ((m_TmpImage[0]==0) ||
       (m_TmpImage[1]==0) ||
       (m_TmpImage[2]==0) ||
@@ -730,7 +730,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsign
 	  BHeight = m_Board->height();
 	  intervalw = BWidth / m_ImagesWidth[k];
 	  intervalh =  BHeight/ m_ImagesHeight[k];
-	  
+
 
 	  ImgSrc = m_TmpImage[k];
 
@@ -739,7 +739,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsign
 	      for(unsigned int i=0;i<m_ImagesWidth[k];i++)
 		{
 		  indexd = j * m_ImagesWidth[k] + i ;
-		  
+
 		  indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
 		  unsigned long localsum = 0;
 		  for(int l=0;l<intervalh;l++)
@@ -758,7 +758,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImagePGM(unsigned char **ImageLeft, unsign
 
     }
 
-  
+
   return 0;
 }
 
@@ -774,7 +774,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSinglePGM(unsigned char **Image, int 
 
   ODEBUG("GetImageSinglePGM cam: " << camera);
   LOCAL_TYPE ImagesTab[1];
-  
+
   if (m_TmpImage[0]==0)
     {
         ImagesTab[0] = (LOCAL_TYPE)*Image;
@@ -814,7 +814,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSinglePGM(unsigned char **Image, int 
 
       unsigned char *ImgSrc,*ImgDst;
       ImgDst =(unsigned char *) ImagesDst;
-      
+
 
       int intervalw, intervalh, indexd, indexs;
       unsigned int BWidth, BHeight;
@@ -822,16 +822,16 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSinglePGM(unsigned char **Image, int 
       BHeight = m_Board->height();
       intervalw = BWidth / m_ImagesWidth[camera];
       intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
+
+
       ImgSrc = m_TmpImage[0];
-      
+
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
 	    {
 	      for(unsigned int i=0;i<m_ImagesWidth[camera];i++)
 		{
 		  indexd = j * m_ImagesWidth[camera] + i ;
-		  
+
 		  indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
 		  unsigned long localsum = 0;
 		  for(int l=0;l<intervalh;l++)
@@ -842,12 +842,12 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSinglePGM(unsigned char **Image, int 
 			  localsum += ImgSrc[lindexs+m*3];
 			}
 		    }
-		  
+
 		  ImgDst[indexd] = (unsigned char ) (localsum/(intervalh*intervalw));
 		}
 	    }
     }
-  
+
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
   //ODEBUG3( time2 - time1);
@@ -868,11 +868,11 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRGB(unsigned char **Image, int 
 
   ODEBUG("GetImageSingleRGB cam: " << camera);
   LOCAL_TYPE ImagesTab[1];
-  
+
   if (m_TmpImage[0]==0)
     {
       ImagesTab[0] = (LOCAL_TYPE)*Image;
-      
+
       try
 	{
 	  m_Board->snapfromI(ImagesTab[0],camera);
@@ -907,7 +907,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRGB(unsigned char **Image, int 
 
       unsigned char *ImgSrc,*ImgDst;
       ImgDst =(unsigned char *) ImagesDst;
-      
+
 
       int intervalw, intervalh, indexd, indexs;
       unsigned int BWidth, BHeight;
@@ -915,17 +915,17 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRGB(unsigned char **Image, int 
       BHeight = m_Board->height();
       intervalw = BWidth / m_ImagesWidth[camera];
       intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
+
+
       ImgSrc = m_TmpImage[0];
 
- 
+
       for(unsigned int j=0;j<m_ImagesHeight[camera];j++)
 	{
 	  for(unsigned int i=0;i<m_ImagesWidth[camera];i++)
 	    {
 	      indexd = j * m_ImagesWidth[camera]*3 + i*3 ;
-	      
+
 	      indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
 	      unsigned long localsum[3] = {0,0,0};
 	      for(int l=0;l<intervalh;l++)
@@ -949,18 +949,18 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRGB(unsigned char **Image, int 
       aof.open(Buffer,ofstream::out);
       aof << "P6\n"<< BWidth << " " << BHeight << endl;
       aof << "255\n";
-      
+
       for(int j=0;j<m_ImagesHeight[camera]*m_ImagesWidth[camera]*3;j++)
 	aof << (unsigned char) ImgDst[j];
       aof.close();
 #endif
 
     }
-  
+
   //gettimeofday(&tval,0);
   //time2 = tval.tv_sec + 0.000001* tval.tv_usec;
   //ODEBUG3( time2 - time1);
-  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;   
+  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
   return 0;
 }
 
@@ -975,8 +975,8 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRaw(unsigned char **Image, int 
 
   ODEBUG("GetImageSinglePGM cam: " << camera);
   LOCAL_TYPE ImagesTab[1];
-  
-  
+
+
   if (m_TmpImage[0]==0)
     {
         ImagesTab[0] = (LOCAL_TYPE)*Image;
@@ -1014,7 +1014,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRaw(unsigned char **Image, int 
 
       unsigned char *ImgSrc,*ImgDst;
       ImgDst =(unsigned char *) ImagesDst;
-      
+
 
       int intervalw, intervalh, indexd, indexs;
       unsigned int BWidth, BHeight;
@@ -1023,17 +1023,17 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRaw(unsigned char **Image, int 
 
       intervalw = BWidth / m_ImagesWidth[camera];
       intervalh =  BHeight/ m_ImagesHeight[camera];
-      
-      
+
+
       ImgSrc = m_TmpImage[0];
-      
+
       for(unsigned int j=0;j<m_ImagesHeight[camera];j+=2)
 	    {
 	      for(unsigned int i=0;i<m_ImagesWidth[camera];i+=2)
 		{
 
 		  indexd = j * m_ImagesWidth[camera] + i ;
-		  
+
 		  indexs = j * intervalh * BWidth  + i * intervalw ;
 		  unsigned long localsum[4] = {0,0,0,0};
 		  for(int l=0;l<2*intervalh;l+=2)
@@ -1061,11 +1061,11 @@ int HRP2IEEE1394ImagesInputMethod::GetImageSingleRaw(unsigned char **Image, int 
 	    }
     }
 
-  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;    
+  m_LastGrabbingTime[camera]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
   return 0;
 }
 
-int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsigned char **ImageRight, 
+int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsigned char **ImageRight,
 					       unsigned char **ImageUp, unsigned char **ImageWide)
 {
   unsigned char * ImagesDst[4];
@@ -1077,8 +1077,8 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsign
 
   ODEBUG("GetImage");
   LOCAL_TYPE ImagesTab[4];
-  
-  
+
+
   if ((m_TmpImage[0]==0) ||
       (m_TmpImage[1]==0) ||
        (m_TmpImage[2]==0) ||
@@ -1129,7 +1129,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsign
 	{
 	  gettimeofday(&timestamp,0);
 
-	  m_LastGrabbingTime[k]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;  
+	  m_LastGrabbingTime[k]= timestamp.tv_sec + 0.000001* timestamp.tv_usec;
 	  unsigned char *ImgSrc,*ImgDst;
 	  ImgDst =(unsigned char *) ImagesDst[k];
 
@@ -1142,7 +1142,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsign
 	  BHeight = m_Board->height();
 	  intervalw = BWidth / m_ImagesWidth[k];
 	  intervalh =  BHeight/ m_ImagesHeight[k];
-	  	  
+
 
 	  ImgSrc = m_TmpImage[k];
 
@@ -1151,7 +1151,7 @@ int HRP2IEEE1394ImagesInputMethod::GetImageRGB(unsigned char **ImageLeft, unsign
 	      for(unsigned int i=0;i<m_ImagesWidth[k];i++)
 		{
 		  indexd = j * m_ImagesWidth[k] *3  + i * 3 ;
-		  
+
 		  indexs = j * intervalh * BWidth * 3  + i * intervalw *3;
 		  unsigned long localsum[3] = {0,0,0};
 		  for(int l=0;l<intervalh;l++)
@@ -1181,7 +1181,7 @@ int HRP2IEEE1394ImagesInputMethod::SetImageSize(int lw, int lh, int CameraNumber
 {
   if (m_Board==0)
     return 0;
-    
+
   int i;
   ODEBUG("Debug images");
   for(i=0;i<4;i++)
@@ -1245,7 +1245,7 @@ int HRP2IEEE1394ImagesInputMethod::SetFormat(string aFormat)
       ODEBUG("Format Image : RAW");
       return 0;
     }
-  
+
   return -1;
 }
 
@@ -1274,11 +1274,11 @@ int HRP2IEEE1394ImagesInputMethod::SetParameter(string aParameter, string aValue
 	  lpos=6;
 	}
     }
-  
+
   if (IsACamera)
     {
       unsigned char IsFeature=0;
-      
+
       string lFeature = aParameter.substr(lpos,aParameter.length()-lpos);
       for(int i=0;i<5;i++)
 	if (lFeature == m_Features[i])
@@ -1286,7 +1286,7 @@ int HRP2IEEE1394ImagesInputMethod::SetParameter(string aParameter, string aValue
 	    IsFeature=1;
 	    break;
 	  }
-      
+
       if (IsFeature)
 	{
 	  ODEBUG(" Modificatio of camera parameters: " << CameraPrefix << " " << lFeature << " " << aValue);
@@ -1296,7 +1296,7 @@ int HRP2IEEE1394ImagesInputMethod::SetParameter(string aParameter, string aValue
 
   if (aParameter=="Format")
     {
-      SetFormat(aValue);      
+      SetFormat(aValue);
     }
   return 0;
 }
@@ -1311,14 +1311,14 @@ void HRP2IEEE1394ImagesInputMethod::InitializeBoard()
       m_Computing = lmComputing;
     }
 
-  try 
+  try
     {
       m_Board = new IEEE1394Boardv2(0);
     }
   catch(std::exception &except)
     {
       ODEBUG("Exception during initialization: " << except.what() );
-    }  
+    }
   catch(...)
     {
       ODEBUG("Unable to initialize the board correctly\n");
@@ -1349,21 +1349,21 @@ int HRP2IEEE1394ImagesInputMethod::GetNumberOfCameras()
 {
   if (m_Board==0)
     return 0 ;
-    
+
   return m_Board->nchildren();
 }
 
 void HRP2IEEE1394ImagesInputMethod::FromFrameRateToTime(int CameraNumber)
 {
-  TU::Ieee1394Camera::FrameRate IndexOfFR[7] = 
-  { Ieee1394Camera::FrameRate_1_875, 
-    Ieee1394Camera::FrameRate_3_75, 
-    Ieee1394Camera::FrameRate_7_5, 
-    Ieee1394Camera::FrameRate_15, 
-    Ieee1394Camera::FrameRate_30, 
-    Ieee1394Camera::FrameRate_60, 
+  TU::Ieee1394Camera::FrameRate IndexOfFR[7] =
+  { Ieee1394Camera::FrameRate_1_875,
+    Ieee1394Camera::FrameRate_3_75,
+    Ieee1394Camera::FrameRate_7_5,
+    Ieee1394Camera::FrameRate_15,
+    Ieee1394Camera::FrameRate_30,
+    Ieee1394Camera::FrameRate_60,
     Ieee1394Camera::FrameRate_x};
-  
+
   double TimeValue[7]=
   {
     1.0/1.875,
@@ -1386,7 +1386,7 @@ void HRP2IEEE1394ImagesInputMethod::FromFrameRateToTime(int CameraNumber)
 
   if (lFound)
     m_GrabbingPeriod[CameraNumber] = TimeValue[li];
-  else 
+  else
     m_GrabbingPeriod[CameraNumber] = 1e32;
 }
 

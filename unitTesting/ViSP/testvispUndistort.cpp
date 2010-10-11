@@ -1,9 +1,9 @@
 /** @doc This file implements test for vispConvertImage.cpp
 
 
-   Copyright (c) 2010, 
+   Copyright (c) 2010,
    @author Stephane EMBARKI,
-   
+
    JRL-Japan, CNRS/AIST
 
    See license file for information on license.
@@ -13,14 +13,14 @@
 
 #define ODEBUG2(x)
 #define ODEBUG3(x) cerr << "HPR2Tracker:" << x << endl
-#define ODEBUG3_CONT(x) cerr << x 
+#define ODEBUG3_CONT(x) cerr << x
 
 #if 0
 #define ODEBUG(x) cerr << "HPR2Tracker:" <<  x << endl
 #define ODEBUG_CONT(x) cerr << "HPR2Tracker:" <<  x << endl
 #else
-#define ODEBUG(x) 
-#define ODEBUG_CONT(x) 
+#define ODEBUG(x)
+#define ODEBUG_CONT(x)
 #endif
 
 
@@ -52,10 +52,10 @@ int main(void)
 
 
   cout <<" -------------------------- " << endl;
-  cout << endl; 
+  cout << endl;
   cout <<"    Test image Convertion "    << endl;
   cout <<"      cv::Mat to vpImage"    << endl;
-  cout << endl; 
+  cout << endl;
   cout <<" ---------------------------" << endl;
 
   // string operator
@@ -88,14 +88,14 @@ int main(void)
 	       cameraPath.c_str(),
 	       "cam1394_3",
 	       vpCameraParameters::perspectiveProjWithDistortion,
-	       320, 
+	       320,
 	       240);
 
 
  vpImage<vpRGBa> IvispRGB;
   vpImageIo::readPPM(IvispRGB,imagePath.c_str());
 
- 
+
  // create the display associated to the image
   vpDisplayX displayrgbg(IvispRGB,0,0,"Image grey undistorded");
   vpDisplay::display(IvispRGB);
@@ -110,9 +110,9 @@ int main(void)
 
   vpImageConvert::RGBaToRGB(&IvispRGB.bitmap[0].R,Iraw,320*240);
 
-  
+
   vpImage<unsigned char>* IvispGrey;
-  
+
   IvispGrey=new  vpImage<unsigned char>;
 
   IvispGrey->resize(240,320);
@@ -127,7 +127,7 @@ int main(void)
   undistort.SetCameraParameters(cam);
 
   undistort.RealizeTheProcess();
-  
+
   // create the display associated to the image
   vpDisplayX displayg(*IvispGrey,0,600,"Image grey undistorded");
   vpDisplay::display(*IvispGrey);

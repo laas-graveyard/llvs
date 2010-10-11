@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <libmmx.h>
@@ -72,7 +72,7 @@ int HarrisAdmitPointBasedOnNeighbor(ImageOfTiles_t *anImageOfTiles, int x, int y
   /* Check the limits */
   depty = ty - w < 0 ? 0 : ty -w;
   endty = ty + w >= anImageOfTiles->Height ? anImageOfTiles->Height-1 : ty + w;
-  
+
   for(n=depty;n<=endty;n++)
     {
       for(m=deptx;m<=endtx;m++)
@@ -94,7 +94,7 @@ int HarrisAdmitPointBasedOnNeighbor(ImageOfTiles_t *anImageOfTiles, int x, int y
 }
 
 int HarrisFilterFeaturePoints(multiset <TilePoint_t *, TilePoint_lt>
-			      * aSetOfPoint,  
+			      * aSetOfPoint,
 			      ImageOfTiles_t *anImageOfTiles,
 			      float Threshold)
 {
@@ -105,11 +105,11 @@ int HarrisFilterFeaturePoints(multiset <TilePoint_t *, TilePoint_lt>
   TilePoint_t *aTP;
   multiset <TilePoint_t *,TilePoint_lt>::iterator it_TP;
   int NbAcceptedPoints=0;
-  
+
   it_TP = aSetOfPoint->begin();
   while(it_TP!=aSetOfPoint->end())
     {
-	  
+
       aTP = *it_TP;
       if (aTP!=0)
 	{
@@ -119,7 +119,7 @@ int HarrisFilterFeaturePoints(multiset <TilePoint_t *, TilePoint_lt>
 	      j = aTP->Coordinates[1];
 	      k = i/anImageOfTiles->TilingDownSize;
 	      l = j/anImageOfTiles->TilingDownSize;
-	      
+
 	      aTile = &anImageOfTiles->Tiles[l*anImageOfTiles->Width + k];
 	      index = aTile->CurrentNbOfPoints;
 	      if ( index < anImageOfTiles->MaxNbOfFeaturesByTile)
@@ -206,7 +206,7 @@ int HRP2OpticalFlowProcess::SetToZeroOpticalFlowStructures()
 
   for(int i=0;i<2;i++)
     m_ImageOfTiles[i] = 0;
-  
+
   m_PreviousImageOfTiles = 0;
   return 0;
 
@@ -231,15 +231,15 @@ int HRP2OpticalFlowProcess::SaveLastImages(void)
 
       p_LeftHarrisImage = (MM_F_32 *)m_LEFT_Harris_Flow->Harris->p[i].s;
       p_RightHarrisImage = (MM_F_32 *)m_LEFT_Harris_PreviousImage->p[i].s;
-      
+
       for(j=0;j<m_LEFT_Flow->Harris->cols;j++)
 	  {
 	    float tmp;
-	    ((MM_F_32 *)m_LEFT_Harris_PreviousImage->p[i].s)[j] = 
-	      ((MM_F_32 *)m_LEFT_Flow->Harris->p[i].s)[j];	  
+	    ((MM_F_32 *)m_LEFT_Harris_PreviousImage->p[i].s)[j] =
+	      ((MM_F_32 *)m_LEFT_Flow->Harris->p[i].s)[j];
 
 	    tmp = p_LeftHarrisImage[j];
-	    
+
 	    if (max<tmp)
 	      max = tmp;
 
@@ -253,47 +253,47 @@ int HRP2OpticalFlowProcess::SaveLastImages(void)
     FILE *fp=0,*fp2=0;
     bzero(Buffer,1024);
     sprintf(Buffer,"/tmp/OPF_LEFTImage_%06d.pgm",counter);
-    
+
     fp = fopen(Buffer,"w");
-    
-    
+
+
     bzero(Buffer,1024);
     sprintf(Buffer,"/tmp/OPF_PRECLEFTImage_%06d.pgm",counter);
-    
+
     fp2 = fopen(Buffer,"w");
     fprintf(fp,"P5\n%d %d\n%d\n",
 	    m_LEFT_Flow->Harris->cols,
 	    m_LEFT_Flow->Harris->rows,
 	    255);
-    
+
     fprintf(fp2,"P5\n%d %d\n%d\n",
 	    m_LEFT_Harris_PreviousImage->cols,
 	    m_LEFT_Harris_PreviousImage->rows,
 	    255);
-    
+
     for(i=0;i<m_LEFT_Flow->Harris->rows;i++)
       {
 	p_LeftHarrisImage = (MM_F_32 *)m_LEFT_Harris_Flow->Harris->p[i].s;
 	p_RightHarrisImage = (MM_F_32 *)m_LEFT_Harris_PreviousImage->p[i].s;
-	
+
 	for(j=0;j<m_LEFT_Flow->Harris->cols;j++)
-	  { 
+	  {
 	    float x;
-	    /*	    fprintf(stderr,"%d %d : %f\n",j,i, 
+	    /*	    fprintf(stderr,"%d %d : %f\n",j,i,
 		    p_LeftHarrisImage[j]);  */
 	    x = p_LeftHarrisImage[j]+0.0;
 	    x = x < 0 ? 0.0 : x;
 	    fprintf(fp,"%c",(unsigned char)( x < 255.0 ? x :255.0));
-	    fprintf(fp2,"%c",(unsigned char)((p_RightHarrisImage[j]<40000000.0 ? 0.0 : 
+	    fprintf(fp2,"%c",(unsigned char)((p_RightHarrisImage[j]<40000000.0 ? 0.0 :
 					      p_RightHarrisImage[j]) < 50000000.0 ?
 					     p_RightHarrisImage[j]*255.0 : 255.0));
-	    
+
 	  }
        }
     ODEBUG(" Max : "<< max);
     if (fp!=0)
       fclose(fp);
-    
+
     if (fp2!=0)
       fclose(fp2);
     counter++;
@@ -303,7 +303,7 @@ int HRP2OpticalFlowProcess::SaveLastImages(void)
 
 int HRP2OpticalFlowProcess::ComputesOpticalFlowAndHarris()
 {
-  
+
   if (m_ProcessOPFLeftCamera)
     {
       MMXLucas(m_LEFT_OPF_m,m_LEFT_Flow);
@@ -324,9 +324,9 @@ int HRP2OpticalFlowProcess::ComputesOpticalFlowAndHarris()
 
 	      bzero(Buffer,1024);
 	      sprintf(Buffer,"/tmp/HarrisImageLEFT_%06d.pgm",counter);
-	      
+
 	      fp = fopen(Buffer,"w");
-	      
+
 	      fprintf(fp,"P5\n%d %d\n%d\n",
 		      m_LEFT_Harris_Flow->Harris->cols,
 		      m_LEFT_Harris_Flow->Harris->rows,
@@ -334,21 +334,21 @@ int HRP2OpticalFlowProcess::ComputesOpticalFlowAndHarris()
 	      for(int i=0;i<m_LEFT_Harris_Flow->Harris->rows;i++)
 		{
 		  p_LeftHarrisImage = (MM_F_32 *)m_LEFT_Harris_Flow->Harris->p[i].s;
-		  
+
 		  for(j=0;j<m_LEFT_Flow->Harris->cols;j++)
-		    { 
+		    {
 		      float x;
-		      /*		      fprintf(stderr,"%d %d : %f\n",j,i, 
+		      /*		      fprintf(stderr,"%d %d : %f\n",j,i,
 					      p_LeftHarrisImage[j]);  */
 		      x = (p_LeftHarrisImage[j] +128.0);
 		      x = x < 0 ? 255.0 : x;
-		      fprintf(fp,"%c",(unsigned char)( x < 255.0 ? x :255.0));		      
+		      fprintf(fp,"%c",(unsigned char)( x < 255.0 ? x :255.0));
 		    }
 		}
-	      
+
 	      if (fp!=0)
 		fclose(fp);
-	      
+
 	      counter++;
 	    }
 
@@ -356,7 +356,7 @@ int HRP2OpticalFlowProcess::ComputesOpticalFlowAndHarris()
     }
 
   if (m_ProcessOPFRightCamera)
-    {	
+    {
       MMXLucas(m_RIGHT_OPF_m,m_RIGHT_Flow);
       if (m_ProcessHarrisRightCamera)
 	{
@@ -368,13 +368,13 @@ int HRP2OpticalFlowProcess::ComputesOpticalFlowAndHarris()
   return 0;
 }
 
-int HRP2OpticalFlowProcess::CreateMatchingBetween2ConsequentViews(ImageOfTiles_t *anIOTAtT, 
-								  ImageOfTiles_t *anIOTAtTpdT, 
+int HRP2OpticalFlowProcess::CreateMatchingBetween2ConsequentViews(ImageOfTiles_t *anIOTAtT,
+								  ImageOfTiles_t *anIOTAtTpdT,
 								  MMXFlow *aFlow)
 {
   if ((anIOTAtT==0) || (anIOTAtTpdT==0))
     return -1;
-  
+
   int i=0,j=0,offset=0,k=0,l=0;
   int PossibleTarget[2];
   Tile_t *aTile;
@@ -392,17 +392,17 @@ int HRP2OpticalFlowProcess::CreateMatchingBetween2ConsequentViews(ImageOfTiles_t
       for(i=0;i<anIOTAtT->Width;i++)
 	{
 	  aTile = &anIOTAtT->Tiles[offset+i];
-	  
+
 	  for(k=0;k<aTile->CurrentNbOfPoints;k++)
 	    {
 	      int locx, locy, Refx, Refy;
 	      float Value;
-	      
+
 	      /* Takes a Harris descriptor location */
 	      locx = aTile->TilePoints[k].Coordinates[0];
 	      locy = aTile->TilePoints[k].Coordinates[1];
 	      Value = aTile->TilePoints[k].Value;
-	      
+
 	      vX_p = (MM_F_32 *)vX->p[locy].s;
 	      vY_p = (MM_F_32 *)vY->p[locy].s;
 
@@ -412,13 +412,13 @@ int HRP2OpticalFlowProcess::CreateMatchingBetween2ConsequentViews(ImageOfTiles_t
 
 	      if ((Refx >= 0) && (Refx<aFlow->Width) && (Refy>=0) && (Refy<aFlow->Height))
 		{
-		  /* Check if the new point can be match with an other Harris detector 
-		     in the current set of images. */	      
+		  /* Check if the new point can be match with an other Harris detector
+		     in the current set of images. */
 		  PossibleTarget[0] = Refx / anIOTAtTpdT->TilingDownSize;
 		  PossibleTarget[1] = Refy / anIOTAtTpdT->TilingDownSize;
-		  
+
 		  aCandidateTile = &anIOTAtTpdT->Tiles[PossibleTarget[1]*anIOTAtTpdT->Width + PossibleTarget[0]];
-		 
+
 
 		  /* No candidate in the targeted tile */
 		  if (aCandidateTile->CurrentNbOfPoints!=0)
@@ -429,28 +429,28 @@ int HRP2OpticalFlowProcess::CreateMatchingBetween2ConsequentViews(ImageOfTiles_t
 
 			  TilePoint_t *aTP = &aCandidateTile->TilePoints[l];
 			  float ratio = aTP->Value/Value;
-			  
-			  /* In the candidate tile and with a Harris value 
+
+			  /* In the candidate tile and with a Harris value
 			     similar to the origin. */
 			  if ((ratio < 1.05) && (ratio>0.95))
 			  {
 			    MatchingPoint_t *aMT = new MatchingPoint_t;
-			    
+
 			    /* Insert the matching */
 			    aMT->LeftCoordinates[0] = locx +4;
 			    aMT->LeftCoordinates[1] = locy +4;
-			    
+
 			    aMT->RightCoordinates[0] = aTP->Coordinates[0] +4;
 			    aMT->RightCoordinates[1] = aTP->Coordinates[1] +4;
-			    
+
 			    aMT->Probability = 1.0;
 			    m_SetOfMatchingPoint.insert(aMT);
-			    
+
 			  }
 			}
 		    }
 		}
-	      
+
 	    }
 	}
     }
@@ -472,7 +472,7 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 
   /*! List of sorted Harris Points */
   multiset <TilePoint_t *,TilePoint_lt> SortedHarrisPoints;
-  
+
   for(i=0;i<aFlow->Harris->rows;i++)
     {
 
@@ -493,7 +493,7 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
   if (m_Verbosity>=2)
     fprintf(stderr,"Nb of Sorted Harris points: %d\n",
 	    SortedHarrisPoints.size());
-  
+
   HarrisFilterFeaturePoints(&SortedHarrisPoints,anImageOfTiles,LocalThreshold);
 
   CreateMatchingBetween2ConsequentViews(m_PreviousImageOfTiles, anImageOfTiles, aFlow);
@@ -514,7 +514,7 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
       {
 	for(i=0;i<anImageOfTiles->Width;i++)
 	  {
-	    
+
 	    for(m = 0;m<anImageOfTiles->Tiles[Twidth*j+i].CurrentNbOfPoints;m++)
 	      {
 		cvSet(SrcImg, i,j,255);
@@ -522,8 +522,8 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 	  }
       }
     Lines = cvHoughLines2(SrcImg, storage, CV_HOUGH_STANDARD,1, CV_PI/180.0, 150, 0, 0);
-    
-    
+
+
   }
 #endif
   if (m_DumpingLevel>=1)
@@ -533,12 +533,12 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
       bzero(Buffer,1024);
       if (anImageOfTiles==m_ImageOfTiles[0])
 	sprintf(Buffer,"/tmp/HarrisPointsLEFT_%06d.ppm",counter);
-      else 
+      else
 	sprintf(Buffer,"/tmp/HarrisPointsRIGHT_%06d.ppm",counter);
-      
+
       FILE *fp=0;
       int lwidth, lheight, Twidth, Theight, MNFBT,l,m;
-      
+
       fp = fopen(Buffer,"w");
       if (fp!=0)
 	{
@@ -548,18 +548,18 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 	  Twidth = anImageOfTiles->Width;
 	  MNFBT = anImageOfTiles->MaxNbOfFeaturesByTile;
 	  unsigned char DHarris = 0;
-	  
+
 	  fprintf(fp,"P6\n%d %d\n255\n",
-		  lwidth-8, 
+		  lwidth-8,
 		  lheight-8);
-	  
+
 	  for(j=4;j<lheight-4;j++)
 	    {
 	      if (!DHarris)
 		p_Image = (MM_F_32 *)m_LEFT_OPF_m->p[j].s;
 	      else
 		p_Image = (MM_F_32 *)aFlow->Harris->p[j-4].s;
-	      
+
 	      for(i=4;i<lwidth-4;i++)
 		{
 		  unsigned char IsHarrisPt,R,G,B;
@@ -567,7 +567,7 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 		  R = B= 0; G = 255;
 		  k = (i-4) / anImageOfTiles->TilingDownSize;
 		  l = (j-4) / anImageOfTiles->TilingDownSize;
-		  
+
 		  for(m = 0;m<anImageOfTiles->Tiles[Twidth*l+k].CurrentNbOfPoints;m++)
 		    {
 		      if ((anImageOfTiles->Tiles[Twidth*l+k].TilePoints[m].Coordinates[0]+4 == i) &&
@@ -577,7 +577,7 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 			  break;
 			}
 		    }
-		  
+
 		  if (!IsHarrisPt)
 		    {
 		      if (!DHarris)
@@ -589,14 +589,14 @@ int HRP2OpticalFlowProcess::FilteringHarrisPoint(MMXFlow *aFlow, ImageOfTiles_t 
 			      { R=0;G=0;B =0;}
 			    else
 			      { R= 255;G=B=0;}
-			  else 
+			  else
 			    { R=G=B=250;}
 
 
 			}
-		      else 
+		      else
 			{
-			  float x; 
+			  float x;
 			  x = p_Image[i-4];
 			  x = x >255.0 ? 255 : x;
 			  x = x < 0.0 ? 0.0 : x;
@@ -639,7 +639,7 @@ int HRP2OpticalFlowProcess::AllocateOpticalFlowStructures()
   int i;
   /* Memory allocation for the optical flow computed using SSE */
 
-  
+
   FreeOpticalFlowStructures();
 
   /* Left Image */
@@ -662,7 +662,7 @@ int HRP2OpticalFlowProcess::AllocateOpticalFlowStructures()
   m_LEFT_Harris_Flow =  new MMXFlow;
   MMXSetToZeroFlow(m_LEFT_Harris_Flow);
   MMXInitFlow(m_LEFT_Harris_Flow,m_Width,m_Height);
-  
+
   m_RIGHT_Harris_Flow =  new MMXFlow;
   MMXSetToZeroFlow(m_RIGHT_Harris_Flow);
   MMXInitFlow(m_RIGHT_Harris_Flow,m_Width,m_Height);
@@ -672,7 +672,7 @@ int HRP2OpticalFlowProcess::AllocateOpticalFlowStructures()
   m_LEFT_Harris_PreviousImage = MMXMatrixAlloc(MMT_F_32, m_Width-8, m_Height-8);
 
   /*
-   * Initialization of the Tiles for the harris descriptors: 
+   * Initialization of the Tiles for the harris descriptors:
    * Size of the Image: 4 times less than the original.
    * Number of possible points per Tile : 5.
    * Separation space between points: 4.
@@ -692,7 +692,7 @@ int HRP2OpticalFlowProcess::AllocateOpticalFlowStructures()
 					   m_TotalNbOfPoints);
 
   /*
-   * Initialization of the Tiles for the harris descriptors: 
+   * Initialization of the Tiles for the harris descriptors:
    * Size of the Image: 4 times less than the original.
    * Number of possible points per Tile : 5.
    * Separation space between points: 4.
@@ -740,10 +740,10 @@ int HRP2OpticalFlowProcess::FreeOpticalFlowStructures()
       //      delete m_LEFT_Flow;
     }
 
-  
+
   if (m_LEFT_PreviousImage!=0)
     delete m_LEFT_PreviousImage;
-   
+
   if (m_LEFT_Harris_PreviousImage!=0)
     delete m_LEFT_Harris_PreviousImage;
 
@@ -751,7 +751,7 @@ int HRP2OpticalFlowProcess::FreeOpticalFlowStructures()
     HarrisFreeTile(m_ImageOfTiles[i]);
 
   SetToZeroOpticalFlowStructures();
-  
+
   return 0;
 }
 
@@ -760,8 +760,8 @@ int HRP2OpticalFlowProcess::InitializeTheProcess()
   m_Width = m_InputImages[0].Width;
   m_Height = m_InputImages[0].Height;
 
-   CvSize		sim;		
-  sim.width = m_Width; 
+   CvSize		sim;
+  sim.width = m_Width;
   sim.height = m_Height;
   if (m_eigImage!=0)
     {
@@ -773,7 +773,7 @@ int HRP2OpticalFlowProcess::InitializeTheProcess()
     {
       delete m_tempImage->imageDataOrigin;
       delete m_tempImage;
-    } 
+    }
   m_tempImage = cvCreateImage(sim,IPL_DEPTH_32F,1);
 
   m_IplInputImage = cvCreateImage(sim,IPL_DEPTH_8U,1);
@@ -829,7 +829,7 @@ int HRP2OpticalFlowProcess::GetFlowStructure(MMXFlow **aFlow, int aCameraID, int
 {
   if (aFlow==0)
     return -1;
-  
+
   if (aCameraID==LowLevelVisionServer::CAMERA_LEFT)
     {
       if (HarrisOrOPF==FLOW_STRUCTURE_OPF)
@@ -837,7 +837,7 @@ int HRP2OpticalFlowProcess::GetFlowStructure(MMXFlow **aFlow, int aCameraID, int
       else if (HarrisOrOPF==FLOW_STRUCTURE_HARRIS)
 	*aFlow = m_LEFT_Harris_Flow;
       return 0;
-    }  
+    }
   else if (aCameraID==LowLevelVisionServer::CAMERA_RIGHT)
     {
       if (HarrisOrOPF==FLOW_STRUCTURE_OPF)
@@ -870,20 +870,20 @@ int HRP2OpticalFlowProcess::HarrisWithOpenCV()
 
       if (res[0]==0)
 	{
-	  CvSize		sim;		
-	  sim.width = m_Width; 
+	  CvSize		sim;
+	  sim.width = m_Width;
 	  sim.height = m_Height;
-	  
+
 	  res[0] = cvCreateImage(sim,8,3);
 	}
-      
+
       for(i=0;i<m_Width*m_Height;i++)
 	{
-	  res[0]->imageData[i*3] = 
-	    res[0]->imageData[i*3+1] = 
-	    res[0]->imageData[i*3+2] = 
+	  res[0]->imageData[i*3] =
+	    res[0]->imageData[i*3+1] =
+	    res[0]->imageData[i*3+2] =
 	    m_IplInputImage->imageData[i];
-	  
+
 	}
       for(i=0;i<cornerCount;i++)
 	{
@@ -894,8 +894,8 @@ int HRP2OpticalFlowProcess::HarrisWithOpenCV()
 	  res[0]->imageData[y*3*m_Width+x*3+1] = 0;
 	  res[0]->imageData[y*3*m_Width+x*3+2] = 255;
 	}
-      
-      
+
+
       char FileName[1024];
       bzero(FileName,1024);
       sprintf(FileName,"/tmp/HarrisDetectorWithOpenCV_%06d",counter++);
@@ -923,16 +923,16 @@ int HRP2OpticalFlowProcess::UpdateAMotionEvaluationProcess(HRP2MotionEvaluationP
 {
   if (aMEP==0)
     return -1;
-  
+
   aMEP->UpdateMatchingPointsWithHarris(m_SetOfMatchingPoint);
   return 0;
-  
+
 }
 
 int HRP2OpticalFlowProcess::GetHarrisDetectorMethod()
 {
   return m_HarrisMethod;
-}  
+}
 
 int HRP2OpticalFlowProcess::SetHarrisDetectorMethod(int aHarrisMethod)
 {
@@ -965,7 +965,7 @@ int HRP2OpticalFlowProcess::GetModeDump()
 int HRP2OpticalFlowProcess::SetParameter(string aParameter, string aValue)
 {
   int r;
-  
+
   r = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
 
   ODEBUG("SetParameter: " << aParameter << " : " << aValue );
@@ -995,9 +995,9 @@ int HRP2OpticalFlowProcess::SetParameter(string aParameter, string aValue)
       r = atoi(aValue.c_str());
       if (r!=-1)
 	m_TotalNbOfPoints = r;
-	
+
     }
-  
+
   if (aParameter == "tau")
     {
       double lf;
@@ -1011,7 +1011,7 @@ int HRP2OpticalFlowProcess::SetParameter(string aParameter, string aValue)
       lf = atof(aValue.c_str());
       m_Harris_k = lf;
     }
-  
+
   if (aParameter=="HarrisThreshold")
     {
       double lf;

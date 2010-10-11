@@ -1,7 +1,7 @@
 /** @doc This object implements a visual process
     to find features inside the environment and get their
     3D location.
-    
+
     CVS Information:
    $Id$
    $Author$
@@ -10,31 +10,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <FindFeaturesInImage.h>
@@ -69,7 +69,7 @@ int HRP2FindFeaturesInImage::InitializeTheProcess(string PathForFirstCalibration
   if (m_FFFWI==0)
     m_FFFWI = new FindFeaturesFromWideImage(PathForFirstCalibrationSet,
 					    PathForSndCalibrationSet,
-					    ConvexPolytopePath);  
+					    ConvexPolytopePath);
   else
     {
       m_FFFWI->SetPathForSndCalibrationSet(PathForSndCalibrationSet);
@@ -80,7 +80,7 @@ int HRP2FindFeaturesInImage::InitializeTheProcess(string PathForFirstCalibration
 
 int HRP2FindFeaturesInImage::RealizeTheProcess()
 {
-  
+
   if ((!m_Computing) || (!m_State))
     return 0;
 
@@ -102,7 +102,7 @@ int HRP2FindFeaturesInImage::RealizeTheProcess()
       m_State = 2;
       m_FeatureID=0;
     }
-  
+
   if (m_State==3)
     {
       m_FFFWI->SetImages(m_grabbed_image[0],m_grabbed_image[1],m_grabbed_image[2]);
@@ -110,10 +110,10 @@ int HRP2FindFeaturesInImage::RealizeTheProcess()
 
       if (m_FeatureID==m_FFFWI->NbOfFeaturesForInitialization())
 	m_State=0;
-      else 
+      else
 	m_State=2;
     }
-  
+
   return 0;
 }
 
@@ -164,7 +164,7 @@ int HRP2FindFeaturesInImage::SetParameter(string aParameter, string aValue)
   ODEBUG3("Came into SetParameter " << aParameter << " " << aValue);
   if (aParameter=="State")
     {
-      int lState = strtol(aValue.c_str(), (char **)NULL, 10);      
+      int lState = strtol(aValue.c_str(), (char **)NULL, 10);
       if ((lState>=0) &&  (lState<4))
 	m_State = lState;
       cout << "New value for State" << m_State << endl;
@@ -182,8 +182,8 @@ int HRP2FindFeaturesInImage::SetParameter(string aParameter, string aValue)
 	m_FFFWI->SetConvexPolytopePath(aValue);
       ok=1;
     }
-  
-	
+
+
   for(unsigned int i=0;i<m_VectorOfParameters.size();i++)
     {
       if (m_VectorOfParameters[i] == aParameter)
@@ -192,7 +192,7 @@ int HRP2FindFeaturesInImage::SetParameter(string aParameter, string aValue)
 	  ok = 1;
 	}
     }
-  
+
   if (!ok)
     {
       m_VectorOfParameters.insert(m_VectorOfParameters.end(), aParameter);
@@ -214,7 +214,7 @@ int HRP2FindFeaturesInImage::GetParameter(string & aParameter, string &aValue, i
 }
 
 int HRP2FindFeaturesInImage::GetValueOfParameter(string aParameter, string &aValue)
-{  
+{
   if (aParameter=="GetNbOfCandidates")
     {
       char Buffer[128];
@@ -238,7 +238,7 @@ int HRP2FindFeaturesInImage::GetValueOfParameter(string aParameter, string &aVal
 	}
     }
   else if (aParameter=="GetCandidatesPositions")
-    { 
+    {
       vector<FeatureCandidate> aVectorOfFC;
       m_FFFWI->GetFeatures(aVectorOfFC);
       aValue = "";
@@ -270,7 +270,7 @@ int HRP2FindFeaturesInImage::GetValueOfParameter(string aParameter, string &aVal
 	  return 0;
 	}
     }
-  
+
   return -1;
 }
 
@@ -283,17 +283,17 @@ int HRP2FindFeaturesInImage::GetParametersAndValues(vector<string> &ListOfParame
 
 int HRP2FindFeaturesInImage::SetInputImages(EPBM * aInputImage)
 {
-  
+
   for(int i=0;i<3;i++)
     {
       if (m_grabbed_image[i]!=0)
 	delete m_grabbed_image[i];
       m_grabbed_image[i] = new ImageMono<unsigned char>(aInputImage[i].Width,
 							aInputImage[i].Height);
-      
+
       m_InputImage[i] = aInputImage[i];
     }
-  
+
   m_InputImage[3] = aInputImage[3];
   return 0;
 }

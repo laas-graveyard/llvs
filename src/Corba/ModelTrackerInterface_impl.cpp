@@ -36,14 +36,14 @@ ModelTrackerInterface_impl::ModelTrackerInterface_impl(LowLevelVisionServer * LL
 #if (LLVS_HAVE_VISP>0)
   m_CBTD.image = new vpImage<unsigned char>(240,320);
   m_CBTD.timestamp = new double(0);
-#endif  
+#endif
 }
 
 ModelTrackerInterface_impl::~ModelTrackerInterface_impl()
 {
 #if (LLVS_HAVE_VISP>0)
   delete m_CBTD.image;
-#endif  
+#endif
 }
 
 
@@ -56,7 +56,7 @@ ModelTrackerInterface_impl::SetcMo(const ModelTrackerInterface::HomogeneousMatri
 
 
   vpHomogeneousMatrix cMo;
-  
+
   cMo[0][0]=acMo.cMo[0][0];
   cMo[0][1]=acMo.cMo[0][1];
   cMo[0][2]=acMo.cMo[0][2];
@@ -90,7 +90,7 @@ ModelTrackerInterface_impl::SetcdMo(const ModelTrackerInterface::HomogeneousMatr
 
 
   vpHomogeneousMatrix cdMo;
-  
+
   cdMo[0][0]=aHM.cMo[0][0];
   cdMo[0][1]=aHM.cMo[0][1];
   cdMo[0][2]=aHM.cMo[0][2];
@@ -125,7 +125,7 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 #if (LLVS_HAVE_VISP>0)
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
-  
+
   acMo.cMo[0][0]=m_CBTD.cMo[0][0];
   acMo.cMo[0][1]=m_CBTD.cMo[0][1];
   acMo.cMo[0][2]=m_CBTD.cMo[0][2];
@@ -160,17 +160,17 @@ ModelTrackerInterface_impl::GetcMo(ModelTrackerInterface::HomogeneousMatrix& acM
 ///
 /// read last written data in the circular buffer
 /// and turn it into a corba object (DebugInfoObject) to be sent to clients
-/// 
+///
 CORBA::Boolean
 ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoObject_out aDIO)
 {
 #if (LLVS_HAVE_VISP>0)
 
   m_LLVS->m_CBonNMBT->ReadData(m_CBTD);
-  
+
 #endif
 
-  ModelTrackerInterface::DebugInfoObject_var aDIOv = 
+  ModelTrackerInterface::DebugInfoObject_var aDIOv =
     new ModelTrackerInterface::DebugInfoObject;
 
   aDIOv->anImgData.octetData.length(320*240);
@@ -189,7 +189,7 @@ ModelTrackerInterface_impl::GetDebugInfoObject(ModelTrackerInterface::DebugInfoO
   // FIXME : Use here the function visp to corba/corba to visp instead
   // of writing the size of the image explicitely
   for(int j=0;j<(int)(320*240);j++)
-    aDIOv->anImgData.octetData[j] = *pt++;  
+    aDIOv->anImgData.octetData[j] = *pt++;
 
   //  ODEBUG3(" m_CBTD.cMo " << m_CBTD.cMo);
   aDIOv->aData.cMo[0][0]=m_CBTD.cMo[0][0];

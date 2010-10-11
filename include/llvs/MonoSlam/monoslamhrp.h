@@ -35,7 +35,7 @@ class MonoSLAMHRP : public MonoSLAMInterface
 		    const VNL::Vector<double> &current_camera_height,
 		    const VNL::Vector<double> &current_orientation,
 		    const VNL::Vector<double> &current_control);
-  
+
   Scene_Single * GetScene();
 
   // Set initialization.
@@ -44,7 +44,7 @@ class MonoSLAMHRP : public MonoSLAMInterface
   // Get initialization.
   unsigned char GetInitializationPhase();
 
- protected: 
+ protected:
   /*! Specify if this is the initialization phase of the algorithm. */
   unsigned char m_InitializationPhase;
 

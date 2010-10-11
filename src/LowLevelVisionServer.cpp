@@ -79,7 +79,7 @@ using namespace std;
 
 #if(LLVS_HAVE_KALMAN_FILTER>0)
 #include "ModelTracker/kalmanOnNMBTProcess.h"
-#endif  
+#endif
 
 #if (LLVS_HAVE_HRP_BTL_SLAM>0)
 #include "Corba/BtlSlamInterface_impl.h"
@@ -469,7 +469,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ModelTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ModelTrackerProcess);
 
-  
+
 
   /*! Compute Control Law process. */
   m_ComputeControlLawProcess = new HRP2ComputeControlLawProcess();

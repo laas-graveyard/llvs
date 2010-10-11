@@ -11,7 +11,7 @@ class HRP2ImageDifferenceProcess : public HRP2VisionBasicProcess
 
   /* Destructor */
   ~HRP2ImageDifferenceProcess();
-  
+
   /*! Initialize the process */
   virtual int InitializeTheProcess();
 
@@ -21,7 +21,7 @@ class HRP2ImageDifferenceProcess : public HRP2VisionBasicProcess
   /*! Cleanup the process */
   virtual int CleanUpTheProcess();
 
-  /*! Set the input images 
+  /*! Set the input images
    * This method is needed to set up the reference to the input images.
    * They should be specified only once. The first image is the left image.
    * The second image is the second image. It is assume that those images
@@ -29,9 +29,9 @@ class HRP2ImageDifferenceProcess : public HRP2VisionBasicProcess
    */
   int SetInputImages(EPBM lInputImages[3]);
 
-  
+
   /* Set Image to process.
-     Index for which the value is different from 0 
+     Index for which the value is different from 0
      calls for process. */
   void SetImageOnWhichToProcess(int ImagesOnWhichToProcess[3]);
 
@@ -40,7 +40,7 @@ class HRP2ImageDifferenceProcess : public HRP2VisionBasicProcess
 
   /*! Difference of Images */
   EPBM m_DifferenceOfImages[3];
-  
+
   /*! Save the images */
   void SaveImages();
 
@@ -48,7 +48,7 @@ class HRP2ImageDifferenceProcess : public HRP2VisionBasicProcess
   int SetTimeStamp(struct timeval * ltimestamps);
 
  protected:
-  
+
   /*! Input Image */
   EPBM m_InputImage[3];
 

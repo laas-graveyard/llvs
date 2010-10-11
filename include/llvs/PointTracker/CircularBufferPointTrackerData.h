@@ -1,4 +1,4 @@
-/** @doc Class to store data information coming from 
+/** @doc Class to store data information coming from
     the model tracker.
 
    Copyright (c) 2010,
@@ -49,10 +49,10 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
       {
 	for(unsigned int i=0;i<m_CircularBuffer.size();i++)
 	  {
-	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
+	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320);
 	    m_CircularBuffer[i].onedatum.timestamp= new double(0);
 	  }
-		
+
 	m_ProcessName = "CircularPointTrackerData";
       }
 
@@ -62,7 +62,7 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
 	{
 	  delete m_CircularBuffer[i].onedatum.image;
 	  delete m_CircularBuffer[i].onedatum.timestamp;
-	  
+
 	  for(unsigned int j=0;j<m_CircularBuffer[i].onedatum.vpIP.size();j++)
 	    {
 	      delete m_CircularBuffer[i].onedatum.vpIP[j];
@@ -75,7 +75,7 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
   {
     m_PointTracker = aPointTracker ;
   }
-  
+
 
  protected:
   int pRealizeTheProcess()
@@ -88,7 +88,7 @@ class CircularPointTrackerData:public CircularBuffer<CBPointTrackerData>
 
     return 0;
   }
-  
+
  private:
   HRP2PointTrackingProcess * m_PointTracker;
   CBPointTrackerData * m_CBPointTrackerData;

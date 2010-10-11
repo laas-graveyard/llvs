@@ -1,13 +1,13 @@
-/** @doc Object to convert back and forth a ViSP image into a OpenCV image 
-    
+/** @doc Object to convert back and forth a ViSP image into a OpenCV image
+
 
    Copyright (c) 2003-2010,
    @author Stephane Embarki
 
    see License file for more information
    on the license applied to this code.
-   
-   
+
+
 */
 #ifndef _HRP2_VISP_IMAGE_UNDISTORT_PROCESS_H_
 #define _HRP2_VISP_IMAGE_UNDISTORT_PROCESS_H_
@@ -34,15 +34,15 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
  public:
 
   typedef enum
-    {  
+    {
 	RGB_VISPRGB,
 	RGB_VISPU8,
 	RGB_VISPU8_NONE
 
-    } typeConversion ;	
- 
+    } typeConversion ;
 
-  typedef struct 
+
+  typedef struct
   {
     unsigned int nChannel;
     unsigned int depth;
@@ -50,7 +50,7 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
     unsigned int widthStep;
     unsigned int height;
   } sImageParameters;
-  
+
   /*! Constructor */
   HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::typeConversion type);
 
@@ -61,10 +61,10 @@ class HRP2vispUndistordedProcess : public HRP2VisionBasicProcess
 
   /*! Set a parameter */
   int pSetParameter(string aParameter, string aValue);
-   
+
   /*! Set the image */
-  void SetImages(unsigned char ** Iraw , vpImage<unsigned char>* Ivisp ); 
-  void SetImages(unsigned char **  Iraw , vpImage<vpRGBa>* Ivisp );  
+  void SetImages(unsigned char ** Iraw , vpImage<unsigned char>* Ivisp );
+  void SetImages(unsigned char **  Iraw , vpImage<vpRGBa>* Ivisp );
 
   /*! Set the camera parameter*/
   void SetCameraParameters(const vpCameraParameters & _cam);
@@ -78,7 +78,7 @@ protected:
 
   /*! Realize the process */
   int pRealizeTheProcess();
-  
+
   /*! Cleanup the process */
    int pCleanUpTheProcess();
   /*! visp images*/
@@ -89,7 +89,7 @@ protected:
   vpImage<vpRGBa> *       m_VispRGBaImages;
 
   /*! unsigned char images vector*/
-  unsigned char **         m_RawImages; 
+  unsigned char **         m_RawImages;
 
 
 
@@ -99,14 +99,14 @@ public:
   bool m_CameraParamLoaded;
 
   bool m_flip;
-  
+
   typeConversion m_conversion;
   sImageParameters m_ImgParam;
   vpCameraParameters m_CamParam;
-  /*current internal state*/ 
-  std::string m_internalState; 
+  /*current internal state*/
+  std::string m_internalState;
 };
 
 
 
-#endif 
+#endif

@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-n   * Neither the name of the CNRS and AIST nor the names of its contributors 
+n   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <VisionBasicProcess.h>
@@ -63,11 +63,11 @@ void HRP2VisionBasicProcess::DisplayError(const string & Transition)
   string aValue("UNSET");
   GetValueOfParameter(aParameter,aValue);
 
-  std::cerr << "Invalid transition in " 
-	    << Transition << " : " 
-	    << m_ProcessName << " " 
+  std::cerr << "Invalid transition in "
+	    << Transition << " : "
+	    << m_ProcessName << " "
 	    << aValue << std::endl;
-  
+
 }
 
 int HRP2VisionBasicProcess::StopProcess()
@@ -152,7 +152,7 @@ int HRP2VisionBasicProcess::SetParameter(string aParameter, string aValue)
 	  ok = 1;
 	}
     }
-  
+
   if (!ok)
     {
       m_VectorOfParameters.insert(m_VectorOfParameters.end(), aParameter);
@@ -214,7 +214,7 @@ void HRP2VisionBasicProcess::SetStateParameter()
 
 int HRP2VisionBasicProcess::GetValueOfParameter(string aParameter, string &aValue)
 {
- 
+
   pGetValueOfParameter(aParameter,aValue);
   for(int i=0;i<m_ParametersSize;i++)
     {
@@ -224,7 +224,7 @@ int HRP2VisionBasicProcess::GetValueOfParameter(string aParameter, string &aValu
 	  return 0;
 	}
     }
- 
+
   return -1;
 }
 
@@ -266,9 +266,9 @@ void HRP2VisionBasicProcess::ToEPBMFile(IplImage *ThreeImages[3], string BaseNam
   bzero(aFileName,1024);
 
   sprintf(aFileName,"%s.epbm",BaseName.c_str());
-  ofstream aofstream; 
+  ofstream aofstream;
   aofstream.open(aFileName,ofstream::out | iostream::binary);
-  
+
   for(i=0;i<3;i++)
     {
 
@@ -309,14 +309,14 @@ IplImage * HRP2VisionBasicProcess::FromEPBMToIPL(EPBM &anEPBM, int aMode, IplIma
       depth=2;
       channel=1;
     }
-  else 
+  else
     {
       depth=8;
       if (anEPBM.Magic2=='5')
 	channel=1;
       else if (anEPBM.Magic2=='6')
 	channel=3;
-	  
+
     }
   switch(aMode)
     {
@@ -364,11 +364,11 @@ IplImage * HRP2VisionBasicProcess::FromEPBMToIPL(EPBM &anEPBM, int aMode, IplIma
       anImage->imageSize = (int)(anImage->height*anImage->width*(anImage->depth/8.0)*anImage->nChannels);
       anImage->widthStep = anImage->width;
       bzero(anImage->BorderMode,4);
-      bzero(anImage->BorderConst,4);      
+      bzero(anImage->BorderConst,4);
       if (aMode==HEADER_IPL)
 	return 0;
     }
-  
+
   memcpy(anImage->imageData, anEPBM.Image,anImage->imageSize);
 
   return 0;

@@ -1,9 +1,9 @@
 /** @doc This file implements test for vispConvertImage.cpp
 
 
-   Copyright (c) 2010, 
+   Copyright (c) 2010,
    @author Stephane EMBARKI,
-   
+
    JRL-Japan, CNRS/AIST
 
    See license file for information on license.
@@ -41,10 +41,10 @@ int main(void)
 
 
   cout <<" -------------------------- " << endl;
-  cout << endl; 
+  cout << endl;
   cout <<"    Test image Convertion "    << endl;
   cout <<"      cv::Mat to vpImage"    << endl;
-  cout << endl; 
+  cout << endl;
   cout <<" ---------------------------" << endl;
 
   // string operator
@@ -75,7 +75,7 @@ int main(void)
 
   cv::imwrite(imagePath.c_str(),Imat );
 
-  // create the ViSP grey image 
+  // create the ViSP grey image
   vpImage<unsigned char> Ivispg;
   vpImage<unsigned char>* Ivispgp = &Ivispg;
 
@@ -99,7 +99,7 @@ int main(void)
   vpDisplay::getClick(Ivispg);
 
 
- // create the ViSP grey image 
+ // create the ViSP grey image
   vpImage<vpRGBa> IvispRGB;
   vpImage<vpRGBa>* IvispRGBp = &IvispRGB;
 

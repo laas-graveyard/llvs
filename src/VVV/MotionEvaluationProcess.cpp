@@ -9,34 +9,34 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-extern "C" 
+extern "C"
 {
 #include <range.h>
 #include <rangeopen.h>
@@ -63,7 +63,7 @@ HRP2MotionEvaluationProcess::HRP2MotionEvaluationProcess() : HRP2VisionBasicProc
 
 HRP2MotionEvaluationProcess::~HRP2MotionEvaluationProcess()
 {
- 
+
 }
 
 
@@ -71,7 +71,7 @@ int HRP2MotionEvaluationProcess::InitializeTheProcess()
 {
   /* Set to zero the two range data */
   range_free(&m_ranges[0]);
-  range_free(&m_ranges[1]); 
+  range_free(&m_ranges[1]);
 
   m_LastRangeIndex = 1;
   return 0;
@@ -81,10 +81,10 @@ int HRP2MotionEvaluationProcess::UpdateRangeData(RANGE & arng)
 {
   if (m_LastRangeIndex==-1)
     m_LastRangeIndex = 1;
-  
+
   if (m_LastRangeIndex == 0)
     m_LastRangeIndex = 1;
-  else 
+  else
     m_LastRangeIndex = 0;
 
   ODEBUG("MotionEvolutionProcess:UpdateRangeData: from origine: " << arng.DotCount);
@@ -116,13 +116,13 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 
   ODEBUG("Beginning of HRP2MotionEvaluationProcess");
   /* Remove elements with no corresponding 3D point */
-  ODEBUG( "Before checking with the disparity map: Number of point belonging to the set of harris points " 
-       << m_SetOfHarrisMatchingPoints.size() 
+  ODEBUG( "Before checking with the disparity map: Number of point belonging to the set of harris points "
+       << m_SetOfHarrisMatchingPoints.size()
        << endl
-       << "Number of points in the range data set " 
-       << m_LastRangeIndex << " " 
-       << m_ranges[0].DotCount << " " 
-       << m_ranges[1].DotCount << " " 
+       << "Number of points in the range data set "
+       << m_LastRangeIndex << " "
+       << m_ranges[0].DotCount << " "
+       << m_ranges[1].DotCount << " "
        );
 
   for (int i=0;i<2;i++)
@@ -138,46 +138,46 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
       MatchingPoint_t *aMP;
 
       aMP=*it_SMP;
-      
+
       if (aMP!=0)
 	{
 	  PixelData *pmap;
-	  ODEBUG(  "Current nb of points: " 
+	  ODEBUG(  "Current nb of points: "
 		   << m_SetOfHarrisMatchingPoints.size() );
 
 	  for(int i=0;i<2;i++)
 	    {
 	      if (m_LastRangeIndex==0)
 		RangeIndex = i;
-	      else 
+	      else
 		RangeIndex = (i==0) ? 1:0;
-	      
+
 	      int x,y;
 	      if (i==0)
 		{
 		  x = aMP->LeftCoordinates[0];
 		  y = aMP->LeftCoordinates[1];
 		}
-	      else 
+	      else
 		{
 		  x = aMP->RightCoordinates[0];
 		  y = aMP->RightCoordinates[1];
 		}
-	      ODEBUG( "Point " << k << " = (" << x << "," << y << ")"); 
+	      ODEBUG( "Point " << k << " = (" << x << "," << y << ")");
 	      pmap = m_ranges[RangeIndex].Map[m_ranges[RangeIndex].Width * y + x];
 	      if (pmap==0)
 		{
 		  m_SetOfHarrisMatchingPoints.erase(it_SMP);
 		  break;
 		}
-	      
+
 	    }
 	  k++;
 	}
 
       it_SMP++;
     }
-  ODEBUG( "After checking with the disparity map: Number of point belonging to the set of harris points " 
+  ODEBUG( "After checking with the disparity map: Number of point belonging to the set of harris points "
        << m_SetOfHarrisMatchingPoints.size());
 
 
@@ -197,7 +197,7 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 	{
 	  if (i==j)
 	    (*W)[j][i] = 1.0;
-	  else 
+	  else
 	    (*W)[j][i] = 0.0;
 	}
     }
@@ -209,7 +209,7 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
       MatchingPoint_t *aMP;
 
       aMP=*it_SMP;
-      
+
       if (aMP!=0)
 	{
 	  PixelData *pmap;
@@ -217,16 +217,16 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 	    {
 	      if (m_LastRangeIndex==0)
 		RangeIndex = i;
-	      else 
+	      else
 		RangeIndex = (i==0) ? 1:0;
-	      
+
 	      int x,y;
 	      if (i==0)
 		{
 		  x = aMP->LeftCoordinates[0];
 		  y = aMP->LeftCoordinates[1];
 		}
-	      else 
+	      else
 		{
 		  x = aMP->RightCoordinates[0];
 		  y = aMP->RightCoordinates[1];
@@ -234,7 +234,7 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 	      ODEBUG( x << " " << y );
 
 	      pmap = m_ranges[RangeIndex].Map[m_ranges[RangeIndex].Width * y + x];
-	      
+
 	      for(int l=0;l<3;l++)
 		{
 		  if (pmap!=0)
@@ -244,20 +244,20 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 		      ODEBUG( pmap->Dot[l] );
 		    }
 		}
-	      
+
 	    }
 	  k++;
 	}
 
       it_SMP++;
     }
-  
+
   ODEBUG( "Before computing the mean for both clouds of points " );
   /* Computes the mean for both clouds of points */
-  for(int j=0;j<2;j++)    
+  for(int j=0;j<2;j++)
     for(int i=0;i<3;i++)
       (*CenterOfGravity[j])[i] /= (float) m_SetOfHarrisMatchingPoints.size();
-    
+
   ODEBUG( "Computes the translation " );
 
   /* Compute the translation */
@@ -265,7 +265,7 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
     m_Translation[i] = (*CenterOfGravity[0])[i] - (*CenterOfGravity[1])[i];
 
   ODEBUG( "Suppress the translation for both clouds " );
-  /* Suppress the translation for both clouds */  
+  /* Suppress the translation for both clouds */
   for(int j=0;j<2;j++)
     {
       for(int l =0;l<3;l++)
@@ -278,11 +278,11 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
   ODEBUG( "Computes the matrix to inverse " );
   tmp = *W * lClouds[0]->trns();
   B = (*lClouds[1]) * tmp;
-  
+
   ODEBUG( "Computes the SVD decomposition " );
   SVDecomposition<float> svd(B);
 
-  ODEBUG( "Computes the rotation matrix " );  
+  ODEBUG( "Computes the rotation matrix " );
   Rotation = svd.Ut() * svd.Vt().trns();
 
   if (Rotation.det()<0.0)
@@ -299,14 +299,14 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
   //  if (m_Verbosity>=1)
     {
       static float Pos[3] = { 0.0,0.0,0.0};
-      
+
       if ((!isnan(m_Translation[0])) &&
 	  (!isnan(m_Translation[1])) &&
 	  (!isnan(m_Translation[2])))
 	{
 	  Pos[0] += -m_Translation[2]/1000.0;
 	  Pos[1] += -m_Translation[0]/1000.0;
-	  Pos[2] += m_Translation[1]/1000.0;  
+	  Pos[2] += m_Translation[1]/1000.0;
 	  cerr << Pos[0] << " " << Pos[1] << " " << Pos[2];
 	  cerr << endl;
 	}
@@ -321,7 +321,7 @@ int HRP2MotionEvaluationProcess::WithMatched3DHarrisPoints()
 	  cerr << endl;
 	}
 #endif
-    }	
+    }
   ODEBUG( "Deletion " );
   for(int j=0;j<2;j++)
     {
@@ -348,7 +348,7 @@ int HRP2MotionEvaluationProcess::RealizeTheProcess()
 
 int HRP2MotionEvaluationProcess::CleanUpTheProcess()
 {
-  
+
   return 0;
 }
 
@@ -376,7 +376,7 @@ int HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(RANGE & orig,
 	   <<  "copy.ColorCount : " << copy.ColorCount << endl
 	   <<  "copy.Height     : " << copy.Height << endl
 	   <<  "copy.Width      : " << copy.Width << endl;
-      
+
       cerr <<  "orig.PixelCount : " << orig.PixelCount << endl
 	   <<  "orig.DotCount   : " << orig.DotCount   << endl
 	   <<  "orig.NormCount  : " << orig.NormCount  << endl
@@ -389,20 +389,20 @@ int HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(RANGE & orig,
     }
 
   if ((copy.Height!=orig.Height) ||
-      (copy.Width!=orig.Width)) 
+      (copy.Width!=orig.Width))
     identical = 0;
-  
+
 
   if (!identical)
     {
-      
-      if (m_Verbosity>=2) 
+
+      if (m_Verbosity>=2)
 	{
 	  cerr << "HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(): Allocate the copy" << endl;
-	  
+
 	  if (orig.Label & RANGE_LABEL_DOT)
 	    cerr << "Label : RANGE_LABEL_DOT " << endl;
-	  
+
 	  if (orig.Label & RANGE_LABEL_COLOR)
 	    cerr << "Label : RANGE_LABEL_COLOR" << endl;
 	}
@@ -433,7 +433,7 @@ int HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(RANGE & orig,
     {
       if (copy.Label & RANGE_LABEL_DOT)
 	cerr << "COPY Label : RANGE_LABEL_DOT " << endl;
-      
+
       if (copy.Label & RANGE_LABEL_COLOR)
 	cerr << "COPY Label : RANGE_LABEL_COLOR" << endl;
 
@@ -551,7 +551,7 @@ int HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(RANGE & orig,
 
   /* 内部 rotmat の初期化 */
   rng_initial_rotate_matrix(&copy, &copy.rotmat, 0);
-  
+
   ODEBUG(  "copy.PixelCount : " << copy.PixelCount << endl
 	   <<  "copy.DotCount   : " << copy.DotCount   << endl
 	   <<  "copy.NormCount  : " << copy.NormCount  << endl
@@ -561,7 +561,7 @@ int HRP2MotionEvaluationProcess::DuplicateRangeWithoutReallocation(RANGE & orig,
 	   <<  "copy.ColorCount : " << copy.ColorCount << endl
 	   <<  "copy.Height     : " << copy.Height << endl
 	   <<  "copy.Width      : " << copy.Width );
-	
+
   return 0;
 }
 

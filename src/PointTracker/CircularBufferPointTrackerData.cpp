@@ -4,7 +4,7 @@
 
 void CBPointTrackerData::operator=(const CBPointTrackerData &a)
 {
- 
+
   *image = *a.image;
   *timestamp = *a.timestamp;
   cMo = a.cMo;

@@ -34,7 +34,7 @@
 // modified 02/04/18 for rbt2scm Calibration
 // **********************************************************************
 
-namespace llvs 
+namespace llvs
 {
   class LowLevelVisionServer;
 
@@ -111,7 +111,7 @@ namespace llvs
 
       virtual CORBA::Boolean StartProcess(const char *aProcessName
 					  )throw(CORBA::SystemException);
-    
+
       virtual CORBA::Boolean StopProcess(const char *aProcessName
 					 )throw(CORBA::SystemException);
 
@@ -123,7 +123,7 @@ namespace llvs
 
       // Restore the previous grabbing status.
       void RestoreLLVSGrabbing();
-  
+
       // Stop the grabbing and keep the previous status of the IEEE1394 visual
       // process status.
       void StopLLVSGrabbing();

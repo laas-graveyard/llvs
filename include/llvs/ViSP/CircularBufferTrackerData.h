@@ -1,4 +1,4 @@
-/** @doc Class to store data information coming from 
+/** @doc Class to store data information coming from
     the model tracker.
 
    Copyright (c) 2010,
@@ -50,11 +50,11 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
 	  {
             //FIXME : The size of the image shouldn't  be hardly written.
             // Yet, we don't have any information  about the image size in this class
-            // it should be added ... 
-	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320); 
+            // it should be added ...
+	    m_CircularBuffer[i].onedatum.image= new vpImage<unsigned char>(240,320);
 	    m_CircularBuffer[i].onedatum.timestamp= new double(0);
 	  }
-		
+
 	m_ProcessName = lProcessName;
       }
 
@@ -72,12 +72,12 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
   {
     m_nmbt = anmbt;
   }
-  
+
 
  protected:
   int pRealizeTheProcess()
   {
-    
+
     m_nmbt->GetOutputcMo(m_Datum->cMo);
     vpColVector avec;
     m_nmbt->GetProjectedObj(avec);
@@ -88,11 +88,11 @@ class CircularModelTrackerData:public CircularBuffer<CBTrackerData>
 
     return 0;
   }
-  
+
  private:
   HRP2nmbtTrackingProcess * m_nmbt;
   CBTrackerData * m_CBTrackerData;
-  
+
 };
 #endif  // (LLVS_HAVE_VISP>0)
 

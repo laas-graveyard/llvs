@@ -1,13 +1,13 @@
-/** @doc Object to convert back and forth a ViSP image into a OpenCV image 
-    
+/** @doc Object to convert back and forth a ViSP image into a OpenCV image
+
 
    Copyright (c) 2003-2010,
    @author Stephane Embarki
 
    see License file for more information
    on the license applied to this code.
-   
-   
+
+
 */
 #ifndef _KALMAN_ON_NMBT_PROCESS_H_
 #define _KALMAN_ON_NMBT_PROCESS_H_
@@ -40,18 +40,18 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
  public:
 
   typedef enum
-  {  
+  {
     VEL_CAM,
     VEL_OBJ,
     ACC_CAM,
     ACC_OBJ,
     CTL_CAM,
     CTL_OBJ
-  } typeState ;	
-  
+  } typeState ;
+
   /*! Constructor */
   HRP2KalmanOnNMBTProcess();
-  
+
   /*! Destructor */
   virtual ~HRP2KalmanOnNMBTProcess();
 
@@ -60,7 +60,7 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
 
   /*! Set pointer on m_timestamp in LLVS*/
   int SetTimeStamp(double* aTimeStamp);
-   
+
   /*! Set the ConnectionToSot  pointer */
   void SetConnectionToSot (llvs::ConnectionToSot * aCTS);
 
@@ -68,31 +68,31 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
 
   /*! Initialize the process. */
   int pInitializeTheProcess();
-  
+
   /*! Realize the process */
   int pRealizeTheProcess();
-  
+
   /*! Cleanup the process */
   int pCleanUpTheProcess();
 
   /*! Convert vpHomogeneousMatrix to vpColverctor*/
   void ConvertHMatrixToCVector(const vpHomogeneousMatrix & aHM,
 			       vpColVector &aCV);
-  
+
   /*! Convert vpHomogeneousMatrix to vpColverctor*/
   void ConvertCVectorToHMatrix(const vpColVector & aCV,
 			       vpHomogeneousMatrix & aHM);
 
   void KalmanOnSoT();
-  
+
   struct dataSoT
   {
     vpColVector Y;
     vpColVector U;
     double timeStamp;
-    
+
   };
-   
+
   /*State molidelisation type */
   typeState m_StateType;
 
@@ -129,10 +129,10 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
 
   /* TimeStamp in LLVS*/
   double  m_LastTimeStamp;
-  
+
   /*State covrariance matrix*/
   vpMatrix m_P;
-  
+
   /*State noise variance vector*/
   vpColVector m_N;
 
@@ -149,11 +149,11 @@ class HRP2KalmanOnNMBTProcess: public HRP2nmbtTrackingProcess
   /*m_TimeStampLLVS is initialized*/
   bool m_TimeStampInitialize;
 
-  /*current internal state*/ 
-  std::string m_internalState; 
+  /*current internal state*/
+  std::string m_internalState;
 
 };
 
 #endif // (LLVS_HAVE_KALMAN_FILTER > 0)
 
-#endif 
+#endif

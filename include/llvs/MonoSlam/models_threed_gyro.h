@@ -25,19 +25,19 @@
 
 // Model for internal measurement of angular velocity from a 3 axis gyro
 // Assumes MonoSLAM state vector
-//                 x 
-//  r              y 
-//                 z 
-//  -              - 
-//                 q0 
+//                 x
+//  r              y
+//                 z
+//  -              -
+//                 q0
 //  q              qx
 //                 qy
 //                 qz
-//  -      =       - 
+//  -      =       -
 //                 vx
 //  v              vy
 //                 vz
-//  -              - 
+//  -              -
 //                 omegax
 //  omega          omegay
 //                 omegaz
@@ -48,7 +48,7 @@
 #include "Scene/models_base.h"
 
 
-class ThreeD_Gyro_Internal_Measurement_Model 
+class ThreeD_Gyro_Internal_Measurement_Model
 : public Internal_Measurement_Model
 {
  public:
@@ -65,14 +65,14 @@ class ThreeD_Gyro_Internal_Measurement_Model
   void func_Rv(const VNL::Vector<double> &hv);
 
   // Innovation calculation
-  void func_nuv(const VNL::Vector<double> &hv, 
+  void func_nuv(const VNL::Vector<double> &hv,
 			const VNL::Vector<double> &zv);
 
   // Noisy measurement for use in simulation
   void func_hv_noisy(const VNL::Vector<double> &xv_true);
 
   // Test for feasibility of measurement
-  bool feasibility_test(const VNL::Vector<double> &xv, 
+  bool feasibility_test(const VNL::Vector<double> &xv,
 			const VNL::Vector<double> &hv);
 };
 

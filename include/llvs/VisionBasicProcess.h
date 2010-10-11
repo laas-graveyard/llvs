@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _HRP2_VISION_BASIC_PROCESS_H_
@@ -41,7 +41,7 @@
 
 /*! This object defines the abstract class defining a basic
  * vision process
- * 
+ *
  * Copyright (c) 2004 Olivier Stasse, JRL, CNRS/AIST
  *
  *
@@ -57,7 +57,7 @@
 #endif /* LLVS_HAVE_OPENCV */
 
 #if (LLVS_HAVE_VVV>0)
-extern "C" 
+extern "C"
 {
 #include "epbm.h"
 }
@@ -81,13 +81,13 @@ class HRP2VisionBasicProcess
 
   /* Stop the process */
   int StopProcess();
-  
+
   /* Start the process */
   int StartProcess();
 
   /* Returns the current status of the process:
-   * 0 : not running 
-   * 1 : running 
+   * 0 : not running
+   * 1 : running
    */
   int GetStatus();
 
@@ -96,7 +96,7 @@ class HRP2VisionBasicProcess
 
   /*! Realize the process */
   int RealizeTheProcess();
-  
+
   /*! Cleanup the process */
   int CleanUpTheProcess();
 
@@ -109,16 +109,16 @@ class HRP2VisionBasicProcess
   /*! Get the level of verbosity */
   unsigned char GetLevelOfVerbosity();
 
-  /*! Set the level of verbosity 
+  /*! Set the level of verbosity
    * Higher is the value, higher the process will be verbose.
    * By default its value is 0
    */
   void SetLevelOfVerbosity(unsigned char LevelOfVerbosity);
 
   /*! Set a parameter,
-   * A parameter can be or cannot be associated with a value, 
+   * A parameter can be or cannot be associated with a value,
    * thus an empty string for Value is correct.
-   * If the parameter already exist is value is overwritten. 
+   * If the parameter already exist is value is overwritten.
    * If this is valid the index parameter >=0 is returned,
    * -1 otherwise.
    */
@@ -138,8 +138,8 @@ class HRP2VisionBasicProcess
   static const int HEADER_IPL=0;
   static const int EXISTING_IPL=1;
   static const int NEW_IPL=2;
-  
-  /*! Create a set of 3 IPL images 
+
+  /*! Create a set of 3 IPL images
    *
    */
   IplImage ** ToIPL(unsigned char *Images[3], int Sizes[3][2]);
@@ -152,7 +152,7 @@ class HRP2VisionBasicProcess
 
   /* Transfert from EPBM to IPL using 3 modes:
      NEW_IPL: Create one IPL totally different.
-     HEADER_IPL: Create one IPL with the header different, and pointing to 
+     HEADER_IPL: Create one IPL with the header different, and pointing to
      the same data.
      EXISTING_IPL: Using an existing IPL and changing the header.
   */
@@ -163,14 +163,14 @@ class HRP2VisionBasicProcess
 
   void DisplayError(const string &Transition);
 
-  /*! Hooks on methods without the p 
+  /*! Hooks on methods without the p
     To be redefined and called only by inherited classes */
 
   /* Processes status */
   virtual int pInitializeTheProcess()=0;
 
   virtual int pRealizeTheProcess()=0;
-  
+
   virtual int pCleanUpTheProcess()=0;
 
   /* Methods related to parameters */
@@ -179,7 +179,7 @@ class HRP2VisionBasicProcess
 
   virtual int pSetParameter(string aParameter, string aValue)
   { return 0;};
-  
+
   virtual int pGetValueOfParameter(string aParameter, string &aValue)
   { return 0;};
 

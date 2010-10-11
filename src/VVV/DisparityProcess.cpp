@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <iostream>
@@ -93,7 +93,7 @@ HRP2DisparityProcess::HRP2DisparityProcess(unsigned char BooleanForErrorModel) :
       /* By default set the size to 80 by 60 */
       InitializeErrorModel();
     }
-  
+
 }
 
 HRP2DisparityProcess::~HRP2DisparityProcess()
@@ -116,11 +116,11 @@ void HRP2DisparityProcess::InitializeErrorModel()
       delete m_BoundingBox;
       m_BoundingBox = 0;
     }
-    
+
   if ((m_ErrorModel==ERROR_MODEL_ONLINE_INTERVALS) ||
       (m_ErrorModel==ERROR_MODEL_HZ))
     {
-	
+
       if (m_ErrorModel==ERROR_MODEL_ONLINE_INTERVALS)
 	{
 	  m_CamL.create(3,4);
@@ -137,7 +137,7 @@ void HRP2DisparityProcess::InitializeErrorModel()
       for(int i=0;i<2;i++)
 	{
 	  double lH[3][4];
-	  
+
 	  /* Store the rigid transformation */
 	  //	  scm_sp2SCMH(&m_sp, SCM_LEFT,lH,0);
 	  //corr_scm_Htow2c(lH,m_w2c[i]);
@@ -154,23 +154,23 @@ void HRP2DisparityProcess::InitializeErrorModel()
 		}
 	      //cout << endl;
 	    }
-	  
-	  
+
+
 	  double w = sqrt(oP[2][0] * oP[2][0] + oP[2][1] * oP[2][1] + oP[2][2] * oP[2][2]);
 
 	  int sdet=1;
-	  
+
 	  double q[3][3];
 	  double r[3][3];
 	  double a[3][3];
-  
+
 	  scm_H2q((double (*)[4])m_sp.H[i][0],q,0);
 	  scm_q2r(q,r,0);
 	  scm_matrix_by_matrix_3D((double *)q, (double *)r, (double *)a);
 
 	  if (a[0][0]<0.0)
 	    sdet = -1;
-	    
+
 	  for(int k=0;k<3;k++)
 	    {
 	      for(int j=0;j<4;j++)
@@ -210,12 +210,12 @@ void HRP2DisparityProcess::InitializeErrorModel()
 	    }
 	}
     }
-  
+
   if (m_ErrorModel==ERROR_MODEL_ONLINE_INTERVALS)
     {
- 
+
       m_NbOfPointsWithInformation = 0;
-      
+
       if (m_Verbosity)
 	cerr << "... Continuing the initialization of HRP2DisparityProcess " << endl
 	     << "... Read Look Up Table ... " << endl;
@@ -226,28 +226,28 @@ void HRP2DisparityProcess::InitializeErrorModel()
 
       if (m_DIPs!=0)
 	delete m_DIPs;
-      
+
       m_DIPs = 0;
-      
-      int TotalSize = m_ImageSizeInLUT[0] * 
+
+      int TotalSize = m_ImageSizeInLUT[0] *
 	m_ImageSizeInLUT[1];
 
       m_DIPs = new DataIntervalPoint_t *[TotalSize];
       for(int i=0;i<TotalSize;i++)
-	  m_DIPs[i] = 0; 
- 
+	  m_DIPs[i] = 0;
+
 
     }
 
 }
 
-TU::Matrix<double> HRP2DisparityProcess::BuildCovarianceMatrixHZ(TU::Vector<double> q1, TU::Vector<double> q2, 
+TU::Matrix<double> HRP2DisparityProcess::BuildCovarianceMatrixHZ(TU::Vector<double> q1, TU::Vector<double> q2,
 					   TU::Matrix<double> P1, TU::Matrix<double> P2,
 					   TU::Matrix<double> CovX, TU::Matrix<double> Theta)
 {
   TU::Matrix<double> A(4,4);
   TU::Matrix<double> dAdX(4,4);
-  
+
   // Build A
 #if 0
   cout << "Theta: "<< endl<<Theta<<endl;
@@ -283,7 +283,7 @@ TU::Matrix<double> HRP2DisparityProcess::BuildCovarianceMatrixHZ(TU::Vector<doub
       W[2][2] += tmp;
       W[3][3] += tmp;
     }
-  
+
   for(int i=0;i<4;i++)
     if (W[i][i]!=0.0)
       W[i][i]=1/W[i][i];
@@ -292,34 +292,34 @@ TU::Matrix<double> HRP2DisparityProcess::BuildCovarianceMatrixHZ(TU::Vector<doub
   for(int j=0;j<2;j++)
     for(int i=0;i<4;i++)
       A[j][i] = (q1[j]*P1[2][i] - P1[j][i]);
-  
+
   // Third line and fourth line
   for(int j=0;j<2;j++)
     for(int i=0;i<4;i++)
       A[2+j][i] = (q2[j]*P2[2][i] - P2[j][i]);
 
-  
+
   //  cout << "A: " << endl << A <<endl;
   // Build A+
   TU::Matrix<double> N(4,4);
 #if 0
-  cout << "Before computing N" << "A: " << endl<< 
+  cout << "Before computing N" << "A: " << endl<<
     A << endl << " CovX :" << endl <<
     CovX<<  endl;
   cout << " CovX.inv() "<< endl <<
     CovX.inv();
-    
+
   cout << " CovX.inv() * A " << endl <<
     CovX.inv() * A;
 #endif
-  double w=sqrt(Theta[0][0]*Theta[0][0] + 
+  double w=sqrt(Theta[0][0]*Theta[0][0] +
 	 Theta[1][1]*Theta[1][1] +
 	 Theta[2][2]*Theta[2][2] +
 	 Theta[3][3]*Theta[3][3]);
 
 
   N = A*W;
-  
+
   // cout << "N:" << endl << N;
 
   //  cout << "Rank: " << rank<< " Tol: " << tol << " svd[0]/svd[2]:"<<svd[0]/svd[2]<< endl;
@@ -369,7 +369,7 @@ int HRP2DisparityProcess::InitializeTheProcess(int CalibrationWidth, int Calibra
   /* Arguments construction during the initialization process */
   int argc = 1;
   char **argv;
-  
+
   for(int i=0;i<m_ParametersSize;i++)
     {
       if (m_VectorOfParameters[i].length()!=0)
@@ -377,7 +377,7 @@ int HRP2DisparityProcess::InitializeTheProcess(int CalibrationWidth, int Calibra
       if (m_VectorOfValuesForParameters[i].length()!=0)
 	argc++;
     }
-  
+
   argv = (char **)new char *[argc];
 
   char ProgramName[124]="Disparity";
@@ -424,10 +424,10 @@ int HRP2DisparityProcess::InitializeTheProcess(int CalibrationWidth, int Calibra
 			     m_IPFC );
   m_para.calibration_image_width = CalibrationWidth;
   m_para.calibration_image_height = CalibrationHeight;
-  
+
   if (m_Verbosity)
     cerr << "Phase 2 for the initialization of HRP2DisparityProcess ..." << endl;
-  //  fprintf(stderr,"DisparityProcess: Init_Process - Save range data: %s\n",m_IPFC.rngfname);  
+  //  fprintf(stderr,"DisparityProcess: Init_Process - Save range data: %s\n",m_IPFC.rngfname);
   /* Initialize the data space for the points needed
      for the error */
   if (m_PointsInImageLeft!=0)
@@ -442,9 +442,9 @@ int HRP2DisparityProcess::InitializeTheProcess(int CalibrationWidth, int Calibra
   m_PointsInImageLeft = new int [2*m_Depbm.Width*m_Depbm.Height];
   m_PointsInImageRight = new int [2*m_Depbm.Width*m_Depbm.Height];
   m_ColorInImageLeft = new unsigned char [3*m_Depbm.Width*m_Depbm.Height];
-  
+
   InitializeErrorModel();
-  
+
   if (m_Verbosity)
     cerr << "Phase 4 for the initialization of HRP2DisparityProcess ..." << endl;
 
@@ -490,12 +490,12 @@ int HRP2DisparityProcess::RealizeTheProcess()
 			       (unsigned char) (0.299 * epbm_uc_cgetpixel(&m_InputImage[i],EPBM_RED,scm_row, scm_col) +
 						0.587 * epbm_uc_cgetpixel(&m_InputImage[i],EPBM_GREEN,scm_row, scm_col) +
 						0.114 * epbm_uc_cgetpixel(&m_InputImage[i],EPBM_BLUE,scm_row, scm_col)));
-			       
+
 	    }
 	  }
 	}
 
-      
+
       lInput[0] = m_GrayInputImage[0];
       lInput[1] = m_GrayInputImage[1];
     }
@@ -523,17 +523,17 @@ int HRP2DisparityProcess::RealizeTheProcess()
       //      epbm_save("TexturelessImage.epbm",&m_TexturelessImage[0],0);
       compute_disparity_map(lInput, m_Depbm, m_rng, m_para, m_sp, m_IPFC,&m_TexturelessImage[0],&m_InputImage[0]);
     }
-  else 
+  else
     compute_disparity_map(lInput, m_Depbm, m_rng, m_para, m_sp, m_IPFC, (EPBM*)0,&m_InputImage[0]);
 
   ODEBUG("End the disparity process.");
 
   if (m_Verbosity>=2)
-    {    
+    {
 
       if (m_Verbosity>=4)
-	{    
-	  
+	{
+
 	  for(int i=0;i<m_rng.MapSize;i++)
 	    {
 	      PixelData *pmap;
@@ -569,7 +569,7 @@ int HRP2DisparityProcess::RealizeTheProcess()
       (m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_RANGE_DATA_AND_PLY))
     WriteToPlyFormat();
 
-  
+
   if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_RANGE_DATA) ||
       (m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_RANGE_DATA_AND_PLY))
     range_save("E.rng",&m_rng,0);
@@ -615,11 +615,11 @@ int HRP2DisparityProcess::GetModeDumpMatching3DPoints()
 
 /********* Methods related to the internal error model ***************************/
 
-/* Find the matching points in the original reference frame 
+/* Find the matching points in the original reference frame
  * At the end m_NbOfPoitnsWithInformation gives the number of pairs found.
  * m_PointsInImageLeft[2*i] and m_PointsInImageLeft[2*i+1] contains
  * the coordinates x and y respectivly which match the  point
- * m_PointsInImageRight[2*i] and m_PointsInImageRight[2*i+1] 
+ * m_PointsInImageRight[2*i] and m_PointsInImageRight[2*i+1]
  * in the Right image.
  */
 int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
@@ -633,7 +633,7 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
   double OriginScrLeft[2] ,OriginScrRight[2];
   double OriginCrRight[2],OriginCrLeft[2];
   double intervalh, intervalw;
-  
+
 
   intervalw = (double)m_para.calibration_image_width  / (double)m_para.image_width;
   intervalh = (double)m_para.calibration_image_height / (double)m_para.image_height;
@@ -641,7 +641,7 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
   scm_SCMcr2cr( &m_sp, SCM_LEFT, OriginScrLeft, OriginCrLeft);
   scm_SCMcr2cr( &m_sp, SCM_LEFT, OriginScrRight, OriginCrRight);
   ODEBUG("Value of the origin in the virtual original images: " <<
-	 OriginCrLeft[0]/intervalw << " " << OriginCrRight[1]/intervalh << " " << 
+	 OriginCrLeft[0]/intervalw << " " << OriginCrRight[1]/intervalh << " " <<
 	 OriginScrLeft[0]/intervalw << " " << OriginScrRight[1]/intervalh );
 
   if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_MATCHING) ||
@@ -653,7 +653,7 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
 
   m_NbOfPointsWithInformation = 0;
 
-  /* For each couple of 2D point you should reconstruct the coordinates 
+  /* For each couple of 2D point you should reconstruct the coordinates
    * of the 2D points in the uncorrected images.
    */
   ofstream dump_tmp;
@@ -661,8 +661,8 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
 
   for( i=0; i<m_Depbm.Height; i++ ){
     for( j=0; j<m_Depbm.Width; j++ ){
-      
-      
+
+
       /* Take the disparity */
       if(m_Depbm.DataType == EPBM_CHAR8){
 	disp = epbm_uc_getpixel( &m_Depbm, i, j );
@@ -675,7 +675,7 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
 	  continue;
 	}
       }
-      
+
       /* Goes back to the unreconstructed images */
       scrL[0] = j*intervalw;
       scrL[1] = i*intervalh;
@@ -691,16 +691,16 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
 
       scm_SCMcr2cr( &m_sp, SCM_LEFT, scrL, crL);
       scm_SCMcr2cr( &m_sp, SCM_RIGHT, scrR, crR);
-      
+
       /* IMPORTANT:
-	 The current coordinates are given in the CALIBRATION reference frame ! 
+	 The current coordinates are given in the CALIBRATION reference frame !
       */
       m_PointsInImageLeft[2*m_NbOfPointsWithInformation] = (int)(crL[0]/intervalw);
-      m_PointsInImageLeft[2*m_NbOfPointsWithInformation+1] = (int)(crL[1]/intervalh);      
+      m_PointsInImageLeft[2*m_NbOfPointsWithInformation+1] = (int)(crL[1]/intervalh);
       m_PointsInImageRight[2*m_NbOfPointsWithInformation] = (int)(crR[0]/intervalw);
       m_PointsInImageRight[2*m_NbOfPointsWithInformation+1] = (int)(crR[1]/intervalh);
-      m_ColorInImageLeft[3*m_NbOfPointsWithInformation] = 
-      m_ColorInImageLeft[3*m_NbOfPointsWithInformation+1] = 
+      m_ColorInImageLeft[3*m_NbOfPointsWithInformation] =
+      m_ColorInImageLeft[3*m_NbOfPointsWithInformation+1] =
       m_ColorInImageLeft[3*m_NbOfPointsWithInformation+2] = epbm_uc_getpixel( &m_InputImage[0], i, j );
       if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_MATCHING) ||
 	  (m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS_MATCHING))
@@ -714,7 +714,7 @@ int HRP2DisparityProcess::FindMatchingInImagesCoordinates()
 
       dump_tmp << crL[0]<< " " << crL[1]<< " " << crR[0]<< " " << crR[1]  << " "
 	       << scrL[0]<< " " << scrL[1]<< " " << scrR[0]<< " " << scrR[1] << " "
-	       << m_IPFC.disp_f << " " << offset << " " << intervalw << " " 
+	       << m_IPFC.disp_f << " " << offset << " " << intervalw << " "
 	       << disp << endl;
       m_NbOfPointsWithInformation++;
     }
@@ -754,14 +754,14 @@ int HRP2DisparityProcess::ComputeHZError()
   for(int l2j=0;l2j<4;l2j++)
     for(int l2i=0;l2i<4;l2i++)
       Theta[l2j][l2i] = 0.0;
-  Theta[3][3] = 1.0;		  
+  Theta[3][3] = 1.0;
 
   for(int i=0;i<4;i++)
     for(int j=0;j<4;j++)
       CovX[i][j] = 0.0;
   for(int i=0;i<4;i++)
     CovX[i][i] = 0.7*0.7; // Standard deviation = 0.7
-    
+
   PixelData *aPD;
   ODEBUG("Start of ComputeHZError() " << m_rng.MapSize);
   for (int i=0;i<m_rng.PixelCount;i+=m_SubsampleHZ)
@@ -771,7 +771,7 @@ int HRP2DisparityProcess::ComputeHZError()
       q1[1] = m_PointsInImageLeft[2*i+1]*intervalh;
       q2[0] = m_PointsInImageRight[2*i]*intervalw;
       q2[1] = m_PointsInImageRight[2*i+1]*intervalw;
-      
+
       ODEBUG( aPD->Dot[0] << " " << aPD->Dot[1] << " " << aPD->Dot[2]);
       Theta[0][0] = aPD->Dot[0];
       Theta[1][1] = aPD->Dot[1];
@@ -788,7 +788,7 @@ int HRP2DisparityProcess::ComputeHZError()
 	for(int k=0;k<3;k++)
 	  m_BoundingBox[12*i+3+3*j+k] = CovTheta[j][k];
       ODEBUG("phase4");
-      
+
     }
   ODEBUG("ComputeHZError");
   return 0;
@@ -796,7 +796,7 @@ int HRP2DisparityProcess::ComputeHZError()
 
 int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 {
-  Appariement match;  
+  Appariement match;
   MatrixInterval Xnh;
   DataIntervalPoint_t *aDIP;
   double intervalh, intervalw;
@@ -804,7 +804,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 
   intervalw = (double)m_para.calibration_image_width / (double)m_para.image_width;
   intervalh = (double)m_para.calibration_image_height / (double)m_para.image_height;
-  
+
   int Contractor = KRAWCZYK;
   int Computation_Method = 1;
 
@@ -812,11 +812,11 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
   match.ptD.create(3,4);
   match.ptGcor.create(3,1);
   match.ptDcor.create(3,1);
-  
+
   Xnh.create(3,1);
-  
+
   FindMatchingInImagesCoordinates();
-  
+
   if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS) ||
       (m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS_MATCHING))
     {
@@ -829,28 +829,28 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 
   for (int i=0;i<m_NbOfPointsWithInformation;i+=m_SubsampleIA)
     {
-      
+
       switch (MethodToCompute)
 	{
-	  
+
 	case ERROR_MODEL_ONLINE_INTERVALS:
 	  /* Initializes the data */
 	  ODEBUG(intervalw << " "<< intervalh);
 	  match.ptG.set(m_PointsInImageLeft[2*i]*intervalw,intervalw/2.0,1,1);
 	  match.ptG.set(m_PointsInImageLeft[2*i+1]*intervalh,intervalh/2.0,2,1);
 	  match.ptG.set(1.0,3,1);
-	  
+
 	  match.ptD.set(m_PointsInImageRight[2*i]*intervalw,intervalw/2.0,1,1);
 	  match.ptD.set(m_PointsInImageRight[2*i+1]*intervalh,intervalh/2.0,2,1);
 	  match.ptD.set(1.0,3,1);
 	  match.length=1;
-	  
+
 	  /* Computes the scene */
 	  if (Computation_Method ==0)
 	    {
 	      if (i==0)
 		ComputeScene(match,Contractor,m_CamL,m_CamR,m_NbOfPointsWithInformation,&m_sp,10);
-	      else 
+	      else
 		ComputeScene(match,Contractor,m_CamL,m_CamR,-1,&m_sp,10);
 	    }
 	  else
@@ -867,24 +867,24 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 		iql.set(Gx.mid,uncertainty,1,1);
 		iql.set(Gy.mid,uncertainty,2,1);
 		iql.set(1,0,3,1);
-		
+
 		Gx = match.ptD.get(1,1);
 		Gy = match.ptD.get(2,1);
 		iqr.set(Gx.mid,uncertainty,1,1);
 		iqr.set(Gy.mid,uncertainty,2,1);
-		iqr.set(1,0,3,1);	
+		iqr.set(1,0,3,1);
 		//m_CamL.print("CamL");
 		//		m_CamR.print("CamR");
 		/*printf("iReconstruction3D : %f %f %f %f\n",
 		       iqr.get(1,1), iqr.get(2,1),
 		       match.ptD.get(1,1).mid, match.ptD.get(2,1).mid); */
-		//Xnh = iReconstruction3D(iql, iqr, m_CamL, m_CamR,Contractor,nb_iterations)*(-1);       	
-		Xnh = iReconstruction3D1(iql, iqr, m_CamL, m_CamR)*(-1);       	
+		//Xnh = iReconstruction3D(iql, iqr, m_CamL, m_CamR,Contractor,nb_iterations)*(-1);
+		Xnh = iReconstruction3D1(iql, iqr, m_CamL, m_CamR)*(-1);
 		//		Xnh.print("Xnh");
 	    }
 
-	  /* Store the center 
-	   * The disparity and the reconstructed point are done 
+	  /* Store the center
+	   * The disparity and the reconstructed point are done
 	   * in the image coordinates reference frame, thus we have to
 	   * perform a rigid transformation to get back to the
 	   * VVV world coordinates.
@@ -892,7 +892,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 #if 0
 	  for (int k = 0; k< 3; k++)
 	    {
-	      
+
 	      m_BoundingBox[6*i+k] = m_w2c[0][k][0] *(float)Xnh.get(1,1).mid +
 		m_w2c[0][k][1] *(float)Xnh.get(2,1).mid +
 		m_w2c[0][k][2] *(float)Xnh.get(3,1).mid + m_w2c[0][k][3];
@@ -901,7 +901,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 	  m_BoundingBox[6*i+0] = (float)Xnh.get(1,1).mid;
 	  m_BoundingBox[6*i+1] = (float)Xnh.get(2,1).mid;
 	  m_BoundingBox[6*i+2] = (float)Xnh.get(3,1).mid;
-	
+
 #endif
 	  /* Store the bouding box related to this center */
 	  m_BoundingBox[6*i+3] = (float)Xnh.get(1,1).rad;
@@ -938,7 +938,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 
 	case ERROR_MODEL_HIRSCHMULLER:
 	  break;
-	  
+
 	}
 
       if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS) ||
@@ -946,7 +946,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
 	{
 	  for(int j=0;j<6;j++)
 	    aofstream << m_BoundingBox[6*i+j] << " ";
-	  
+
 	  for(int j=0;j<3;j++)
 	    aofstream << (int)m_ColorInImageLeft[3*i+j] << " ";
 
@@ -956,7 +956,7 @@ int HRP2DisparityProcess::ComputeIntervalError(int MethodToCompute)
       if (m_Verbosity>=3)
 	if (i%10==0)
 	  cout << i << endl;
-    } 
+    }
 
   if ((m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS) ||
       (m_ModeToDumpMatching3DPoints==DUMP_MODE_3D_POINTS_INTERVALS_MATCHING))
@@ -979,7 +979,7 @@ int HRP2DisparityProcess::ReadLookUpTable()
 	{
 	  int CoordLeft[2], CoordRight[2];
 	  float LocalCenter[3],LocalRadius[3];
-	  
+
 	  a2is.read((char *)CoordLeft,2*sizeof(int));
 	  a2is.read((char *)CoordRight,2*sizeof(int));
 
@@ -989,7 +989,7 @@ int HRP2DisparityProcess::ReadLookUpTable()
 	      (CoordRight[1]>=0) && (CoordRight[1]<60))
 	    {
 	      m_DIPs[HRP2DPINDEX(CoordLeft[0],CoordLeft[1],CoordRight[0])] =
-		new DataIntervalPoint_t; 
+		new DataIntervalPoint_t;
 	      if (m_DIPs[HRP2DPINDEX(CoordLeft[0],CoordLeft[1],CoordRight[0])]==0)
 		{
 		  printf("Stop\n");
@@ -1004,7 +1004,7 @@ int HRP2DisparityProcess::ReadLookUpTable()
 			 CoordLeft[0],CoordLeft[1],CoordRight[0],
 			 m_DIPs[HRP2DPINDEX(CoordLeft[0],CoordLeft[1],CoordRight[0])]);
 		}
-	      NbOfPoints++;	      
+	      NbOfPoints++;
 
 	      a2is.read((char *)m_DIPs[HRP2DPINDEX(CoordLeft[0],CoordLeft[1],CoordRight[0])]->Center,
 		      3*sizeof(float));
@@ -1024,7 +1024,7 @@ int HRP2DisparityProcess::SetImageSizeInLUT(int width, int height)
   int TotalSize = width*height*width;
   m_ImageSizeInLUT[0] = width;
   m_ImageSizeInLUT[1] = height;
-  
+
 
 
   return 0;
@@ -1090,7 +1090,7 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 
   float TranslationVec[3] = {0.0,0.0,0.0}, LinearCoef=1000.0;
 
-  /* Vertex in the range map */  
+  /* Vertex in the range map */
   for(int i=0;i<m_rng.PixelCount;i++)
     {
       PixelData *pmap;
@@ -1099,7 +1099,7 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 	{
 	  //	  if ((pmap->Color[0]<128) && (pmap->Dot[2]<-2.0))
 	    {
-	      
+
 	      for(int j= 0;j<3;j++)
 		{
 		  /* Min and Max on X, Y and Z */
@@ -1112,7 +1112,7 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 	    }
 	}
     }
-  
+
   fout1.open(PtsFileName.c_str());
   fout1 << "ply" << endl;
   fout1 << "format ascii 1.0" << endl;
@@ -1137,12 +1137,12 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
     {
       float r = BoundingBoxes[i][1] - BoundingBoxes[i][0];
       TranslationVec[i] =  BoundingBoxes[i][0];
-      
+
       if (LinearCoef < r)
 	LinearCoef = r;
     }
 
-  
+
   LinearCoef *= 1/0.06;
 #endif
 
@@ -1158,19 +1158,19 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 	      for(int j=0;j<3;j++)
 		{
 		  float x = pmap->Dot[j];
-		  
+
 		  x -= TranslationVec[j];
 		  x /= LinearCoef;
-		  
+
 		  fout1 << x << " ";
-		  
+
 		}
 	      fout1 << endl;
 	    }
 	}
     }
-  
-  /* Goes through the range map 
+
+  /* Goes through the range map
    * and create the link between the matrix and the range map.
    */
   int IndexPoint = 0;
@@ -1184,7 +1184,7 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 	    {
 	      if (pmap->Color[0]<128)
 		{
-		  
+
 		  fout1 << "1 "
 			<< IndexPoint++;
 		}
@@ -1194,8 +1194,8 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
 	  fout1 << endl;
 	}
     }
-  
-  
+
+
   fout1.close();
 
   /* Create the bounding box file */
@@ -1211,7 +1211,7 @@ void HRP2DisparityProcess::WriteToPlyFormat(void)
   fout1 << "element faces 0" << endl;
   fout1 << "property list uchar int vertex_indices" << endl;
   fout1 << "end_header" << endl;
-  
+
   fout1 << (BoundingBoxes[0][0]-TranslationVec[0])/LinearCoef << " 0.0 0.0" << endl;
   fout1 << (BoundingBoxes[0][1]-TranslationVec[0])/LinearCoef << " 0.0 0.0" << endl;
   fout1 << "0.0 " << (BoundingBoxes[1][0]-TranslationVec[1])/LinearCoef << " 0.0" << endl;
@@ -1271,7 +1271,7 @@ int HRP2DisparityProcess::SetParameter(string aParameter, string aValue)
 	    argc++;
 	}
     }
-  
+
   argv = (char **)new char *[argc];
   argv_store = (char **)new char *[argc];
 
@@ -1337,12 +1337,12 @@ int HRP2DisparityProcess::SetParameter(string aParameter, string aValue)
 	      else if (m_VectorOfValuesForParameters[i]=="hz")
 		{
 		  m_ErrorModel = ERROR_MODEL_HZ;
-		}	
+		}
 	      InitializeErrorModel();
 	    }
 	  else
 	    {
-	      ODEBUG( "VP_value " << m_VectorOfParameters[i].length() << " n: " << n 
+	      ODEBUG( "VP_value " << m_VectorOfParameters[i].length() << " n: " << n
 		       << " " << m_VectorOfValuesForParameters[i]) ;
 	      argv[n] = new char[m_VectorOfValuesForParameters[i].length()+1];
 	      bzero(argv[n],m_VectorOfValuesForParameters[i].length()+1);
@@ -1365,8 +1365,8 @@ int HRP2DisparityProcess::SetParameter(string aParameter, string aValue)
     {
       argv_store[i] = argv[i];
     }
-  
-  /* Because this is a F... VVV unsafe function we have to store 
+
+  /* Because this is a F... VVV unsafe function we have to store
      the pointers for further deleting. */
   ODEBUG("SET PARAMETER OF LIBRARY");
   setParameter(&m_para,argc,argv);

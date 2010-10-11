@@ -15,7 +15,7 @@ CircularBuffer::CircularBuffer(int SizeOfCircularBuffer)
       i<m_CircularBuffer.size();
       i++)
     {
-      m_CircurlarBuffer[i].m_OneDatumMutex = 
+      m_CircurlarBuffer[i].m_OneDatumMutex =
 	PTHREAD_MUTEX_INITIALIZER;
     }
 
@@ -51,7 +51,7 @@ int CircularBuffer::pCleanUpTheProcess()
 
   return 0;
 }
-  
+
 template <T>
 int CircularBuffer::ReadData(T &aDatum)
 {
@@ -71,7 +71,7 @@ int CircularBuffer::ReadData(T &aDatum)
       pthread_mutex_unlock(m_CircularBuffer[m_IndexBuffer-1].mutex);
     }
     return -1;
-  
+
 }
 
 template <T>
@@ -87,7 +87,7 @@ int CircularBuffer::SaveData(T &aDatum)
   if (m_CircularBuffer.size()==
       m_IndexBuffer)
     m_IndexBuffer = 0;
-  
+
   return 0;
 }
 

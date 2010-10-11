@@ -25,19 +25,19 @@
 
 // Model for internal measurement of angular velocity from a 3 axis gyro
 // Assumes MonoSLAM state vector
-//                 x 
-//  r              y 
-//                 z 
-//  -              - 
-//                 q0 
+//                 x
+//  r              y
+//                 z
+//  -              -
+//                 q0
 //  q              qx
 //                 qy
 //                 qz
-//  -      =       - 
+//  -      =       -
 //                 vx
 //  v              vy
 //                 vz
-//  -              - 
+//  -              -
 //                 omegax
 //  omega          omegay
 //                 omegaz
@@ -48,7 +48,7 @@
 #include "Scene/models_base.h"
 
 
-class Orientation_Internal_Measurement_Model 
+class Orientation_Internal_Measurement_Model
 : public Internal_Measurement_Model
 {
  public:
@@ -68,35 +68,35 @@ class Orientation_Internal_Measurement_Model
   void func_Rv(const VNL::Vector<double> &hv);
 
   // Innovation calculation
-  void func_nuv(const VNL::Vector<double> &hv, 
+  void func_nuv(const VNL::Vector<double> &hv,
 			const VNL::Vector<double> &zv);
 
   // Noisy measurement for use in simulation
   void func_hv_noisy(const VNL::Vector<double> &xv_true);
 
   // Test for feasibility of measurement
-  bool feasibility_test(const VNL::Vector<double> &xv, 
+  bool feasibility_test(const VNL::Vector<double> &xv,
 			const VNL::Vector<double> &hv);
-  
+
   // Calculate commonly used Jacobian part dq(omega * delta_t) by domega
-  void dqomegadt_by_domega(const VW::Vector3D &omega, 
+  void dqomegadt_by_domega(const VW::Vector3D &omega,
 			   const double delta_t,
 			   VNL::MatrixFixed<4,3,double> &dqomegadt_by_domega);
 
   // Ancillary functions: calculate parts of Jacobian dq_by_domega
   // which are repeatable due to symmetry.
-  double dq0_by_domegaA(const double omegaA, const double omega, 
+  double dq0_by_domegaA(const double omegaA, const double omega,
 			const double delta_t);
-  double dqA_by_domegaA(const double omegaA, const double omega, 
+  double dqA_by_domegaA(const double omegaA, const double omega,
 			const double delta_t);
-  double dqA_by_domegaB(const double omegaA, const double omegaB, 
-			const double omega, 
+  double dqA_by_domegaB(const double omegaA, const double omegaB,
+			const double omega,
 			const double delta_t);
 
-  void extract_r_q_v_omega( const VNL::Vector<double> &xv, 
-			    VW::Vector3D &r, 
-			    VW::Quaternion &q, 
-			    VW::Vector3D &v, 
+  void extract_r_q_v_omega( const VNL::Vector<double> &xv,
+			    VW::Vector3D &r,
+			    VW::Quaternion &q,
+			    VW::Vector3D &v,
 			    VW::Vector3D &omega);
 
 

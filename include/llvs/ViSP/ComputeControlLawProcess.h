@@ -1,13 +1,13 @@
-/** @doc Object to convert back and forth a ViSP image into a OpenCV image 
-    
+/** @doc Object to convert back and forth a ViSP image into a OpenCV image
+
 
    Copyright (c) 2003-2010,
    @author Stephane Embarki
 
    see License file for more information
    on the license applied to this code.
-   
-   
+
+
 */
 #ifndef _HRP2_COMPUTE_CONTROL_LAW_PROCESS_H_
 #define _HRP2_COMPUTE_CONTROL_LAW_PROCESS_H_
@@ -39,14 +39,14 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
  public:
 
   typedef enum
-    {  
+    {
 	FREE,
 	HEIGHT_LIMITED,
 	PLAN_MOTION,
 	ON_GROUND
 
     } typeMotion;
-  
+
   /*! Constructor */
   HRP2ComputeControlLawProcess();
 
@@ -55,7 +55,7 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
   /*! Set a parameter */
   int pSetParameter(string aParameter, string aValue);
-   
+
   /*! Set the nmbt tracker pointer */
   void SetTracker(HRP2nmbtTrackingProcess* anmbt);
 
@@ -68,12 +68,12 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
   /*! Set the type of test on motion*/
   void SetMotionTest(typeMotion aMotion,
 		     const vector<double> &limit = vector<double>(0));
-   
+
   /*! Get the cdMc */
   void GetcdMc ( vpHomogeneousMatrix &acdMc);
 
-  inline void GethVc(vpTwistMatrix& hVc){hVc=m_hVc;} 
-  
+  inline void GethVc(vpTwistMatrix& hVc){hVc=m_hVc;}
+
   /*! Get the ComputeV */
   void GetComputeVelocity ( vpColVector &aCV);
 
@@ -85,13 +85,13 @@ class HRP2ComputeControlLawProcess : public HRP2VisionBasicProcess
 
   /*! Initialize the process. */
   int pInitializeTheProcess();
-  
+
   /*! Realize the process */
   int pRealizeTheProcess();
-  
+
   /*! Cleanup the process */
   int pCleanUpTheProcess();
-  
+
   /*! Start the process */
   int pStartProcess();
 
@@ -115,8 +115,8 @@ public:
   /*! Velocity saturation*/
   int VelocitySaturation(const vpColVector &RawVel,double *SatVel);
 
- 
- 
+
+
   /*!Convert velocity from camera to waist*/
   int changeVelocityFrame(const vpColVector&velCam,
 			  vpColVector&velWaist,
@@ -129,30 +129,30 @@ public:
  protected:
   /*!Init the parameters*/
   int init();
-  
+
   /*!load the cameraHeadTransform*/
   int loadcMh(vpHomogeneousMatrix &M);
-  
-   
+
+
   /*Stop*/
   int stop(double * VelRef);
-  
-  
+
+
   /* Nmbt tracking process*/
   HRP2nmbtTrackingProcess* m_nmbt;
-   
+
   /* Connection to Stack of Task*/
   llvs::ConnectionToSot * m_CTS;
 
   /* Object pose in the current camera frame*/
   vpHomogeneousMatrix m_cMo;
-  
+
   /* Object pose in the desired camera frame*/
   vpHomogeneousMatrix m_cdMo;
 
   /* Current camera pose in the desired camera frame*/
   vpHomogeneousMatrix m_cdMc;
-   
+
   /*Change velocity frame from camera to head*/
   vpTwistMatrix m_hVc;
 
@@ -160,26 +160,26 @@ public:
   vpHomogeneousMatrix m_headMcamera;
 
   /* Visual Servoing Task */
-  vpServo m_Task;  
-    
+  vpServo m_Task;
+
   /* Visual Servoing Translation Feature*/
   vpFeatureTranslation* m_FT;
-  
+
   /* Visual Servoing Utheta Feature*/
   vpFeatureThetaU *  m_FThU;
 
   /* Visual Servoing gain */
   double m_Lambda;
-  
+
   /* Visual Servoing error */
   double m_Error;
-  
+
   /* Heiht limitation for the model*/
   double m_ModelHeightLimit;
-  
+
   /* Store the initial  model height */
   double m_IninitHeight;
-   
+
   /* Rotation on X axis limitation for the model */
   double m_RxLimit;
 
@@ -194,29 +194,29 @@ public:
 
   /* Save of the last object pose in foot frame*/
   vpHomogeneousMatrix m_LastfMo;
-  
-  /* Control velocity expressed in the Waist Frame */ 
+
+  /* Control velocity expressed in the Waist Frame */
   vpColVector m_ComputeV;
-  
+
   /* Define type of motion tested*/
   typeMotion m_MotionTested;
-  
+
   /*Flag to check if the process is initialized*/
   bool m_ProcessInitialized;
-  
+
   /*Flag to check if cMo is set*/
   bool m_cdMoSet;
-  
+
   /*Flag to check if the control law is computed*/
   bool m_ControlLawComputed;
-  
+
   /*Flag to check if the control law must be computed*/
   bool m_RealiseControlLaw;
-  
-  /**/ 
-  std::string m_internalState; 
- 
+
+  /**/
+  std::string m_internalState;
+
 };
 
 
-#endif 
+#endif

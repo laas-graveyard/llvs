@@ -45,7 +45,7 @@ StereoVision_impl::StereoVision_impl(CORBA::ORB_ptr orb,PortableServer::POA_ptr 
     poa_(PortableServer::POA::_duplicate(poa))
 #else
     StereoVision_impl::StereoVision_impl(CORBA_ORB_ptr orb,
-					 LowLevelVisionServer *LLVS) 
+					 LowLevelVisionServer *LLVS)
     : orb_(CORBA_ORB::_duplicate(orb))
 #endif
 {
@@ -76,7 +76,7 @@ StereoVision_impl::_default_POA()
 #endif
 
 
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::rbt2scmCalibStart(
 ) throw(CORBA::SystemException)
 {
@@ -103,14 +103,14 @@ StereoVision_impl::rbt2scmCalibStart(
   if(val != 0) {
     ret = true;
   }
-    
+
   /* close the file pointer */
   pclose( fp );
-    
+
   return ret;
 }
 
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::rbt2scmCalibEnd(
 ) throw(CORBA::SystemException)
 {
@@ -137,15 +137,15 @@ StereoVision_impl::rbt2scmCalibEnd(
   if(val != 0) {
     ret = true;
   }
-    
+
   /* close the file pointer */
   pclose( fp );
-    
+
   return ret;
 }
 
 
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::detectCrossMark(
 				   const TransformQuaternion& robotHeadPos,
 				   const TransformQuaternion& robotHandPos
@@ -154,7 +154,7 @@ StereoVision_impl::detectCrossMark(
   string command = "detectCrossMark.sh";
   FILE    *fp;//, *popen();
   char buffer[500];
-  
+
   sprintf(buffer,"%s/%s %f %f %f %f %f %f %f %f %f %f %f %f %f %f",
 	  (char *)m_CommandsDir.c_str(),
 	  (char *)command.c_str(),
@@ -173,11 +173,11 @@ StereoVision_impl::detectCrossMark(
 	  robotHandPos.qz,
 	  robotHandPos.qw
 	  );
-    
+
   /* open the command ("/bin/ls") and get a file pointer */
 
   StopLLVSGrabbing();
-  sleep(1);    
+  sleep(1);
 
   if ( (fp = popen(buffer, "r" )) == NULL ){
     cout << "process open error :" << command << endl;
@@ -188,14 +188,14 @@ StereoVision_impl::detectCrossMark(
   CORBA::Boolean  ret = false;
   int val = 0;
   fscanf(fp,"%d",&val);
-    
+
   if(val != 0) {
     ret = true;
   }
-    
+
   /* close the file pointer */
   pclose( fp );
-    
+
   return ret;
 }
 
@@ -203,7 +203,7 @@ StereoVision_impl::detectCrossMark(
 //
 // IDL:StereoVision/getObjectPosition:1.0
 //
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::getObjectPosition(
 				     const char* name,
 				     const TransformQuaternion& robotHeadPos,
@@ -212,12 +212,12 @@ StereoVision_impl::getObjectPosition(
 {
   FILE    *fp;//, *popen();
   char buffer[500];
-  
+
   TransformQuaternion_var pp = new TransformQuaternion();
   pp->px = pp->py = pp->pz = 0.0;
   pp->qx = pp->qy = pp->qz = pp->qw = 0.0;
-  
-  sprintf(buffer,"cd %s; ./get%sPosition.sh %f %f %f %f %f %f %f", 
+
+  sprintf(buffer,"cd %s; ./get%sPosition.sh %f %f %f %f %f %f %f",
 	  (char *)m_CommandsDir.c_str(),
 	  name,
 	  robotHeadPos.px,
@@ -229,7 +229,7 @@ StereoVision_impl::getObjectPosition(
 	  robotHeadPos.qw
 	  );
   cout << buffer << endl;
-  StopLLVSGrabbing();  
+  StopLLVSGrabbing();
   sleep(1);
   /* open the command ("/bin/ls") and get a file pointer */
   if ( (fp = popen( buffer, "r" )) == NULL ){
@@ -242,15 +242,15 @@ StereoVision_impl::getObjectPosition(
   ODEBUG("I waited 2 secondes.");
   RestoreLLVSGrabbing();
   ODEBUG("Grabbing restored.");
-  
+
   CORBA::Boolean  ret = false;
   int val = 0;
   fscanf(fp,"%d",&val);
-  
+
   if(val != 0) {
-    
+
     ret = true;
-    
+
     float f0,f1,f2,f3,f4,f5,f6;
     fscanf(fp,"%f %f %f %f %f %f %f",
 	   &f0,&f1,&f2,&f3,&f4,&f5,&f6);
@@ -261,20 +261,20 @@ StereoVision_impl::getObjectPosition(
     pp->qy = f4;
     pp->qz = f5;
     pp->qw = f6;
-    
+
   }
   ObjectPosition = pp;
-  
+
   /* close the file pointer */
   pclose( fp );
-  
+
   return ret;
 }
 
 //
 // IDL:StereoVision/StartProcess:1.0
 //
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::StartProcess(const char* ProcessName)throw(CORBA::SystemException)
 {
 
@@ -284,15 +284,15 @@ StereoVision_impl::StartProcess(const char* ProcessName)throw(CORBA::SystemExcep
 
   string sPN(ProcessName);
 
-  /*  
+  /*
       if (sPN.find("/")!=std::string::npos)
-      sprintf(buffer,"%s", 
+      sprintf(buffer,"%s",
       ProcessName);
       else */
-  sprintf(buffer,"cd %s; ./%s.sh", 
+  sprintf(buffer,"cd %s; ./%s.sh",
 	  (char *)m_CommandsDir.c_str(),
 	  ProcessName);
-  
+
   cout << "Buffer: " << buffer << endl;
   /* open the command ("/bin/ls") and get a file pointer */
 
@@ -307,19 +307,19 @@ StereoVision_impl::StartProcess(const char* ProcessName)throw(CORBA::SystemExcep
   RestoreLLVSGrabbing();
 
   CORBA::Boolean  ret = false;
- 
+
   int val = 0;
   fscanf(fp,"%d",&val);
-  
+
   if(val != 0) {
-    
+
     ret = true;
-    
+
   }
-  
+
   /* close the file pointer */
   pclose( fp );
-  
+
   return ret;
 
 }
@@ -327,7 +327,7 @@ StereoVision_impl::StartProcess(const char* ProcessName)throw(CORBA::SystemExcep
 //
 // IDL:StereoVision/StopProcess:1.0
 //
-CORBA::Boolean 
+CORBA::Boolean
 StereoVision_impl::StopProcess(const char* ProcessName)
   throw(CORBA::SystemException)
 {
@@ -337,7 +337,7 @@ StereoVision_impl::StopProcess(const char* ProcessName)
 //
 // IDL:StereoVision/getImage:1.0
 //
-CORBA::Long 
+CORBA::Long
 StereoVision_impl::getImage(CORBA::Long CameraID,ImageData_out anImage,char*& Format)throw(CORBA::SystemException)
 {
   return -1;
@@ -347,7 +347,7 @@ StereoVision_impl::getImage(CORBA::Long CameraID,ImageData_out anImage,char*& Fo
 //
 // IDL:StereoVision/getRangeMap:1.0
 //
-CORBA::Long 
+CORBA::Long
 StereoVision_impl::getRangeMap(RangeMap_out aRangeMap, char *&Format)throw(CORBA::SystemException)
 {
   return -1;
@@ -360,7 +360,7 @@ void StereoVision_impl::StopLLVSGrabbing()
     {
       m_LLVS->StopProcess("IEEE1394 Image grabbing");
     }
-  
+
 }
 
 void StereoVision_impl::RestoreLLVSGrabbing()
@@ -368,5 +368,5 @@ void StereoVision_impl::RestoreLLVSGrabbing()
   if (m_LLVSGrabbingStatus)
     {
       m_LLVS->StartProcess("IEEE1394 Image grabbing");
-    }  
+    }
 }

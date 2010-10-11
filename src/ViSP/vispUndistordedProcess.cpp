@@ -1,10 +1,10 @@
 /** @doc This object implements a visual process to get a disparity map.
 
-    Copyright (c) 2010, 
+    Copyright (c) 2010,
     @author Stephane Embarki
-   
+
     JRL-Japan, CNRS/AIST
-    
+
     See license file for information on license.
 */
 
@@ -51,13 +51,13 @@ HRP2vispUndistordedProcess:: ~HRP2vispUndistordedProcess()
 
   m_VispGreyImages=0x0;
   m_VispRGBaImages=0x0 ;
-  m_RawImages=0x0; 
- 
+  m_RawImages=0x0;
+
 }
 
 
 /*! Set the images */
-void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
+void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
 					    ,vpImage<unsigned char>* Ivisp )
 {
   //TODO some verification and resize?
@@ -71,9 +71,9 @@ void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
   m_tmpVispGreyImages.resize( m_ImgParam.height, m_ImgParam.width);
 
   m_ImagesInitialized	= true;
-}  
+}
 
-void HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw 
+void HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
 					   ,vpImage<vpRGBa>* Ivisp )
 {
   //TODO some verification and resize?
@@ -82,10 +82,10 @@ void HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
   m_RawImages           = Iraw;
 
   m_ImagesInitialized	= true;
-}  
+}
 /*! Set the camera paramaters */
 void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_cam)
-{ 
+{
   m_CameraParamLoaded     =  false;
   m_CamParam=_cam;
   m_CameraParamLoaded     =  true;
@@ -99,15 +99,15 @@ void HRP2vispUndistordedProcess::SetCameraParameters(const vpCameraParameters &_
   FLIP = ON or OFF
   TYPE_CONV = RGB_VISPU8 or RGB_VISPU8_NONE
   -------------------------------------*/
-int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter, 
+int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter,
 					      std::string aValue)
 {
   //  std::cout << aParameter << "/" << aValue << std::endl;
 
   // use of the generic function to add the parameter in the parameter list
-  // A parameter can be or cannot be associated with a value, 
+  // A parameter can be or cannot be associated with a value,
   // thus an empty string for Value is correct.
-  // If the parameter already exist is value is overwritten. 
+  // If the parameter already exist is value is overwritten.
   // If this is valid the index parameter >=0 is returned,
   // -1 otherwise.
   //int outputVBPSetParameters = HRP2VisionBasicProcess::SetParameter(aParameter,aValue);
@@ -123,9 +123,9 @@ int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter,
 	{
 	  m_flip = false;
 	}
-      else 
+      else
 	{
-	  cout << "Warning : unknown \"FLIP\" value :"<< aValue << endl; 
+	  cout << "Warning : unknown \"FLIP\" value :"<< aValue << endl;
 	  return -1;
 	}
     }
@@ -149,8 +149,8 @@ int HRP2vispUndistordedProcess::pSetParameter(std::string aParameter,
   return 0;
 }
 
-/*!------------------------------------- 
-  Initialize the process. 
+/*!-------------------------------------
+  Initialize the process.
   -------------------------------------*/
 int HRP2vispUndistordedProcess:: pInitializeTheProcess()
 {
@@ -159,14 +159,14 @@ int HRP2vispUndistordedProcess:: pInitializeTheProcess()
   return 0;
 }
 
-/*!------------------------------------- 
-  Realize the process 
-  the tracker has previously been initialised with: 
+/*!-------------------------------------
+  Realize the process
+  the tracker has previously been initialised with:
   a cMo that is the init transform between the camera and the object
   a pointer on an Image
   some parameter for the tracking
   the object model
-   
+
   -------------------------------------*/
 int HRP2vispUndistordedProcess::pRealizeTheProcess()
 {
@@ -175,9 +175,9 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
   if(m_ImagesInitialized)
     {
 
-      if(m_conversion == RGB_VISPU8 ) 
+      if(m_conversion == RGB_VISPU8 )
 	{
-	  //	  std::cout << "Hello world rectif" << std::endl;	  
+	  //	  std::cout << "Hello world rectif" << std::endl;
 	  vpImageConvert::RGBToGrey( *m_RawImages,
 				     m_tmpVispGreyImages.bitmap,
 				     m_ImgParam.width,
@@ -189,7 +189,7 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 
 	}
 
-      if(m_conversion == RGB_VISPU8_NONE) 
+      if(m_conversion == RGB_VISPU8_NONE)
 	{
 	  //	  std::cout << "Hello world pas rectif" << std::endl;
 	  vpImageConvert::RGBToGrey( *m_RawImages,
@@ -203,11 +203,11 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
   m_imageUndistortSucces = true;
 
   return 0;
- 
+
 }
 
 int  HRP2vispUndistordedProcess::pCleanUpTheProcess()
 {
 
   return 0;
-} 
+}

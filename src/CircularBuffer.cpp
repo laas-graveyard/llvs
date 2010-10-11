@@ -44,7 +44,7 @@ int CircularBuffer::pCleanUpTheProcess()
 
   return 0;
 }
-  
+
 template <T>
 int CircularBuffer::ReadData(T &aDatum)
 {
@@ -60,7 +60,7 @@ int CircularBuffer::ReadData(T &aDatum)
       T=m_CircularBuffer[lsize-1];
     }
     return -1;
-  
+
 }
 
 template <T>
@@ -68,13 +68,13 @@ int CircularBuffer::SaveData(T &aDatum)
 {
 
   m_CircularBuffer[m_IndexBuffer]=T;
-  
+
   m_IndexBuffer++;
 
   if (m_CircularBuffer.size()==
       m_IndexBuffer)
     m_IndexBuffer = 0;
-  
+
   return 0;
 }
 

@@ -41,8 +41,8 @@ Orientation_Internal_Measurement_Model(Motion_Model *motion_model)
 #else
     SD_meas_filter(0.02),
     SD_meas_simulation(0.02)
-  
-#endif 
+
+#endif
 {
 }
 
@@ -58,7 +58,7 @@ func_hv_and_dhv_by_dxv(const VNL::Vector<double> &xv)
 {
   double delta_t = 1/30.0;
 
-  VW::Vector3D rold, vold, omegaold, 
+  VW::Vector3D rold, vold, omegaold,
     rnew, vnew, omeganew;
   VW::Quaternion qold, qnew;
 
@@ -66,22 +66,22 @@ func_hv_and_dhv_by_dxv(const VNL::Vector<double> &xv)
   extract_r_q_v_omega(xv, rold, qold, vold, omegaold);
 
   //  assert(xv.Size() == motion_model->STATE_SIZE);
-  
+
   // Just pull out omega part of state
   // rnew = r + v * delta_t
   hvRES.Fill(0.0);
   rnew = rold + vold * delta_t;
-  
+
   hvRES.Update(rnew.GetVNL3(), 0);
 
   VW::Quaternion qwt(omegaold * delta_t);
   qnew = qold*qwt;
-  
+
   hvRES.Update(qnew.GetRXYZ(), 3);
 
 
   dhv_by_dxvRES.Fill(0.0);
-  
+
   VNL::MatrixFixed<3,3,double> Temp33A;
   Temp33A.SetIdentity();
   dhv_by_dxvRES.Update(Temp33A, 0, 0);
@@ -91,7 +91,7 @@ func_hv_and_dhv_by_dxv(const VNL::Vector<double> &xv)
 
   // dhv_by_dxv = (dhv_by_dr dhv_by_dq dhv_by_dv dhv_by_domega)
 
-  VNL::MatrixFixed<4,4,double> Temp44A = dq3_by_dq2(qwt); 
+  VNL::MatrixFixed<4,4,double> Temp44A = dq3_by_dq2(qwt);
   dhv_by_dxvRES.Update(Temp44A, 3, 3);
 
 
@@ -105,7 +105,7 @@ func_hv_and_dhv_by_dxv(const VNL::Vector<double> &xv)
   // And plug it in
   dhv_by_dxvRES.Update(Temp43B, 3, 10);
   //cout << "func_hv_orientation " << endl <<  dhv_by_dxvRES << endl;
-    
+
 }
 
 void Orientation_Internal_Measurement_Model::
@@ -119,7 +119,7 @@ func_Rv(const VNL::Vector<double> &hv)
 
   for(int i=0;i<3;i++)
     RvRES[i][i] *= measurement_noise_variance;
-  
+
   for(int i=0;i<4;i++)
     RvRES[i+3][i+3] *= measurement_ang_noise_variance;
   //cout << measurement_ang_noise_variance << endl;
@@ -141,13 +141,13 @@ func_nuv(const VNL::Vector<double> &hv, const VNL::Vector<double> &zv)
   rzv.SetVNL3(zv.Extract(3, 0));
 
   VNL::VectorFixed<4,double> qRXYZ_zv = zv.Extract(4, 3);
-  
+
   double dotp = DotProduct(qRXYZ_hv,qRXYZ_zv);
   double d = acos(dotp);
 
   for(int li=0;li<4;li++)
     nuvRES[li+3] = d;
-  
+
 
   for(int li=0;li<3;li++)
     nuvRES[li] = rzv[li]-rhv[li];
@@ -180,45 +180,45 @@ feasibility_test(const VNL::Vector<double> &xv, const VNL::Vector<double> &hv)
 // DQOMEGADT BY DOMEGA
 /// Calculate commonly used Jacobian part \f$ \partial q(\omega * \Delta t) / \partial \omega \f$.
 void Orientation_Internal_Measurement_Model::
-dqomegadt_by_domega(const VW::Vector3D &omega, 
+dqomegadt_by_domega(const VW::Vector3D &omega,
 		    const double delta_t,
 		    VNL::MatrixFixed<4,3,double> &dqomegadt_by_domega)
 {
   // Modulus
-  double omegamod = sqrt(omega.GetX() * omega.GetX() + 
-			 omega.GetY() * omega.GetY() + 
+  double omegamod = sqrt(omega.GetX() * omega.GetX() +
+			 omega.GetY() * omega.GetY() +
 			 omega.GetZ() * omega.GetZ());
 
   // Use generic ancillary functions to calculate components of Jacobian
-  dqomegadt_by_domega.Put(0, 0, 
+  dqomegadt_by_domega.Put(0, 0,
 			  dq0_by_domegaA(omega.GetX(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(0, 1, 
+  dqomegadt_by_domega.Put(0, 1,
 			  dq0_by_domegaA(omega.GetY(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(0, 2, 
+  dqomegadt_by_domega.Put(0, 2,
 			  dq0_by_domegaA(omega.GetZ(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(1, 0, 
+  dqomegadt_by_domega.Put(1, 0,
 			  dqA_by_domegaA(omega.GetX(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(1, 1, 
+  dqomegadt_by_domega.Put(1, 1,
 			  dqA_by_domegaB(omega.GetX(), omega.GetY(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(1, 2, 
+  dqomegadt_by_domega.Put(1, 2,
 			  dqA_by_domegaB(omega.GetX(), omega.GetZ(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(2, 0, 
+  dqomegadt_by_domega.Put(2, 0,
 			  dqA_by_domegaB(omega.GetY(), omega.GetX(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(2, 1, 
+  dqomegadt_by_domega.Put(2, 1,
 			  dqA_by_domegaA(omega.GetY(), omegamod, delta_t));
-  dqomegadt_by_domega.Put(2, 2, 
+  dqomegadt_by_domega.Put(2, 2,
 			  dqA_by_domegaB(omega.GetY(), omega.GetZ(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 0, 
+  dqomegadt_by_domega.Put(3, 0,
 			  dqA_by_domegaB(omega.GetZ(), omega.GetX(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 1, 
+  dqomegadt_by_domega.Put(3, 1,
 			  dqA_by_domegaB(omega.GetZ(), omega.GetY(), omegamod,
 					 delta_t));
-  dqomegadt_by_domega.Put(3, 2, 
+  dqomegadt_by_domega.Put(3, 2,
 			  dqA_by_domegaA(omega.GetZ(), omegamod, delta_t));
 }
 
@@ -234,8 +234,8 @@ dqomegadt_by_domega(const VW::Vector3D &omega,
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaA is one of omegax, omegay, omegaz.
 **/
-double Orientation_Internal_Measurement_Model::dq0_by_domegaA(const double omegaA, 
-						   const double omega, 
+double Orientation_Internal_Measurement_Model::dq0_by_domegaA(const double omegaA,
+						   const double omega,
 						   const double delta_t)
 {
   return (-delta_t / 2.0) * (omegaA / omega) * sin(omega * delta_t / 2.0);
@@ -246,11 +246,11 @@ double Orientation_Internal_Measurement_Model::dq0_by_domegaA(const double omega
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaA is one of omegax, omegay, omegaz and similarly with qA.
 **/
-double Orientation_Internal_Measurement_Model::dqA_by_domegaA(const double omegaA, 
+double Orientation_Internal_Measurement_Model::dqA_by_domegaA(const double omegaA,
 						   const double omega,
 						   const double delta_t)
 {
-  return (delta_t / 2.0) * omegaA * omegaA / (omega * omega) 
+  return (delta_t / 2.0) * omegaA * omegaA / (omega * omega)
     * cos(omega * delta_t / 2.0)
     + (1.0 / omega) * (1.0 - omegaA * omegaA / (omega * omega))
     * sin(omega * delta_t / 2.0);
@@ -261,12 +261,12 @@ double Orientation_Internal_Measurement_Model::dqA_by_domegaA(const double omega
 /**
 Ancillary function to calculate part of Jacobian \f$ \partial q / \partial \omega \f$ which is repeatable due to symmetry. Here omegaB is one of omegax, omegay, omegaz and similarly with qA.
 **/
-double Orientation_Internal_Measurement_Model::dqA_by_domegaB(const double omegaA, 
-						   const double omegaB, 
-						   const double omega, 
+double Orientation_Internal_Measurement_Model::dqA_by_domegaB(const double omegaA,
+						   const double omegaB,
+						   const double omega,
 						   double delta_t)
 {
-  return (omegaA * omegaB / (omega * omega)) * 
+  return (omegaA * omegaB / (omega * omega)) *
     ( (delta_t / 2.0) * cos(omega * delta_t / 2.0)
       - (1.0 / omega) * sin(omega * delta_t / 2.0) );
 }
@@ -276,10 +276,10 @@ double Orientation_Internal_Measurement_Model::dqA_by_domegaB(const double omega
 values.
 **/
 void Orientation_Internal_Measurement_Model::extract_r_q_v_omega(
-								 const VNL::Vector<double> &xv, 
-								 VW::Vector3D &r, 
-								 VW::Quaternion &q, 
-								 VW::Vector3D &v, 
+								 const VNL::Vector<double> &xv,
+								 VW::Vector3D &r,
+								 VW::Quaternion &q,
+								 VW::Vector3D &v,
 								 VW::Vector3D &omega)
 {
   r.SetVNL3(xv.Extract(3, 0));

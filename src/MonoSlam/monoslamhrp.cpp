@@ -39,7 +39,7 @@ MonoSLAMHRP::MonoSLAMHRP(const std::string& initialisation_file,
 		      standard_deviation_depth_ratio,
 		      min_number_of_particles,
 		      prune_probability_threshold,
-		      erase_partially_init_feature_after_this_many_attempts) 
+		      erase_partially_init_feature_after_this_many_attempts)
 {
   m_InitialPose.Resize(7);
   m_InitializationPhase = 1;
@@ -79,9 +79,9 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
       VW::Quaternion qWR;
       // cout << "QCo: 2 " << qco << endl;
       qWR = qR * qco;
-      
+
       VNL::Vector<double> lxv = scene->get_xv();
-      
+
       /*      double a[7] = {current_orientation(4),
 		     current_orientation(5),
 		     current_orientation(6),
@@ -90,7 +90,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 		     lxv(1),
 		     lxv(2),
 		     qWR.R(),qWR.X(),qWR.Y(),qWR.Z()};
-      
+
       // Get total state and covariance
       int scene_state_size = scene->get_total_state_size();
       VNL::Vector<double> x(scene_state_size);
@@ -117,17 +117,17 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
       x.Update(V, 0);
 
       P.Update(M, 0, 0);
-      
+
       ODEBUG3("x:" << x <<endl <<
 	      "P:" << P <<endl);
-	    
+
       scene->fill_state_and_covariance(x, P);
-            
+
       for(unsigned int i=0;i<7;i++)
 	m_prev_wpg_pose[i] = a[i];
     }
 
-  ODEBUG("time at the beginning " << timer1);  
+  ODEBUG("time at the beginning " << timer1);
   ODEBUG3( "GoOneStepHRP " <<  current_orientation );
   // Nullify image selection
   robot->nullify_image_selection();
@@ -135,12 +135,12 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
   init_feature_search_region_defined_flag = false;
 
   ODEBUG3("Start Monoslam " << scene->get_xv());
-  if (use_gyro_flag) 
+  if (use_gyro_flag)
     {
       ODEBUG("Use gyro ");
       // First do internal measurement for last step
       scene->predict_internal_measurement(0);
-      
+
       VNL::Vector<double> omegaC_meas(3);
       double a[] = {current_gyro(1),
 		    current_gyro(2),
@@ -148,9 +148,9 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
       omegaC_meas.CopyIn(a);
       ODEBUG("Gyro: " << omegaC_meas );
       scene->successful_internal_measurement(omegaC_meas, 0);
-      kalman->update_filter_internal_measurement_slow(scene, 
+      kalman->update_filter_internal_measurement_slow(scene,
 						      0);
-      
+
     }
   ODEBUG3("After gyro " << scene->get_xv() );
   ODEBUG("GoOneStepHRP " );
@@ -168,7 +168,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     vC_meas.CopyIn(a);
     // cout << "Waist velocity " << vC_meas << endl;
     scene->successful_internal_measurement(vC_meas, 1);
-    kalman->update_filter_internal_measurement_slow(scene, 
+    kalman->update_filter_internal_measurement_slow(scene,
 						    1);
   }
   // cout << "GoOneStepHRP " << endl;
@@ -180,7 +180,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     scene->predict_internal_measurement(2);
 
     scene->successful_internal_measurement(current_camera_height, 2);
-    kalman->update_filter_internal_measurement_slow(scene, 
+    kalman->update_filter_internal_measurement_slow(scene,
 						    2);
   }
   ODEBUG3("after camera height " << scene->get_xv() );
@@ -212,7 +212,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 		     qWR.R(),qWR.X(),qWR.Y(),qWR.Z()};
 
       vC_meas.CopyIn(a);
-      /* cout << current_orientation(3) << " " 
+      /* cout << current_orientation(3) << " "
 	 << current_orientation(4) << " "
 	 << current_orientation(5) << endl;  */
       // cout << "Orientation from PG : " <<qco.R() << " " << qco.X()<< " " << qco.Y() << " " << qco.Z() << endl;
@@ -223,7 +223,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
       kalman->update_filter_internal_measurement_slow(scene,3);
       // cout << "After update " << scene->get_xv() << endl;
 
-    
+
     }
 #endif
 
@@ -236,7 +236,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
   if (lcontrolsize==7)
     {
       // Control vector of accelerations
-      
+
       VW::Quaternion qco(current_orientation(2),
 			 current_orientation(3),
 			 current_orientation(1),
@@ -256,7 +256,7 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 			      m_InitialPose(5),
 			      m_InitialPose(6),
 			      m_InitialPose(3));
-			      
+
       ODEBUG("qWR1: " << qWR1 << endl << "qWR2: " <<  qWR2);
       qR1R2 = qWR1.Inverse()*qWR2;
 
@@ -283,30 +283,30 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 	    for(unsigned int i=0;i<3;i++)
 	      u(i) = a[i]  - m_prev_wpg_pose(i) ;
 	  }
-	  
-	    
+
+
 	for(int i=0;i<7;i++)
 	  m_prev_wpg_pose(i) = a[i];
 
       }
 
         ODEBUG("End of u computation");
-	
+
     }
 
   ODEBUG("After set control");
   kalman->predict_filter_fast(scene, u, delta_t);
   ODEBUG(scene->get_Pxx());
-  
+
   ODEBUG3("Before auto select n features.");
-  unsigned int number_of_visible_features = 
+  unsigned int number_of_visible_features =
     scene->auto_select_n_features(NUMBER_OF_FEATURES_TO_SELECT);
 
   //  scene->print_selected_features();
 
   if (scene->get_no_selected() != 0)
     {
-      scene->predict_measurements(); 
+      scene->predict_measurements();
       ODEBUG3( "Time after predicting measurements " << timer1 );
 
       if (use_vision_flag) {
@@ -321,11 +321,11 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 	  ODEBUG3( "Time after total_update_filter " << timer1 );
 
 	  scene->normalise_state();
-      
+
 	  ODEBUG3("Time after normalise_state " << timer1 );
 	}
       }
-    }  
+    }
 
   ODEBUG3("HEre .");
   scene->delete_bad_features();
@@ -344,8 +344,8 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
   double speedx = current_waist_velocity(0);
   double speedy = current_waist_velocity(1);
   double speedz = current_waist_velocity(2);;
-  double speed = sqrt(speedx * speedx + 
-		      speedy * speedy + 
+  double speed = sqrt(speedx * speedx +
+		      speedy * speedy +
 		      speedz * speedz);
   if (VERBOSE) cout << "Camera speed " << speed << " ms^-1 " << endl;
   /*
@@ -355,16 +355,16 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
     << scene->get_xv()(6) << endl;
   */
 
-  ODEBUG( "Speed:" << speed << " " 
-	  << current_waist_velocity(0) 
-	  << " " << current_waist_velocity(1) 
+  ODEBUG( "Speed:" << speed << " "
+	  << current_waist_velocity(0)
+	  << " " << current_waist_velocity(1)
 	  << " " << current_waist_velocity(2)  );
-  ODEBUG("vision flag : " << use_vision_flag 
+  ODEBUG("vision flag : " << use_vision_flag
 	  <<  " mapping flag : " << currently_mapping_flag);
-  if (use_vision_flag) 
+  if (use_vision_flag)
     {
-      //if (speed>0.1 && currently_mapping_flag) 
-      if (currently_mapping_flag) 
+      //if (speed>0.1 && currently_mapping_flag)
+      if (currently_mapping_flag)
 	{
 	  ODEBUG("The CONDITION HAS BEEN FULFILLED");
 	  /*
@@ -372,32 +372,32 @@ bool MonoSLAMHRP::GoOneStepHRP(const VW::ImageMono<unsigned char> *new_image,
 	    << scene->get_feature_init_info_vector().size() <<
 	    endl;
 	  */
-	  
-	  if (number_of_visible_features < NUMBER_OF_FEATURES_TO_KEEP_VISIBLE && 
-	      scene->get_feature_init_info_vector().size() < 
-	      (unsigned int) (MAX_FEATURES_TO_INIT_AT_ONCE)) 
+
+	  if (number_of_visible_features < NUMBER_OF_FEATURES_TO_KEEP_VISIBLE &&
+	      scene->get_feature_init_info_vector().size() <
+	      (unsigned int) (MAX_FEATURES_TO_INIT_AT_ONCE))
 	    {
 	      AutoInitialiseFeature(u, delta_t);
 	    }
 	}
 
-      if (VERBOSE) cout << "Time after matching point features: " 
+      if (VERBOSE) cout << "Time after matching point features: "
 			<< timer1 << endl;
-      
+
       MatchPartiallyInitialisedFeatures();
-      
-      if (VERBOSE) cout << "Time after matching partially init. feature: " 
+
+      if (VERBOSE) cout << "Time after matching partially init. feature: "
 			<< timer1 << endl;
     }
 
 
   //  scene->output_state_to_file();
-  //  cout << "End of EKF : " << scene->get_xv() << endl; 
+  //  cout << "End of EKF : " << scene->get_xv() << endl;
   if (isnan(scene->get_xv()[0]))
     exit(0);
 
   m_InitializationPhase = 0;
-  
+
   ODEBUG("End");
   return true;
 }

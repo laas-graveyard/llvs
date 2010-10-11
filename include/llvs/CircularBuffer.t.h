@@ -22,7 +22,7 @@
 template <class T>
 class CircularBuffer: public HRP2VisionBasicProcess
 {
-  typedef struct 
+  typedef struct
   {
     T onedatum;
     pthread_mutex_t amutex;
@@ -30,15 +30,15 @@ class CircularBuffer: public HRP2VisionBasicProcess
 
  public:
 
-  /*! Constructor 
+  /*! Constructor
     \param SizeOfCircularBuffer*/
   CircularBuffer(int SizeOfCircularBuffer);
-  
+
   /*! Default destructor. */
   ~CircularBuffer();
 
   int SetDatum(T* aDatum);
-  
+
   int ReadData(T &aDatum);
 
   int SaveData(T &aDatum);
@@ -49,10 +49,10 @@ class CircularBuffer: public HRP2VisionBasicProcess
 
   /*! Realize the process */
   virtual int pRealizeTheProcess();
-  
+
   /*! Cleanup the process */
   virtual int pCleanUpTheProcess();
-  
+
   /*! vector of Data.*/
   std::vector<ProtectedDatum> m_CircularBuffer;
 
@@ -104,7 +104,7 @@ int CircularBuffer<T>::pCleanUpTheProcess()
 
   return 0;
 }
-  
+
 template <class T>
 int CircularBuffer<T>::ReadData(T &aDatum)
 {
@@ -117,14 +117,14 @@ int CircularBuffer<T>::ReadData(T &aDatum)
 	{
 	  cerr << "Error while trying to lock the mutex in ReadData() " << r << endl;
 	  cerr<< strerror(r)<<endl;
-	  
+
 	}
       aDatum=m_CircularBuffer[lIndexBuffer-1].onedatum;
       if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lIndexBuffer-1].amutex)))<0)
       {
 	cerr << "Error while trying to unlock the mutex in ReadData() " << r << endl;
 	cerr<< strerror(r)<<endl;
-	
+
       }
       return 0;
     }
@@ -136,19 +136,19 @@ int CircularBuffer<T>::ReadData(T &aDatum)
 	{
 	  cerr << "Error while trying to lock the mutex ReadData() " << r << endl;
 	  cerr<< strerror(r)<<endl;
-	  
+
 	}
       aDatum=m_CircularBuffer[lsize-1].onedatum;
-      if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex)))<0)   
+      if ((r=pthread_mutex_unlock(&(m_CircularBuffer[lsize-1].amutex)))<0)
 	{
 	  cerr << "Error while trying to unlock the mutex in ReadData() " << r << endl;
 	  cerr<< strerror(r)<<endl;
-	  
+
 	}
       return 0;
     }
   return -1;
-  
+
 }
 
 template <class T>
@@ -166,7 +166,7 @@ int CircularBuffer<T>::SaveData(T &aDatum)
 	  if (r!=EBUSY)
 	    {
 	      cerr << "Error while trying to lock the mutex in SaveData " << m_IndexBuffer << endl;
-	      cerr<< strerror(r)<<endl;      
+	      cerr<< strerror(r)<<endl;
 	      return -1;
 	    }
 	}
@@ -189,7 +189,7 @@ int CircularBuffer<T>::SaveData(T &aDatum)
 
   if (m_CircularBuffer.size()== m_IndexBuffer)
     m_IndexBuffer = 0;
-  
+
 
   ODEBUG("1.75 - Save data");
   ODEBUG("2 - Save data");

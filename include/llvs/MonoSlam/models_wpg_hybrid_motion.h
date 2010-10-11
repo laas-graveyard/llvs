@@ -25,19 +25,19 @@
 // HRP-2 Walking Pattern motion model in 3D
 // Assumes information on incremental motion comes in from pattern generator
 // State vector: 13 elements
-//                 x 
-//  r              y 
-//                 z 
-//  -              - 
-//                 q0 
+//                 x
+//  r              y
+//                 z
+//  -              -
+//                 q0
 //  q              qx
 //                 qy
 //                 qz
-//  -      =       - 
+//  -      =       -
 //                 vx
 //  v              vy
 //                 vz
-//  -              - 
+//  -              -
 //                 omegax
 //  omega          omegay
 //                 omegaz
@@ -75,21 +75,21 @@ class WPG_Hybrid_ThreeD_Motion_Model : public ThreeD_Motion_Model
   double SD_alpha_component;
 
   // Redefined virtual functions
-  void func_fv_and_dfv_by_dxv(const VNL::Vector<double> &xv, 
-			      const VNL::Vector<double> &u, 
+  void func_fv_and_dfv_by_dxv(const VNL::Vector<double> &xv,
+			      const VNL::Vector<double> &u,
 			      const double delta_t);
 
-  void func_Q(const VNL::Vector<double> &xv, const VNL::Vector<double> &u, 
+  void func_Q(const VNL::Vector<double> &xv, const VNL::Vector<double> &u,
 	      const double delta_t);
 
   void func_xp(const VNL::Vector<double> &xv);
 
   void func_dxp_by_dxv(const VNL::Vector<double> &xv);
 
-  void func_fv_noisy(const VNL::Vector<double> &xv_true, 
+  void func_fv_noisy(const VNL::Vector<double> &xv_true,
 		     const VNL::Vector<double> &u_true, const double delta_t);
 
-  void func_xvredef_and_dxvredef_by_dxv_and_dxvredef_by_dxpdef  
+  void func_xvredef_and_dxvredef_by_dxv_and_dxvredef_by_dxpdef
     (const VNL::Vector<double> &xv, const VNL::Vector<double> &xpdef);
 
   void func_xvnorm_and_dxvnorm_by_dxv(const VNL::Vector<double> &xv);
@@ -97,32 +97,32 @@ class WPG_Hybrid_ThreeD_Motion_Model : public ThreeD_Motion_Model
 
   // Easy access to state blocks: fill matrices r, q, v, omega with
   // values based on state xv
-  void extract_r_q_v_omega(const VNL::Vector<double> &xv, 
-			   VW::Vector3D &r, 
+  void extract_r_q_v_omega(const VNL::Vector<double> &xv,
+			   VW::Vector3D &r,
 			   VW::Quaternion &q,
-			   VW::Vector3D &v, 
+			   VW::Vector3D &v,
 			   VW::Vector3D &omega);
   // The opposite: put r, q, v, omega back into vector xv
-  void compose_xv(const VW::Vector3D &r, 
+  void compose_xv(const VW::Vector3D &r,
 		  const VW::Quaternion &q,
-		  const VW::Vector3D &v, 
-		  const VW::Vector3D &omega, 
+		  const VW::Vector3D &v,
+		  const VW::Vector3D &omega,
 		  VNL::Vector<double> &xvnew);
 
  protected:
   // Calculate commonly used Jacobian part dq(omega * delta_t) by domega
-  void dqomegadt_by_domega(const VW::Vector3D &omega, 
+  void dqomegadt_by_domega(const VW::Vector3D &omega,
 			   const double delta_t,
 			   VNL::MatrixFixed<4,3,double> &dqomegadt_by_domega);
 
   // Ancillary functions: calculate parts of Jacobian dq_by_domega
   // which are repeatable due to symmetry.
-  double dq0_by_domegaA(const double omegaA, const double omega, 
+  double dq0_by_domegaA(const double omegaA, const double omega,
 			const double delta_t);
-  double dqA_by_domegaA(const double omegaA, const double omega, 
+  double dqA_by_domegaA(const double omegaA, const double omega,
 			const double delta_t);
-  double dqA_by_domegaB(const double omegaA, const double omegaB, 
-			const double omega, 
+  double dqA_by_domegaB(const double omegaA, const double omegaB,
+			const double omega,
 			const double delta_t);
 };
 

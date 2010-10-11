@@ -407,10 +407,10 @@ int HRP2nmbtTrackingProcess::pSetParameter(std::string aParameter, std::string a
   else if(paramType=="DATA") // enable logging
     {
       m_logData = true;
-    } 
+    }
   else if(paramType=="INTE") // current state
     {
-       m_internalState=aValue; 
+       m_internalState=aValue;
     }
   else
     {
@@ -601,26 +601,26 @@ int HRP2nmbtTrackingProcess:: pInitializeTheProcess()
     }
   catch(std::string a) // tracking got lost
     {
-      
+
       std::cerr << std::endl;
       std::cerr << "-----    -----   Failed with exception \""
 	       << a << "\"     -----    -----" << std::endl;
       std::cerr << std::endl;
-      
+
       // set the tracking flag
       m_trackerTrackSuccess= false;
-      
+
      // set the cMo matrix to identity
       m_outputcMo.setIdentity();
-      
+
       // return a negative value
       return -1;
     }
- 
+
   vpHomogeneousMatrix cMoCurr;
   m_tracker.getPose(cMoCurr);
   cout << m_inputcMo << endl;
-  
+
   ODEBUG("End of initialize the process.");
   return 0;
 }
@@ -717,7 +717,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 
 	  // Compute the center of the object projected in the camera image plane.
 	  vpHomogeneousMatrix m_invOutputcMo = m_outputcMo.inverse();
-	  
+
 	  vpColVector intermediate = m_outputcMo * m_ObjectCoG;
 	  vpColVector intermediate2(3);
 	  intermediate2[0] = intermediate[0];
@@ -729,7 +729,7 @@ int HRP2nmbtTrackingProcess::pRealizeTheProcess()
 	  m_projectedObjectCoG[0] = projectedCoG[0]/projectedCoG[2];
 	  m_projectedObjectCoG[1] = projectedCoG[1]/projectedCoG[2];
 	  m_projectedObjectCoG[2] = projectedCoG[2];
-	  
+
 	  m_projectedObjectCoG[0] = (m_projectedObjectCoG[0] -160.0)/320.0;
 	  m_projectedObjectCoG[1] = (m_projectedObjectCoG[1] -120.0)/240.0;
 	}

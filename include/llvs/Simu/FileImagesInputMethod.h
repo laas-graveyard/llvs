@@ -2,9 +2,9 @@
 #define _HRP2_File_INPUT_METHOD_H_
 
 /* This object implements a method to read images
-   and put them as an entry point ot the low level vision 
+   and put them as an entry point ot the low level vision
    system.
-   
+
    Copyright CNRS,JRL/AIST, 2004,
    Olivier Stasse
 
@@ -16,12 +16,12 @@
 #include <iostream>
 #include <fstream>
 #include <ImagesInputMethod.h>
-#include <vector> 
+#include <vector>
 #include <assert.h>
 
 #if (LLVS_HAVE_OPENCV>0)
 #include <cv.h>
-#endif 
+#endif
 
 using namespace std;
 
@@ -41,19 +41,19 @@ namespace llvs {
       } SimpleImage;
 
     public:
-  
+
       /* Constants */
       static const int ONEIMAGE = 0;
       static const int DIRECTORY =1;
 
       /*! Constructor */
       HRP2FileImagesInputMethod(int MethodForInputImages);
-  
+
       /*! Destructor */
       virtual ~HRP2FileImagesInputMethod();
 
       /*! Takes a new image.
-       * Input: 
+       * Input:
        * unsigned char * ImageLeft : A pointer where to store the bottom left image.
        * unsigned char * ImageRight : A pointer where to store the bottom right image.
        * unsigned char * ImageUp : A pointer where to store the upper image.
@@ -82,7 +82,7 @@ namespace llvs {
 
       /*! Read the header of one sub epbm image */
       int ReadEPBMImageHeader(ifstream & aifstream, int CameraNumber, int &depth);
-  
+
       /*! Returns the number of cameras */
       virtual unsigned int GetNumberOfCameras() const;
 
@@ -90,22 +90,22 @@ namespace llvs {
       virtual bool CameraPresent() const;
 
 
-      /*! \brief Initialize the grabbing system. 
+      /*! \brief Initialize the grabbing system.
 	@return: True if initialization was successful.
 	False otherwise.
        */
       virtual bool Initialize();
 
-      /*! \brief Cleanup the grabbing system. 
+      /*! \brief Cleanup the grabbing system.
        */
       virtual void Cleanup();
 
-      /*! \brief Return the link between the detected camera 
+      /*! \brief Return the link between the detected camera
        and its semantic. */
       virtual int GetSemanticOfCamera(const unsigned int& CameraNumberOnWS)
-      { /* TODO */ 
+      { /* TODO */
 	std::cerr<< __FILE__ << __LINE__ << " To implement" << std::endl;
-	assert(false); 
+	assert(false);
 	return -1;};
 
     protected:
@@ -121,11 +121,11 @@ namespace llvs {
 
       /* Image pointer (needed since GetSingleImage ) */
       vector< SimpleImage *> m_ReadImageData;
-  
+
       /* Initialization during Get Number of Cameras . */
 			//FIXME: See comment at GetNumberOfCameras definition
       //bool m_IsReallocationNeeded;
     };
-} 
+}
 
 #endif /* _HRP2_INPUT_METHOD_H_ */

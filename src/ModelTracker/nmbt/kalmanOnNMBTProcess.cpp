@@ -1,10 +1,10 @@
 /** @doc This object implements a visual process to get a disparity map.
 
-    Copyright (c) 2010, 
+    Copyright (c) 2010,
     @author Stephane Embarki
-   
+
     JRL-Japan, CNRS/AIST
-    
+
     See license file for information on license.
 */
 
@@ -34,11 +34,11 @@
   -------------------------------------*/
 
 HRP2KalmanOnNMBTProcess::HRP2KalmanOnNMBTProcess()
-{                       
+{
   m_ProcessName ="KalmanOnNMBTProcess";
-  
+
   m_StateSize=12;
- 
+
   m_StateType=VEL_OBJ;
 
   m_StateModel=0x0;
@@ -65,7 +65,7 @@ HRP2KalmanOnNMBTProcess::HRP2KalmanOnNMBTProcess()
 
   m_TimeStampLLVS=0x0;
   m_LastTimeStamp=0;
-  
+
   m_TimeStampInitialize=false;
   m_ReIntializedNMBT=false;
 }
@@ -80,7 +80,7 @@ HRP2KalmanOnNMBTProcess:: ~HRP2KalmanOnNMBTProcess()
   delete m_StateModel;
   delete m_TrackerModel;
   delete m_SoTModel;
-  delete m_Kalman; 
+  delete m_Kalman;
 }
 
 
@@ -101,10 +101,10 @@ KALMAN_NVAR
 KALMAN_RTRACKER
 KALMAN_REINIT : ON or OFF
 -------------------------------------*/
-int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter, 
+int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 					       std::string aValue)
 {
- 
+
   // get the 6 first parameter to find the parameter type
   // get 6 letters starting from the letter number 0
   string paramType = aParameter.substr(0,6);
@@ -124,19 +124,19 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	    {
 	      m_StateSize=12;
 	      m_StateType=VEL_OBJ;
-	    } 
+	    }
 	  else if(aValue == "ACC_CAM")
 	    {
 	      m_StateSize=15;
 	      m_StateType=ACC_CAM;
-	    } 
+	    }
 	  else if(aValue == "ACC_OBJ")
 	    {
 	      m_StateSize=15;
 	      m_StateType=ACC_OBJ;
-	    } 
+	    }
 	  else if(aValue == "CTL_CAM")
-	    { 
+	    {
 	      m_StateSize=12;
 	      m_StateType=CTL_CAM;
 	    }
@@ -145,9 +145,9 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	      m_StateSize=12;
 	      m_StateType=CTL_OBJ;
 	    }
-	   else 
+	   else
 	     {
-	       cout << "Warning : KALMAN_STATE unknown value :"<< aValue << endl; 
+	       cout << "Warning : KALMAN_STATE unknown value :"<< aValue << endl;
 	       return -1;
 	     }
 	}
@@ -155,10 +155,10 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	{
 	  int found=0;
 	  string tmp;
-      
+
 	  for ( int i=0; i<6;++i)
 	    {
-	  
+
 	      found=aValue.find(":");
 	      tmp=aValue.substr(0,found);
 	      aValue.erase(0,found+1);
@@ -171,13 +171,13 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	{
 	  int found=0;
 	  string tmp;
-	  
+
 	  m_P.resize(m_StateSize,m_StateSize);
 	  m_P.setIdentity();
 
 	  for ( int i=0; i<m_StateSize;++i)
 	    {
-	  
+
 	      found=aValue.find(":");
 	      tmp=aValue.substr(0,found);
 	      aValue.erase(0,found+1);
@@ -185,18 +185,18 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 
 	      ODEBUG("m_P["<<i<<"]["<<i<<"] : "<< m_P[i][i]);
 	    }
-	  
+
 	}
       else if(lParam == "RTRACKER")
 	{
 	  int found=0;
 	  string tmp;
-	  	  
+
 	  m_RTracker.setIdentity();
 
 	  for ( int i=0; i<6;++i)
 	    {
-	  
+
 	      found=aValue.find(":");
 	      tmp=aValue.substr(0,found);
 	      aValue.erase(0,found+1);
@@ -209,12 +209,12 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	{
 	  int found=0;
 	  string tmp;
-	  	  
+
 	  m_RSoT.setIdentity();
 
 	  for ( int i=0; i<12;++i)
 	    {
-	  
+
 	      found=aValue.find(":");
 	      tmp=aValue.substr(0,found);
 	      aValue.erase(0,found+1);
@@ -233,16 +233,16 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
 	    {
 	      m_ReIntializedNMBT=false;
 	    }
-	  else 
-	    { 
-	      cout << "Warning : KALMAN_REINIT unknown value :"<< aValue << endl; 
+	  else
+	    {
+	      cout << "Warning : KALMAN_REINIT unknown value :"<< aValue << endl;
 	      return -1;
 	    }
 	}
 
-      else 
+      else
        {
-	 cout << "Warning : unknown parameter :"<< lParam << endl; 
+	 cout << "Warning : unknown parameter :"<< lParam << endl;
 	 return -1;
        }
     }
@@ -251,14 +251,14 @@ int HRP2KalmanOnNMBTProcess::pSetParameter(std::string aParameter,
       HRP2nmbtTrackingProcess::pSetParameter(aParameter,aValue);
     }
 
- 
- 
+
+
   return 0;
 }
 
 
-/*! ------------------------------------- 
-  Set pointer on m_timestamp in LLVS 
+/*! -------------------------------------
+  Set pointer on m_timestamp in LLVS
   -------------------------------------*/
 int HRP2KalmanOnNMBTProcess::SetTimeStamp(double* aTimeStamp)
 {
@@ -268,8 +268,8 @@ int HRP2KalmanOnNMBTProcess::SetTimeStamp(double* aTimeStamp)
 }
 
 
-/*!------------------------------------- 
-  Set the ConnectionToSot  pointer 
+/*!-------------------------------------
+  Set the ConnectionToSot  pointer
   ------------------------------------- */
 void HRP2KalmanOnNMBTProcess::SetConnectionToSot (llvs::ConnectionToSot * aCTS)
 {
@@ -277,16 +277,16 @@ void HRP2KalmanOnNMBTProcess::SetConnectionToSot (llvs::ConnectionToSot * aCTS)
 }
 
 
-/*!------------------------------------- 
-  Initialize the process. 
+/*!-------------------------------------
+  Initialize the process.
   -------------------------------------*/
 int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
 {
   if(m_TimeStampInitialize)
     {
       HRP2nmbtTrackingProcess:: pInitializeTheProcess();
-      
-      
+
+
       switch(m_StateType)
 	{
 	case VEL_CAM:
@@ -328,7 +328,7 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
       aof <<"# TimeStamp (1 value) /dt(1 value)/ Xpre("<<m_StateSize<<" values)/"
 	  <<"diagPre ("<<m_StateSize<<" values)/Measure Tracker (6 values)/ "
 	  <<" Xup ( "<<m_StateSize<<"values)/ diagPre ("<<m_StateSize<<" values)" <<endl;
-  
+
       aof.close();
 
 #endif
@@ -345,8 +345,8 @@ int HRP2KalmanOnNMBTProcess:: pInitializeTheProcess()
   return 0;
 }
 
-/*!------------------------------------- 
-  Realize the process 
+/*!-------------------------------------
+  Realize the process
 -------------------------------------*/
 int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 {
@@ -371,20 +371,20 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
   ConvertCVectorToHMatrix(lXpre,lcMo);
 
   m_tracker.setPose(lcMo);
- 
+
   HRP2nmbtTrackingProcess::pRealizeTheProcess();
 
   ConvertHMatrixToCVector(m_outputcMo,m_Y);
-  
+
   m_Kalman->update(m_Y);
 
   vpColVector lXup(m_StateSize);
   lXup=m_Kalman->getXup();
 
   ConvertCVectorToHMatrix(lXup,lcMo);
-  
+
   m_outputcMo=lcMo;
-  
+
   if(m_ReIntializedNMBT)
     {
       m_tracker.init(*m_inputVispImage,lcMo);
@@ -392,7 +392,7 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 
 
 #if 1
-  
+
   vpMatrix lPpre(m_StateSize,m_StateSize);
   lPpre=m_Kalman->getPpre();
 
@@ -401,26 +401,26 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 
   ofstream aof;
   aof.open("dumpkalman.dat",ofstream::app);
- 
+
   aof.precision(16);
   aof << m_LastTimeStamp << "  "<<dt<<"  "
-      <<lXpre.t()<<" ";  
-  
+      <<lXpre.t()<<" ";
+
   for (int i = 0;i<m_StateSize;++i)
     {
       aof <<lPpre[i][i]<<"  ";
     }
 
   aof <<m_Y.t()<< lXup.t();
-  
+
   for (int i = 0;i<m_StateSize;++i)
     {
       aof <<lPup[i][i]<<"  ";
     }
   aof <<endl;
-  
+
   aof.close();
-  
+
 #endif
 
 
@@ -432,9 +432,9 @@ int HRP2KalmanOnNMBTProcess::pRealizeTheProcess()
 */
 int  HRP2KalmanOnNMBTProcess::pCleanUpTheProcess()
 {
-    
+
   return 0;
-} 
+}
 
 /*! Convert vpHomogeneousMatrix to vpColverctor*/
 void HRP2KalmanOnNMBTProcess::ConvertHMatrixToCVector(const vpHomogeneousMatrix & aHM,
@@ -448,11 +448,11 @@ void HRP2KalmanOnNMBTProcess::ConvertHMatrixToCVector(const vpHomogeneousMatrix 
 
   vpThetaUVector ThU;
   ThU.buildFrom(Rthu);
-  
+
   for(int i=0;i<3;i++)
     {
       aCV[i]=t[i];
-      aCV[i+3]=ThU[i];		
+      aCV[i+3]=ThU[i];
     }
 
 }
@@ -468,7 +468,7 @@ void HRP2KalmanOnNMBTProcess::ConvertCVectorToHMatrix(const vpColVector & aCV,
   for(int i=0;i<3;i++)
     {
       t[i]=aCV[i];
-      ThU[i]=aCV[i+3];		
+      ThU[i]=aCV[i+3];
     }
   aHM.buildFrom(t,ThU);
 
@@ -478,27 +478,27 @@ void HRP2KalmanOnNMBTProcess::ConvertCVectorToHMatrix(const vpColVector & aCV,
 void HRP2KalmanOnNMBTProcess::KalmanOnSoT()
 {
   // m_CTS->getSotData();
-  
+
   //Condition&storeData;
   double ldt;
-  
+
   m_Kalman->setMeasureModel(m_SoTModel);
 
   while(!m_DataSot.front().timeStamp<*m_TimeStampLLVS && !m_DataSot.empty())
     {
       ldt=m_LastTimeStamp-m_DataSot.front().timeStamp;
-      
+
       m_U=m_DataSot.front().U;
-      
+
       m_Kalman->prediction(ldt,m_U);
-      
+
       m_Kalman->update(m_DataSot.front().Y);
-      
+
       m_DataSot.pop();
-      
+
       m_LastTimeStamp=m_DataSot.front().timeStamp;
     }
-  
+
   m_Kalman->setMeasureModel(m_TrackerModel);
 
 }

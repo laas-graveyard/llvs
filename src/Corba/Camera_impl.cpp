@@ -1,6 +1,6 @@
 /** @doc This object implements an abstract class
     of camera.
-    
+
     CVS Information:
    $Id$
    $Author$
@@ -9,31 +9,31 @@
    $Source$
    $Log$
 
-   Copyright (c) 2003-2006, 
+   Copyright (c) 2003-2006,
    @author Olivier Stasse
-   
+
    JRL-Japan, CNRS/AIST
 
    All rights reserved.
-   
-   Redistribution and use in source and binary forms, with or without modification, 
+
+   Redistribution and use in source and binary forms, with or without modification,
    are permitted provided that the following conditions are met:
-   
-   * Redistributions of source code must retain the above copyright notice, 
+
+   * Redistributions of source code must retain the above copyright notice,
    this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright notice, 
+   * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-   * Neither the name of the CNRS and AIST nor the names of its contributors 
+   * Neither the name of the CNRS and AIST nor the names of its contributors
    may be used to endorse or promote products derived from this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER 
-   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
-   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
-   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+   OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
    IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <math.h>
@@ -80,7 +80,7 @@ void Camera_impl::ResetCameraParameters()
   m_CameraParameter.Height=-1;
   m_CameraParameter.CalibrationWidth = -1;
   m_CameraParameter.CalibrationHeight = -1;
-  
+
 }
 
 void Camera_impl::ResetIntrinsicParameters()
@@ -91,7 +91,7 @@ void Camera_impl::ResetIntrinsicParameters()
     m_IntrinsicParameter.Scale[i] = 0.0;
   for(int i=0;i<2;i++)
     m_IntrinsicParameter.ImageCenter[i] = 0.0;
-  
+
 }
 
 /* Set the father */
@@ -179,9 +179,9 @@ void Camera_impl::SetIntrinsicParameters(float aFocal, float aScale[2], float Sk
 
   m_IntrinsicParameter.SkewFactor = SkewFactor;
   for(int i=0;i<2;i++)
-    m_IntrinsicParameter.ImageCenter[i] = 
+    m_IntrinsicParameter.ImageCenter[i] =
       ImageCenter[i];
-  
+
 }
 
 void Camera_impl::SetCameraParameter(long aWidth,long aHeight, long CalibrationWidth, long CalibrationHeight)
@@ -191,7 +191,7 @@ void Camera_impl::SetCameraParameter(long aWidth,long aHeight, long CalibrationW
   m_CameraParameter.CalibrationWidth = CalibrationWidth;
   m_CameraParameter.CalibrationHeight = CalibrationHeight;
 }
-					 
+
 #if (LLVS_HAVE_VVV>0)
 void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_number)
 {
@@ -210,13 +210,13 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
   R = mat_new_matrix(3,3,0);
   iccr = mat_new_vector(3,0);
 
-  
+
   scm_CalcCameraParameter(sp,camera_number,
-			  (MAT_Vector)t,  
+			  (MAT_Vector)t,
 			  (MAT_Matrix)R,
 			  &f, &aspectratio,&theta,(MAT_Vector)&iccr,0);
-  
-  //      fprintf(stderr,"f: %f aspectratio: %f theta: %f\n",f,aspectratio,theta);  
+
+  //      fprintf(stderr,"f: %f aspectratio: %f theta: %f\n",f,aspectratio,theta);
   for(j=0;j<3;j++)
     {
       m_ProjectiveParameters.PositionVector[j] = t[j];
@@ -224,7 +224,7 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
 	printf("PositionCamera[%d][%d]= %20.20f;\n",
 		camera_number,j,t[j]);
     }
-  
+
   for(j=0;j<3;j++)
     {
       for(i=0;i<3;i++)
@@ -237,11 +237,11 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
       if (m_Verbosity>3)
 	fprintf(stderr,"\n");
     }
-  
+
   scm_H2q((double (*)[4])sp->H[camera_number][0],q,0);
   scm_q2r(q,r,0);
   scm_matrix_by_matrix_3D((double *)q, (double *)r, (double *)a);
-  
+
   for(j=0;j<3;j++)
     {
       for(i=0;i<3;i++)
@@ -254,7 +254,7 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
       if (m_Verbosity>3)
 	fprintf(stderr,"IntrinsicParameter[%d][%d][3] = 0.0;\n",camera_number,j);
     }
-  
+
 
   for(j=0;j<3;j++)
     {
@@ -268,7 +268,7 @@ void Camera_impl::SetCameraProjectiveParameters(  SCM_PARAMETER *sp, int camera_
       if (m_Verbosity>3)
 	fprintf(stderr,"IntrinsicParameter[%d][%d][3] = 0.0;\n",camera_number,j);
     }
-    
+
 }
 #endif
 
@@ -278,12 +278,12 @@ void Camera_impl::GetOriginalProjectiveMatrix(double oP[3][4])
   for(int i=0;i<3;i++)
     for(int j=0;j<4;j++)
       oP[i][j] = m_ProjectiveParameters.ProjectiveMatrix[i][j];
-  
+
   double w = sqrt(oP[2][0] * oP[2][0] + oP[2][1] * oP[2][1] + oP[2][2] * oP[2][2]);
-  
+
   if (m_ProjectiveParameters.IntrinsicMatrix[0][0]<0.0)
     sdet = -1;
-    
+
   for(int i=0;i<3;i++)
     for(int j=0;j<4;j++)
 	oP[i][j] = sdet*oP[i][j]/w;
