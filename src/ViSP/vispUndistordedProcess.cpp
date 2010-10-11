@@ -159,6 +159,36 @@ int HRP2vispUndistordedProcess:: pInitializeTheProcess()
   return 0;
 }
 
+void normalizeColor (vpImage<unsigned char>& img);
+
+void normalizeColor (vpImage<unsigned char>& img)
+{
+  unsigned char min = 0;
+  unsigned char max = 255;
+  for (unsigned i = 0; i < img.getWidth (); ++i)
+    for (unsigned j = 0; j < img.getHeight (); ++j)
+      {
+	min = std::min (img[j][i], min);
+	max = std::max (img[j][i], max);
+      }
+
+  min += 10;
+  max -= 10;
+
+  for (unsigned i = 0; i < img.getWidth (); ++i)
+    for (unsigned j = 0; j < img.getHeight (); ++j)
+      {
+	int c = ((img[j][i] - min) * 255) / (max - min);
+
+	if (c < 0)
+	  c = 0;
+	else if (c > 255)
+	  c = 255;
+
+	img[j][i] = c;
+      }
+}
+
 /*!-------------------------------------
   Realize the process
   the tracker has previously been initialised with:
@@ -170,6 +200,8 @@ int HRP2vispUndistordedProcess:: pInitializeTheProcess()
   -------------------------------------*/
 int HRP2vispUndistordedProcess::pRealizeTheProcess()
 {
+  static const bool normalize = true;
+
   m_imageUndistortSucces = false;
 
   if(m_ImagesInitialized)
@@ -182,6 +214,9 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 				     m_tmpVispGreyImages.bitmap,
 				     m_ImgParam.width,
 				     m_ImgParam.height, m_flip);
+
+	  if (normalize)
+	    normalizeColor (m_tmpVispGreyImages);
 
 	  vpImageTools::undistort(m_tmpVispGreyImages,
 				  m_CamParam,
@@ -196,6 +231,8 @@ int HRP2vispUndistordedProcess::pRealizeTheProcess()
 				     m_VispGreyImages->bitmap,
 				     m_ImgParam.width,
 				     m_ImgParam.height, m_flip);
+	  if (normalize)
+	    normalizeColor (*m_VispGreyImages);
 	}
 
     }
