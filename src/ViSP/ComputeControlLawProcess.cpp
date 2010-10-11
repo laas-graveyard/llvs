@@ -443,13 +443,13 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpColVector wVelocity(6);
 
   // store the projection of the object CoG .
-  vpColVector vpProjectedCoG(2);
+  vpColVector vpProjectedCoG(3);
 
   // store the velocity send to SoT
   double velref[3];
 
   // store the projection of the object CoG send to SoT
-  double projectedCoG[2];
+  double projectedCoG[3];
 
   vpHomogeneousMatrix fMo;
 
@@ -467,6 +467,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_nmbt->GetProjectedObj(vpProjectedCoG);
       projectedCoG[0] = vpProjectedCoG[0];
       projectedCoG[1] = vpProjectedCoG[1];
+      projectedCoG[2] = vpProjectedCoG[2];
       
       ODEBUG("m.cMo : "<<m_cMo);
       ODEBUG("m.cdMo : "<<m_cdMo);
