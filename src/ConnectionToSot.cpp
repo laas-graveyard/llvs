@@ -211,7 +211,7 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
 
 }
 
-void ConnectionToSot::WriteObjectCoG(double ObjectCoG[2])
+void ConnectionToSot::WriteObjectCoG(double ObjectCoG[3])
 {
   ODEBUG("Enter WriteObjectCoG ");
 
@@ -223,9 +223,9 @@ void ConnectionToSot::WriteObjectCoG(double ObjectCoG[2])
       nsCorba::DoubleSeq_var DSObjectCoG;
       ODEBUG("Enter WriteObjectCoG 1 ");
       DSObjectCoG = new nsCorba::DoubleSeq;
-      DSObjectCoG->length(2);
+      DSObjectCoG->length(3);
       ODEBUG("Enter WriteObjectCoG 2 ");
-      for(unsigned int li=0;li<2;li++)
+      for(unsigned int li=0;li<3;li++)
 	DSObjectCoG[li]= ObjectCoG[li];
       ODEBUG("Enter WriteObjectCoG 3 " << m_ObjectCoGSignalRank);
       m_SOT_Server_Command->writeOutputVectorSignal(m_ObjectCoGSignalRank,
