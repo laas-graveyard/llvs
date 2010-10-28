@@ -58,6 +58,8 @@ FIND_PACKAGE(
   algo
   )
 
+PKG_CHECK_MODULES(LIBRETINEX libretinex)
+
 INCLUDE(LLVT-toolbox)
 INCLUDE(install-toolbox)
 

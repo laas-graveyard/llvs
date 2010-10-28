@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+INCLUDE_DIRECTORIES(${LIBRETINEX_CFLAGS})
+LINK_DIRECTORIES(${LIBRETINEX_LIBRARY_DIRS})
+
 # Enumerate sources.
 ADD_LLV_SOURCE(
 	MAIN
@@ -85,3 +88,4 @@ INSTALL(TARGETS llvs DESTINATION lib)
 
 # Link against Boost.
 TARGET_LINK_LIBRARIES(llvs-server ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(llvs-server ${LIBRETINEX_LIBRARIES})
