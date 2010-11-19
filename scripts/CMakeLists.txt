@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # modfirewire
-CONFIGURE_FILE(modfirewire.in modfirewire IMMEDIATE @ONLY)
+CONFIGURE_FILE(modfirewire.in scripts/modfirewire IMMEDIATE @ONLY)
 
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/modfirewire
   DESTINATION bin
