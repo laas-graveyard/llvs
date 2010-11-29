@@ -258,9 +258,9 @@ int HRP2nmbtTrackingProcess::ParseCamParam()
 		m_projType,
 		m_imageWidth,
 		m_imageHeight);
-
-  ODEBUG("camera parameter:\n"<< m_cam);
-  ODEBUG("camera Path:\n"<< m_pathCam.c_str());
+  ODEBUG3("camera name:" <<m_nameCam);
+  ODEBUG3("camera parameter:\n"<< m_cam);
+  ODEBUG3("camera Path:\n"<< m_pathCam.c_str());
    m_cameraParamLoaded=true;
    return 0;
 #else

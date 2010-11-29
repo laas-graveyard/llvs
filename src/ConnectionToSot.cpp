@@ -485,7 +485,7 @@ bool ConnectionToSot::Init()
       catch(...)
 	{
 	  cerr << "Tried to create signal " << CstSignaux[li] << endl;
-	  exit(-1);
+	  //exit(-1);
 	}
 
       ODEBUG("Creation of signal: " << CstSignaux[li]);
@@ -512,7 +512,7 @@ bool ConnectionToSot::Init()
       catch(...)
 	{
 	  cerr << "Tried to create signal " << OutSignal[li] << endl;
-	  exit(-1);
+	  //exit(-1);
 	}
     }
   

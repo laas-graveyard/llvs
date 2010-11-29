@@ -200,7 +200,7 @@ namespace llvs
 	throw(CORBA::SystemException);
 
       /*! Get the image from the frame grabber. */
-      CORBA::Long GetImageFromFrameGrabber();
+      CORBA::Long GetImageFromFrameGrabber(bool lCheckEntry);
 
       /*! Free the binary images */
       CORBA::Long FreeBinaryImages();
@@ -627,8 +627,15 @@ namespace llvs
       /* Visp Camera parameters*/
       vpCameraParameters      m_Widecam_param;
 
+
+      /*Visp grey undistorded image for wide cam*/
+      vpImage<unsigned char>* m_Cyclopecam_image_undistorded;
+
+      /* Visp Camera parameters*/
+      vpCameraParameters      m_Cyclopecam_param;
+
       /* Vision Process to undistort images using ViSP*/
-      HRP2vispUndistordedProcess* m_vispUndistordedProcess;
+      HRP2vispUndistordedProcess* m_vispUndistordedProcess[2];
 
       /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
@@ -713,6 +720,7 @@ namespace llvs
       double * m_StoredCameraPosOri;
       double * m_StoredCameraCov;
       unsigned long int m_IndexSI;
+      bool m_IndexOverLimit;
       unsigned long int m_IndexSensorsStack;
       unsigned long int m_MaxSI;
       unsigned long int m_NumberOfImagesToStack;

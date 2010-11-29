@@ -286,8 +286,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   SetImagesGrabbedSize(CAMERA_LEFT,640,480);
   SetImagesGrabbedSize(CAMERA_RIGHT,640,480);
   SetImagesGrabbedSize(CAMERA_UP,640,480);
-  SetImagesGrabbedSize(CAMERA_WIDE,320,240);
-  //SetImagesGrabbedSize(CAMERA_WIDE,640,480);
+  //SetImagesGrabbedSize(CAMERA_WIDE,320,240);
+  SetImagesGrabbedSize(CAMERA_WIDE,640,480);
 
   /* Set the calibration directory  */
   SetCalibrationDirectory(lCalibDir);
@@ -407,22 +407,42 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_Widecam_image_undistorded = new vpImage<unsigned char>;
   m_Widecam_image_undistorded -> resize( m_Height[CAMERA_WIDE],m_Width[CAMERA_WIDE]);
 
+  m_Cyclopecam_image_undistorded = new vpImage<unsigned char>;
+  m_Cyclopecam_image_undistorded -> resize( m_Height[CAMERA_UP],m_Width[CAMERA_UP]);
+
   vpXmlParserCamera       m_ParserCam;
+
   m_ParserCam.parse(m_Widecam_param,
 		    m_CamParamPath.c_str(),
 		    "cam1394_3",
 		    vpCameraParameters::perspectiveProjWithDistortion,
 		    m_Width[CAMERA_WIDE],
 		    m_Height[CAMERA_WIDE]);
+  m_ParserCam.parse(m_Widecam_param,
+		    m_CamParamPath.c_str(),
+		    "cam1394_2",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[CAMERA_UP],
+		    m_Height[CAMERA_UP]);
 
-  m_vispUndistordedProcess = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
-  m_vispUndistordedProcess->InitializeTheProcess();
 
-  m_vispUndistordedProcess->StopProcess();
-  m_vispUndistordedProcess->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
+  m_vispUndistordedProcess[0] = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess[0]->InitializeTheProcess();
+
+  m_vispUndistordedProcess[0]->StopProcess();
+  m_vispUndistordedProcess[0]->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
 				      m_Widecam_image_undistorded);
-  m_vispUndistordedProcess->SetCameraParameters(m_Widecam_param);
-  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess);
+  m_vispUndistordedProcess[0]->SetCameraParameters(m_Widecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[0]);
+
+  m_vispUndistordedProcess[1] = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess[1]->InitializeTheProcess();
+
+  m_vispUndistordedProcess[1]->StopProcess();
+  m_vispUndistordedProcess[1]->SetImages(&(m_BinaryImages[CAMERA_UP]),
+					 m_Cyclopecam_image_undistorded);
+  m_vispUndistordedProcess[1]->SetCameraParameters(m_Cyclopecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[1]);
 
 
   /*! Point Tracker process. */
@@ -707,12 +727,12 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::
   else if (m_ImageFormat=="RGB")
     m_depth[SemanticCameraID]=3;
 
-  /*
-    cout << "Depth" << endl;
-    for(int i=0;i<4;i++)
+  
+  cout << "Depth" << endl;
+  for(int i=0;i<4;i++)
     cout << m_depth[i] << " ";
-    cout << endl;
-  */
+  cout << endl;
+
 
   delete [] m_BinaryImages[SemanticCameraID];
 
@@ -834,7 +854,7 @@ LowLevelVisionServer::TriggerSynchro()
   static struct timeval time_last;
   struct timeval time_current;
 
-  ODEBUG("TriggerSynchro() beginning");
+  ODEBUG3("TriggerSynchro() beginning");
   gettimeofday(&time_current,0);
   if (start!=1)
     {
@@ -852,7 +872,7 @@ LowLevelVisionServer::TriggerSynchro()
     cout << "Trigger" << endl;
 
   m_SynchroTrigger = true;
-  ODEBUG("TriggerSynchro() endiing");
+  ODEBUG3("TriggerSynchro() endiing");
   return 0;
 }
 
@@ -960,7 +980,7 @@ LowLevelVisionServer::ApplyingProcess()
 	  NbOfWait++;
 	  if (NbOfWait==2)
 	    {
-	      ResFromGIFF=GetImageFromFrameGrabber();
+	      ResFromGIFF=GetImageFromFrameGrabber(false);
 	      NbOfWait=0;
 	    }
 	}
@@ -1029,8 +1049,8 @@ LowLevelVisionServer::ApplyingProcess()
 
   gettimeofday(&before2,0);
   /* Get the image from the input method */
-  if (ResFromGIFF==-1)
-    ResFromGIFF=GetImageFromFrameGrabber();
+  if ((ResFromGIFF==-1) || (m_TypeOfSynchro==LowLevelVisionSystem::SYNCHRO_TRIGGER))
+    ResFromGIFF=GetImageFromFrameGrabber(true);
   ODEBUG("images grabbed" << ResFromGIFF);
 
 
@@ -1169,7 +1189,7 @@ LowLevelVisionServer::ApplyingProcess()
 }
 
 CORBA::Long
-LowLevelVisionServer::GetImageFromFrameGrabber()
+LowLevelVisionServer::GetImageFromFrameGrabber(bool lCheckEntry)
 {
   int result=-1;
   unsigned int r;
@@ -1206,7 +1226,8 @@ LowLevelVisionServer::GetImageFromFrameGrabber()
 		{
 		  result = 0;
 		}
-	      if ((m_CheckEntry) && (r == HRP2ImagesInputMethod::RESULT_OK) && (li!=2))
+	      if ((m_CheckEntry) && (lCheckEntry) && 
+		  (r == HRP2ImagesInputMethod::RESULT_OK))
 		StoreImageOnStack(li);
 
 	    }
@@ -1276,7 +1297,7 @@ CORBA::Long LowLevelVisionServer::StartProcess(const char *aProcessName)
 
       if (m_ListOfProcesses[i]->GetName()==aProcessName)
 	{
-	  ODEBUG3("Start process " << aProcessName << " " << i);
+	  ODEBUG("Start process " << aProcessName << " " << i);
 	  m_ListOfProcesses[i]->StartProcess();
 	}
       ODEBUG( m_ListOfProcesses[i]->GetName() << " " <<
@@ -2305,8 +2326,18 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   an2Image->longData[0] =(long) m_timestamps[SemanticCamera];
   an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
 
-
-  unsigned char *pt =m_Widecam_image_undistorded->bitmap;
+  
+  unsigned char *pt =0;
+  switch(SemanticCamera)
+    {
+    case CAMERA_WIDE:
+      pt = m_Widecam_image_undistorded->bitmap;
+      break;
+    case CAMERA_UP:
+      pt = m_Cyclopecam_image_undistorded->bitmap;
+      break;
+    }
+      
 
   for(unsigned j = 0; j <size; j++)
     an2Image->octetData[j] = *pt++;
@@ -3157,12 +3188,28 @@ void LowLevelVisionServer::CreateStack()
   //m_MaxSI = 33*120;
   m_MaxSI = 33*60;
   m_IndexSI = 0;
+  m_IndexOverLimit = false;
   m_NumberOfImagesToStack=m_ImagesInputMethod->GetNumberOfCameras();
-  ODEBUG3("m_NumberOfImagesToStack"<< m_NumberOfImagesToStack);
+  ODEBUG("m_NumberOfImagesToStack"<< m_NumberOfImagesToStack);
   m_IndexSensorsStack = 0;
 
-  ODEBUG(m_Width[0]*m_Height[0]*m_MaxSI);
-  m_StoredImages= new unsigned char[m_Width[0] * m_Height[0] * m_MaxSI * m_depth[0]];
+  unsigned int lMaxWidth=0;
+  unsigned int lMaxHeight=0;
+  unsigned int lMaxDepth=0;
+
+  for(unsigned int li=0;li<m_NumberOfImagesToStack;li++)
+    {
+      int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
+      if (lMaxWidth < m_Width[SemanticCamera])
+	lMaxWidth = m_Width[SemanticCamera];
+      if (lMaxHeight < m_Height[SemanticCamera])
+	lMaxHeight = m_Height[SemanticCamera];
+      if (lMaxDepth < m_depth[SemanticCamera])
+	lMaxDepth = m_depth[SemanticCamera];
+    }
+    
+  ODEBUG(lMaxWidth*lMaxHeight*m_MaxSI);
+  m_StoredImages= new unsigned char[lMaxWidth * lMaxHeight * m_MaxSI * lMaxDepth];
   if (m_StoredImages==0)
     ODEBUG3("COULD NOT ALLOCATE ENOUGH MEMORY for stack");
   else
@@ -3190,7 +3237,7 @@ void LowLevelVisionServer::CreateStack()
   else
     ODEBUG3("COULD ALLOCATE ENOUGH MEMORY for Waist Orientation");
 
-  ODEBUG3("Finished");
+  ODEBUG("Finished");
 
 
 }
@@ -3223,12 +3270,20 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
 
   if (m_StoredTimeStamp==0)
     return;
-
-  unsigned char *ptdst = m_StoredImages + m_IndexSI*m_Width[0]*m_Height[0]*m_depth[0];
-  unsigned char *ptsrc = m_BinaryImages[image];
-  for(unsigned int l=0;l<m_Height[0]*m_Width[0]*m_depth[0];l++)
+  int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(image);
+  unsigned int imgSizeMem = m_Width[SemanticCamera]*
+    m_Height[SemanticCamera]*m_depth[SemanticCamera];
+  ODEBUG3("imgSizeMem: "<< imgSizeMem << 
+	  " m_IndexSI = " << m_IndexSI << 
+	  " image: " << image <<
+	  " SemanticCamera: " << SemanticCamera);
+  unsigned char *ptdst = m_StoredImages + m_IndexSI*imgSizeMem;
+  unsigned char *ptsrc = m_BinaryImages[SemanticCamera];
+  ODEBUG("ptdst: " << (void *)ptdst << " ptsrc:" << (void *)ptsrc);
+  for(unsigned int l=0;l<imgSizeMem;l++)
     *ptdst++ = *ptsrc++;
 
+  ODEBUG("Pb on copy of imgSizeMem.");
   m_StoredTimeStamp[m_IndexSI] = m_timestamps[image];
   m_SideOfTheImage[m_IndexSI]=(double)image;
 
@@ -3256,10 +3311,10 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
 
   m_IndexSI++;
   if(m_IndexSI==m_MaxSI)
-    m_IndexSI = 0;
-
-
-
+    {
+      m_IndexSI = 0;
+      m_IndexOverLimit = true;
+    }
 }
 
 void LowLevelVisionServer::RecordImagesOnDisk(int image)
@@ -3272,10 +3327,16 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       m_CTS->StopThreadOnConnectionSot();
     }
 
+  unsigned long int lUpperLimit=m_MaxSI;
+  if (!m_IndexOverLimit)
+    lUpperLimit = m_IndexSI;
+  
   ODEBUG("Recording images on disk.");
   if (m_CheckEntry)
     {
-      ODEBUG3("Check entry correct.." << m_MaxSI);
+      ODEBUG3("Check entry correct.." << lUpperLimit << 
+	      " IndexSI:" << m_IndexSI << 
+	      " MaxSI: " << m_MaxSI);
       if (m_StoredImages==0)
 	{
 	  ODEBUG3("No stored images.");
@@ -3298,7 +3359,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	  if (fp!=0)
 	    {
 	      double prevTimeStamp=0;
-	      for(unsigned int j=0; j<m_MaxSI/ldepth; j++)
+	      for(unsigned int j=0; j<lUpperLimit/ldepth; j++)
 		{
 		  double TimeStamp=m_StoredTimeStamp[j*ldepth+i];
 		  if (j==0)
@@ -3316,7 +3377,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       fp_sensors = fopen(Buffer,"w");
       if (fp_sensors!=0)
 	{
-	  for(unsigned int i=0; i<m_MaxSI*9; i++)
+	  for(unsigned int i=0; i<lUpperLimit*9; i++)
 	    {
 	      fprintf(fp_sensors,"%f ",m_StoredCameraCov[i]);
 	      if ((i>0) && (i%9==8))
@@ -3333,7 +3394,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       fp_sensors = fopen(Buffer,"w");
       if (fp_sensors!=0)
 	{
-	  for(unsigned int i=0; i<m_MaxSI; i++)
+	  for(unsigned int i=0; i<lUpperLimit; i++)
 	    {
 	      fprintf(fp_sensors,"%f\n",m_SideOfTheImage[i]);
 	      /*
@@ -3349,7 +3410,7 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       fp_sensors = fopen(Buffer,"w");
       if (fp_sensors!=0)
 	{
-	  for(unsigned int i=0; i<m_MaxSI*7; i++)
+	  for(unsigned int i=0; i<lUpperLimit*7; i++)
 	    {
 	      fprintf(fp_sensors,"%f ",m_StoredCameraPosOri[i]);
 	      if ((i>0) && (i%7==6))
@@ -3365,10 +3426,26 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       for(unsigned int li=0;li<m_NumberOfImagesToStack;li++)
 	lCounter[li]= 0;
 
-      for(unsigned int i=0; i<m_MaxSI; i++)
+      /* Find size max of the image. */
+      unsigned int lMaxWidth=0;
+      unsigned int lMaxHeight=0;
+      unsigned int lMaxDepth=0;
+      
+      for(unsigned int li=0;li<m_NumberOfImagesToStack;li++)
+	{
+	  int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(li);
+	  if (lMaxWidth < m_Width[SemanticCamera])
+	    lMaxWidth = m_Width[SemanticCamera];
+	  if (lMaxHeight < m_Height[SemanticCamera])
+	    lMaxHeight = m_Height[SemanticCamera];
+	  if (lMaxDepth < m_depth[SemanticCamera])
+	    lMaxDepth = m_depth[SemanticCamera];
+	}
+      ODEBUG3("lUpperLimit: " << lUpperLimit);
+      for(unsigned int i=0; i<lUpperLimit; i++)
 	{
 	  int k,l;
-	  unsigned char *pt = m_StoredImages+i*m_Width[0]*m_Height[0]*m_depth[0];
+	  unsigned char *pt = m_StoredImages+i*lMaxWidth*lMaxHeight*lMaxDepth;
 	  char Buffer[1024];
 	  bzero(Buffer,1024);
 	  char BufExten[30];
@@ -3393,11 +3470,13 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	  if (fp!=0)
 	    {
 	      double TimeStamp=m_StoredTimeStamp[i];
-	      if (m_depth[0]==1)
-		fprintf(fp,"P5\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width[0],(int)m_Height[0]);
-	      else if (m_depth[0]==3)
-		fprintf(fp,"P6\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)m_Width[0],(int)m_Height[0]);
-	      fwrite(pt,m_Height[0] * m_Width[0] * m_depth[0] ,1,fp);
+	      if (lMaxDepth==1)
+		fprintf(fp,"P5\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)lMaxWidth,(int)lMaxHeight);
+	      else if (lMaxDepth==3)
+		fprintf(fp,"P6\n# TimeStamp: %f\n%d %d\n255\n",TimeStamp,(int)lMaxWidth,(int)lMaxHeight);
+	      ODEBUG("m_Height[0] * m_Width[0] * m_depth[0] = " 
+		      << lMaxHeight << " * " << lMaxWidth << " * " << lMaxDepth );
+	      fwrite(pt,lMaxHeight * lMaxWidth * lMaxDepth ,1,fp);
 	      /*
 		for(l=0;l<m_Height;l++)
 		{
