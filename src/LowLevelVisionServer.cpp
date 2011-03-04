@@ -286,8 +286,8 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   SetImagesGrabbedSize(CAMERA_LEFT,640,480);
   SetImagesGrabbedSize(CAMERA_RIGHT,640,480);
   SetImagesGrabbedSize(CAMERA_UP,640,480);
-  //SetImagesGrabbedSize(CAMERA_WIDE,320,240);
-  SetImagesGrabbedSize(CAMERA_WIDE,640,480);
+  SetImagesGrabbedSize(CAMERA_WIDE,320,240);
+  //SetImagesGrabbedSize(CAMERA_WIDE,640,480);
 
   /* Set the calibration directory  */
   SetCalibrationDirectory(lCalibDir);
@@ -404,6 +404,13 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   /*!ViSP Undistort process. */
   m_CamParamPath="./data/ViSP/hrp2CamParam/hrp2.xml";
+
+  m_Leftcam_image_undistorded = new vpImage<unsigned char>;
+  m_Leftcam_image_undistorded -> resize( m_Height[CAMERA_LEFT],m_Width[CAMERA_LEFT]);
+
+  m_Rightcam_image_undistorded = new vpImage<unsigned char>;
+  m_Rightcam_image_undistorded -> resize( m_Height[CAMERA_RIGHT],m_Width[CAMERA_RIGHT]);
+
   m_Widecam_image_undistorded = new vpImage<unsigned char>;
   m_Widecam_image_undistorded -> resize( m_Height[CAMERA_WIDE],m_Width[CAMERA_WIDE]);
 
@@ -411,6 +418,20 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_Cyclopecam_image_undistorded -> resize( m_Height[CAMERA_UP],m_Width[CAMERA_UP]);
 
   vpXmlParserCamera       m_ParserCam;
+
+  m_ParserCam.parse(m_Leftcam_param,
+		    m_CamParamPath.c_str(),
+		    "cam1394_3",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[CAMERA_LEFT],
+		    m_Height[CAMERA_LEFT]);
+
+  m_ParserCam.parse(m_Rightcam_param,
+		    m_CamParamPath.c_str(),
+		    "cam1394_3",
+		    vpCameraParameters::perspectiveProjWithDistortion,
+		    m_Width[CAMERA_RIGHT],
+		    m_Height[CAMERA_RIGHT]);
 
   m_ParserCam.parse(m_Widecam_param,
 		    m_CamParamPath.c_str(),
@@ -431,20 +452,28 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
   m_vispUndistordedProcess[0]->StopProcess();
   m_vispUndistordedProcess[0]->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
-				      m_Widecam_image_undistorded);
+					 m_Widecam_image_undistorded);
   m_vispUndistordedProcess[0]->SetCameraParameters(m_Widecam_param);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[0]);
-
+  /*
   m_vispUndistordedProcess[1] = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
   m_vispUndistordedProcess[1]->InitializeTheProcess();
 
   m_vispUndistordedProcess[1]->StopProcess();
-  m_vispUndistordedProcess[1]->SetImages(&(m_BinaryImages[CAMERA_UP]),
-					 m_Cyclopecam_image_undistorded);
+  m_vispUndistordedProcess[1]->SetImages(&(m_BinaryImages[CAMERA_RIGHT]),
+					 m_Rightcam_image_undistorded);
   m_vispUndistordedProcess[1]->SetCameraParameters(m_Cyclopecam_param);
   m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[1]);
 
+  m_vispUndistordedProcess[2] = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
+  m_vispUndistordedProcess[2]->InitializeTheProcess();
 
+  m_vispUndistordedProcess[2]->StopProcess();
+  m_vispUndistordedProcess[2]->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
+					 m_Widecam_image_undistorded);
+  m_vispUndistordedProcess[2]->SetCameraParameters(m_Widecam_param);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[2]);
+  */
   /*! Point Tracker process. */
   m_PointTrackerProcess = new HRP2PointTrackingProcess();
   m_PointTrackerProcess->SetInputVispImages (m_Widecam_image_undistorded);
@@ -501,7 +530,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_ComputeControlLawProcessIROS2010 = new HRP2ComputeControlLawProcessIROS2010();
   //  m_ComputeControlLawProcess->InitializeTheProcess();
   m_ComputeControlLawProcessIROS2010->SetTracker(m_ModelTrackerProcess);
-  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcess);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(),m_ComputeControlLawProcessIROS2010);
 
   /* Circular Buffer for the tracker data*/
   m_CBTrackerData= new CBTrackerData();
@@ -854,7 +883,6 @@ LowLevelVisionServer::TriggerSynchro()
   static struct timeval time_last;
   struct timeval time_current;
 
-  ODEBUG3("TriggerSynchro() beginning");
   gettimeofday(&time_current,0);
   if (start!=1)
     {
@@ -872,7 +900,6 @@ LowLevelVisionServer::TriggerSynchro()
     cout << "Trigger" << endl;
 
   m_SynchroTrigger = true;
-  ODEBUG3("TriggerSynchro() endiing");
   return 0;
 }
 
@@ -2330,6 +2357,14 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   unsigned char *pt =0;
   switch(SemanticCamera)
     {
+    case CAMERA_LEFT:
+      pt = m_Leftcam_image_undistorded->bitmap;
+      break;
+
+    case CAMERA_RIGHT:
+      pt = m_Rightcam_image_undistorded->bitmap;
+      break;
+
     case CAMERA_WIDE:
       pt = m_Widecam_image_undistorded->bitmap;
       break;
@@ -3273,7 +3308,7 @@ void LowLevelVisionServer::StoreImageOnStack(int image)
   int SemanticCamera = m_ImagesInputMethod->GetSemanticOfCamera(image);
   unsigned int imgSizeMem = m_Width[SemanticCamera]*
     m_Height[SemanticCamera]*m_depth[SemanticCamera];
-  ODEBUG3("imgSizeMem: "<< imgSizeMem << 
+  ODEBUG("imgSizeMem: "<< imgSizeMem << 
 	  " m_IndexSI = " << m_IndexSI << 
 	  " image: " << image <<
 	  " SemanticCamera: " << SemanticCamera);

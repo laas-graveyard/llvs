@@ -621,6 +621,18 @@ namespace llvs
       CBPointTrackerData*   m_CBPointTrackerData;
 
     protected:
+      /*Visp grey undistorded image for left cam*/
+      vpImage<unsigned char>* m_Leftcam_image_undistorded;
+
+      /* Visp Camera parameters*/
+      vpCameraParameters      m_Leftcam_param;
+
+      /*Visp grey undistorded image for wide cam*/
+      vpImage<unsigned char>* m_Rightcam_image_undistorded;
+
+      /* Visp Camera parameters*/
+      vpCameraParameters      m_Rightcam_param;
+
       /*Visp grey undistorded image for wide cam*/
       vpImage<unsigned char>* m_Widecam_image_undistorded;
 
@@ -635,7 +647,7 @@ namespace llvs
       vpCameraParameters      m_Cyclopecam_param;
 
       /* Vision Process to undistort images using ViSP*/
-      HRP2vispUndistordedProcess* m_vispUndistordedProcess[2];
+      HRP2vispUndistordedProcess* m_vispUndistordedProcess[3];
 
       /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
