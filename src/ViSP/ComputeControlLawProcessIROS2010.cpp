@@ -112,16 +112,20 @@ void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatri
 			     0.0,0.0,0.0};
   for(unsigned int li=0;
       li<m_dcomref.size();
-      li+=7) // The size of dcom at one time is 6 double.
+      li+=4) // The size of dcom at one time is 6 double.
     {
-      if (maxts < m_dcomref[li])
+      cout << "m_dcomref["<<li+3<<"]" 
+	   << m_dcomref[li+3]
+	   << endl;
+      if (maxts < (double)m_dcomref[li+3])
 	{
-	  maxts = m_dcomref[li];
-	  maxts_index = (int)li;
+	  maxts = (double)m_dcomref[li+3];
+	  maxts_index = (int)li+3;
 	}
     }	  
   lTIM.timestamp = maxts;
-  
+
+  cout << "maxts:" << maxts<< endl;
   // Now try to compute the average speed 
   // realized by the pattern generator during the two calls 
   // to this control law.
@@ -134,48 +138,54 @@ void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatri
       double distance_realized[6] = {0.0,0.0,0.0, 0.0,0.0,0.0};
 
       for(int li=maxts_index;
-	  li>=0;li-=7)
+	  li>=0;li-=4)
 	{
-	  double ldiffts = fabs(m_dcomref[li]-m_prevL.timestamp);
+	  double ldiffts = fabs(m_dcomref[li+3]-m_prevL.timestamp);
 	  if (min_diffts>ldiffts)
 	    {
 	      min_diffts=ldiffts;
-	      for(unsigned int lj=0;lj<6;lj++)
-		distance_realized[lj] += m_dcomref[li+lj+1] * 0.005;
 	    }
+	  distance_realized[0] += m_dcomref[li+0] * 0.005;
+	  distance_realized[1] += m_dcomref[li+1] * 0.005;
+	  distance_realized[5] += m_dcomref[li+2] * 0.005;
 	}
 
-      for(int li=m_dcomref.size()-7;
-	  li>maxts_index;li-=7)
+      for(int li=m_dcomref.size()-4;
+	  li>maxts_index;li-=4)
 	{
-	  double ldiffts = fabs(m_dcomref[li]-m_prevL.timestamp);
+	  double ldiffts = fabs(m_dcomref[li+3]-m_prevL.timestamp);
 	  if (min_diffts>ldiffts)
 	    {
 	      min_diffts=ldiffts;
-	      for(unsigned int lj=0;lj<6;lj++)
-		distance_realized[lj] += m_dcomref[li+lj+1] * 0.005;
 	    }
+	  distance_realized[0] += m_dcomref[li+0] * 0.005;
+	  distance_realized[1] += m_dcomref[li+1] * 0.005;
+	  distance_realized[5] += m_dcomref[li+2] * 0.005;
 	}
-
+      cout << "max_diffts: " << max_diffts << endl;
       // The average speed realized is:
       for(unsigned int lj=0;lj<6;lj++)
-	average_speed[lj]= distance_realized[lj]/max_diffts;
+	average_speed[lj]= distance_realized[lj]/(max_diffts*0.005);
       
     }
   else
     for(unsigned int lj=0;lj<6;lj++)
       average_speed[lj] = 0.0;
 
+  m_prevL = lTIM;
+  m_prevLInitialized = true;
   // Once the average speed is computed,
   // compute bk
   vpColVector bk(6);
   bk[0] = m_prevL.velref[0] - average_speed[0];
   bk[1] = m_prevL.velref[1] - average_speed[1];
   bk[2] = bk[3] = bk[4] = 0.0;
-  bk[5] = m_prevL.velref[2] - average_speed[5];
+  bk[5] = m_prevL.velref[2] - average_speed[2];
     
   // Compute the equivalent error in the feature space.
   vpColVector new_e;
+  cout << "m_prevL.L : " << m_prevL.L << endl
+       << "bk       : " << bk << endl;
   new_e = m_prevL.L * bk;  
 
   m_IntegralLbk = new_e + m_IntegralLbk;
@@ -562,9 +572,11 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
   
       ODEBUG3("Before Task.computecontroLaw!");
       cVelocity = m_Task.computeControlLaw() ;
-      
+
+      ODEBUG3("Getting the interaction matrix.");
       lTIM.L = m_Task.L;
-      
+
+      ODEBUG3("Dealing with DCom Ref.");
       DealWithDComRef(lTIM);
 
       ODEBUG3("Interaction matrix:" << lTIM.L);
@@ -674,8 +686,8 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
     }
   else
     {
-      if (m_dcomref.size()<6)
-	m_dcomref.resize(6);
+      if (m_dcomref.size()<4)
+	m_dcomref.resize(4);
 
       for (unsigned int i=0; i<m_dcomref.size();++i)
 	m_dcomref[i]=0;
@@ -685,7 +697,7 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
     }
 
 
-  ODEBUG("Staying alive !");
+  ODEBUG3("Staying alive !");
 #if 1
   
   vpTranslationVector cTo(m_cMo[0][3],m_cMo[1][3],m_cMo[2][3]);
@@ -725,7 +737,7 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
       << cVelocity[0]<<"  "<<cVelocity[1]<<"  "<<cVelocity[2]<<"  "
       << cVelocity[3]<<"  "<<cVelocity[4]<<"  "<<cVelocity[5]<<"  ";
 
-  if (m_CTS!=0)
+  if ((m_CTS!=0) && (m_dcomref.size()>=3))
     {
       aof << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
 	  << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "

@@ -597,6 +597,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
 
 #if (LLVS_HAVE_VISP>0)
   m_ComputeControlLawProcess->SetConnectionToSot(m_CTS);
+  m_ComputeControlLawProcessIROS2010->SetConnectionToSot(m_CTS);
 #endif
 
   /* SHOULD ALWAYS BE AT THE END */

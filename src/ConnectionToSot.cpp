@@ -397,6 +397,12 @@ void ConnectionToSot::ReaddComRefSignals(vector<double> &dcomref)
       
       for(unsigned int li=0;li<DSdcomref->length();li++)
 	dcomref[li]= DSdcomref[li];
+
+      cout << "Size of dcomref: " << DSdcomref->length()
+	   << " " << endl;
+      for(unsigned int li=0;li<DSdcomref->length();li++)
+	cout << " " << DSdcomref[li];
+      cout << endl;
     }
   catch(...)
     {
@@ -526,8 +532,9 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 17
+#define NBCOMMANDS 24
   string SotCommand[NBCOMMANDS]= {
+    "coshell.buffer dComRef 30",
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",
     "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
@@ -541,10 +548,16 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal dhhtp.out",
     "OpenHRP.periodicCall addSignal dwhtp.out",
     "plug coshell.VelRef pg.velocitydes",
-    "plug pg.dcomref coshell.dComRef",
+    "new Stack<vector> dComRefPTime",
+    "plug pg.dcomref dComRefPTime.in1",
+    "plug OpenHRP.time dComRefPTime.in2",
+    "dComRefPTime.selec1 0 3",
+    "dComRefPTime.selec2 0 1",
+    "OpenHRP.periodicCall addSignal dComRefPTime.out",
+    "OpenHRP.periodicCall addSignal coshell.synchro",
+    "plug dComRefPTime.out coshell.dComRef",
     "OpenHRP.periodicCall addSignal pg.comattitude",
     "plug pg.comattitude coshell.comattitudeabsolute",
-    "coshell.buffer dComRef 30",
   };
 #endif
 
@@ -556,12 +569,12 @@ bool ConnectionToSot::Init()
 
 	  nsCorba::StringStreamer_var CoshellOutput;
 	  m_SOT_Server_Command->runAndRead(SotCommand[li].c_str(),CoshellOutput); 
-	  ODEBUG("Launched " << SotCommand[li].c_str());
+	  ODEBUG3("Launched " << SotCommand[li].c_str());
 	  string lans;
 	  lans.resize(CoshellOutput->length());
 	  for(unsigned int i=0;i<CoshellOutput->length();i++)
 	    { lans[i]=CoshellOutput[i]; }
-	  ODEBUG("Out " << lans);
+	  ODEBUG3("Out " << lans);
 
 	}
       catch(...)
