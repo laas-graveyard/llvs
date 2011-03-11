@@ -42,9 +42,10 @@ void * ConnectionToSotThread(void *arg)
 		 << waistattitude[1] << " , "
 		 << waistattitude[2] << " ) "); 
 #else
+#if 0
 	  double headprpy[6];
 	  double waistprpy[6];
-#if 0
+
 	  aCST->ReadHeadRPYSignals(headprpy);
 	  aCST->ReadWaistRPYSignals(waistprpy);
 #endif 
@@ -93,7 +94,7 @@ void ConnectionToSot::DumpCircularBuffer(string aFilename)
 {
   ODEBUG("Dumping data: "<<m_CircularBufferIndexMax);
   ofstream aof;
-  aof.open((char *)aFilename.c_str(),ofstream::out);
+  aof.open((const char *)aFilename.c_str(),ofstream::out);
   aof.precision(40);
   for(unsigned int i=0;i<m_CircularBufferIndexMax;i++)
     {
@@ -187,9 +188,6 @@ void ConnectionToSot::WriteVelocityReference(double velref[3])
 
   try
     {
-      struct timeval ats;
-	    
-
       nsCorba::DoubleSeq_var DSvelref;
       ODEBUG("Enter WriteVelocityReference 1 ");
       DSvelref = new nsCorba::DoubleSeq;
@@ -217,9 +215,6 @@ void ConnectionToSot::WriteObjectCoG(double ObjectCoG[3])
 
   try
     {
-      struct timeval ats;
-	    
-
       nsCorba::DoubleSeq_var DSObjectCoG;
       ODEBUG("Enter WriteObjectCoG 1 ");
       DSObjectCoG = new nsCorba::DoubleSeq;
@@ -299,9 +294,6 @@ void ConnectionToSot::ReadHeadRPYSignals(double headposerpy[6])
 
   try
     {
-      struct timeval ats;
-	    
-
       nsCorba::DoubleSeq_var DShead;
       m_SOT_Server_Command->readInputVectorSignal(m_HeadPRPYSignalRank,
 						  DShead);
@@ -335,8 +327,6 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
 
   try
     {
-      struct timeval ats;
-	    
 
       nsCorba::DoubleSeq_var DSwaist;
       m_SOT_Server_Command->readInputVectorSignal(m_WaistPRPYSignalRank,
@@ -354,22 +344,36 @@ void ConnectionToSot::ReadWaistRPYSignals(double waistposerpy[6])
   ODEBUG("Go out of  ReadWaistRPYSignals ");
 }
 
-void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
+void ConnectionToSot::ReaddComRefSignals(double dcom[3])
 {
   ODEBUG("Enter ReadComSignals ");
 
   try
     {
-      struct timeval ats;
-	    
-
-      nsCorba::DoubleSeq_var DSwaistcom;
+      nsCorba::DoubleSeq_var DSdcom;
       m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
-						  DSwaistcom);
+						  DSdcom);
       
-      if (DSwaistcom->length()==3)
+      if (DSdcom->length()==3)
 	for(unsigned int li=0;li<3;li++)
-	  waistcom[li]= DSwaistcom[li];
+	  dcom[li]= DSdcom[li];
+      else 
+	{
+	  dcom[0] = 
+	    dcom[1] = 
+	    dcom[2] = 0.0;
+	  double referencetime= DSdcom[0];
+
+	  for(unsigned int li=0;li<DSdcom->length();li+=4)
+	    {
+	      if (referencetime < DSdcom[li])
+		{
+		  dcom[0] = DSdcom[li+1];
+		  dcom[1] = DSdcom[li+2];
+		  dcom[2] = DSdcom[li+3];
+		}
+	    }
+	}
     }
   catch(...)
     {
@@ -381,36 +385,84 @@ void ConnectionToSot::ReaddComRefSignals(double waistcom[3])
 
 void ConnectionToSot::ReaddComRefSignals(vector<double> &dcomref)
 {
+  ReadDataRefSignal(m_dComRefSignalRank,dcomref);
+}
+
+void ConnectionToSot::ReaddComAttRefSignals(double dcomatt[3])
+{
+  try
+    {
+      nsCorba::DoubleSeq_var DSdcomatt;
+      m_SOT_Server_Command->readInputVectorSignal(m_dComAttRefSignalRank,
+						  DSdcomatt);
+      
+      if (DSdcomatt->length()==3)
+	for(unsigned int li=0;li<3;li++)
+	  dcomatt[li]= DSdcomatt[li];
+      else 
+	{
+	  dcomatt[0] = 
+	    dcomatt[1] = 
+	    dcomatt[2] = 0.0;
+	  double referencetime= DSdcomatt[0];
+
+	  for(unsigned int li=0;li<DSdcomatt->length();li+=4)
+	    {
+	      if (referencetime < DSdcomatt[li])
+		{
+		  dcomatt[0] = DSdcomatt[li+1];
+		  dcomatt[1] = DSdcomatt[li+2];
+		  dcomatt[2] = DSdcomatt[li+3];
+		}
+	    }
+	}
+    }
+  catch(...)
+    {
+      cout << "Unable to read com att ref control signals. "<< endl;
+      
+    } 
+}
+
+void ConnectionToSot::ReaddComAttRefSignals(vector<double> & dcomattref)
+{
+  ReadDataRefSignal(m_dComAttRefSignalRank,dcomattref);
+}
+
+void ConnectionToSot::ReadDataRefSignal(CORBA::Long & refToSignal,
+					vector<double> &dataref)
+{
   ODEBUG("Enter ReadComSignals ");
 
   try
     {
-      struct timeval ats;
-	    
-
-      nsCorba::DoubleSeq_var DSdcomref;
-      m_SOT_Server_Command->readInputVectorSignal(m_dComRefSignalRank,
-						  DSdcomref);
+      nsCorba::DoubleSeq_var DSdataref;
+      m_SOT_Server_Command->readInputVectorSignal(refToSignal,
+						  DSdataref);
       
-      if (DSdcomref->length()!=dcomref.size())
-	dcomref.resize(DSdcomref->length());
+      if (DSdataref->length()!=dataref.size())
+	dataref.resize(DSdataref->length());
       
-      for(unsigned int li=0;li<DSdcomref->length();li++)
-	dcomref[li]= DSdcomref[li];
+      for(unsigned int li=0;li<DSdataref->length();li++)
+	dataref[li]= DSdataref[li];
 
-      cout << "Size of dcomref: " << DSdcomref->length()
+      cout << "refToSignal: " << refToSignal
+	   << " Size of dataref: " << DSdataref->length()
 	   << " " << endl;
-      for(unsigned int li=0;li<DSdcomref->length();li++)
-	cout << " " << DSdcomref[li];
+      for(unsigned int li=0;li<DSdataref->length();li++)
+	cout << " " << DSdataref[li];
       cout << endl;
     }
   catch(...)
     {
-      cout << "Unable to read dcomref control signals. "<< endl;
-      
+      cout << "Unable to read dataref for control signal :"
+	   << refToSignal << " ."
+	   << endl;
+      exit(1);
     }
-  ODEBUG("Go out of  ReaddComRefSignals ");
+  ODEBUG("Go out of  ReaddatarefSignals ");
 }
+
 
 void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
 {
@@ -418,8 +470,6 @@ void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
 
   try
     {
-      struct timeval ats;
-	    
       nsCorba::DoubleSeq_var DScomattitude;
       m_SOT_Server_Command->readInputVectorSignal(m_ComAttitudeSignalRank,
 						  DScomattitude);
@@ -456,17 +506,18 @@ bool ConnectionToSot::Init()
       return false;
     }
 
-  string CstSignaux[6]={"waistpositionabsolute",
+  string CstSignaux[7]={"waistpositionabsolute",
 			"waistattitudeabsolute",
 			"Head",
 			"Waist",
                         "dComRef",
-                        "comattitudeabsolute"};
+                        "comattitudeabsolute",
+                        "dComAttRef"};
 
   string OutSignal[2] = {"VelRef",
                          "ObjectCoG"};
   ODEBUG("Before creating the signals: " << status);
-  for(unsigned int li=0;li<6;li++)
+  for(unsigned int li=0;li<7;li++)
     {
 
       /*      
@@ -487,11 +538,14 @@ bool ConnectionToSot::Init()
 	  m_dComRefSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
 	else if (li==5)
 	  m_ComAttitudeSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+	else if (li==6)
+	  m_dComAttRefSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
       }
       catch(...)
+
 	{
 	  cerr << "Tried to create signal " << CstSignaux[li] << endl;
-	  //exit(-1);
 	}
 
       ODEBUG("Creation of signal: " << CstSignaux[li]);
@@ -518,7 +572,6 @@ bool ConnectionToSot::Init()
       catch(...)
 	{
 	  cerr << "Tried to create signal " << OutSignal[li] << endl;
-	  //exit(-1);
 	}
     }
   
@@ -532,9 +585,10 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 24
+#define NBCOMMANDS 22
   string SotCommand[NBCOMMANDS]= {
-    "coshell.buffer dComRef 30",
+    "OpenHRP.periodicCall addSignal pg.comattitude",
+    "OpenHRP.periodicCall addSignal pg.dcomattitude",
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",
     "plug ffattitude_from_pg.out coshell.waistattitudeabsolute",
     "OpenHRP.periodicCall addSignal ffposition_from_pg.out",
@@ -547,17 +601,14 @@ bool ConnectionToSot::Init()
     "plug dwhtp.out coshell.Waist",
     "OpenHRP.periodicCall addSignal dhhtp.out",
     "OpenHRP.periodicCall addSignal dwhtp.out",
+    "plug pg.dcomref coshell.dComRef",
+    "plug pg.dcomattitude coshell.dComAttRef",
     "plug coshell.VelRef pg.velocitydes",
-    "new Stack<vector> dComRefPTime",
-    "plug pg.dcomref dComRefPTime.in1",
-    "plug OpenHRP.time dComRefPTime.in2",
-    "dComRefPTime.selec1 0 3",
-    "dComRefPTime.selec2 0 1",
-    "OpenHRP.periodicCall addSignal dComRefPTime.out",
+    "coshell.buffer dComRef 30",
+    "coshell.buffer dComAttRef 30",
     "OpenHRP.periodicCall addSignal coshell.synchro",
-    "plug dComRefPTime.out coshell.dComRef",
-    "OpenHRP.periodicCall addSignal pg.comattitude",
     "plug pg.comattitude coshell.comattitudeabsolute",
+    "plug OpenHRP.state coshell.position",
   };
 #endif
 

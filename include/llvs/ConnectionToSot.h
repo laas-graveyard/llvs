@@ -90,6 +90,12 @@ namespace llvs
       /*! \brief Read com attitude values from pg .*/
       void ReadComAttitudeSignals(double comattitude[3]);
 
+      /*! \brief Read dcomref velocity values from pg .*/
+      void ReaddComAttRefSignals(double waistcomatt[3]);
+
+      /*! \brief Read a sequence of dcomref velocity values from pg .*/
+      void ReaddComAttRefSignals(vector<double> &dcomattref);
+
       /*! \brief Write waist velocity command.*/
       void WriteVelocityReference(double velref[3]);
 
@@ -137,8 +143,11 @@ namespace llvs
       CORBA::Long m_VelRefSignalRank;
       CORBA::Long m_ObjectCoGSignalRank;
 
-      /*! \brief Store the rank of waist control signal. */
+      /*! \brief Store the rank of waist linear velocity control signal. */
       CORBA::Long m_dComRefSignalRank;
+
+      /*! \brief Store the rank of waist angular velocity control signal. */
+      CORBA::Long m_dComAttRefSignalRank;
 
       /*! \brief Boolean value to go out of the thread */
       bool m_EndOfThreadLoop;
@@ -153,7 +162,9 @@ namespace llvs
       unsigned int m_CircularBufferIndexMax;
 
     protected:
-
+      /*! \brief Read the reference data signal. */
+      void ReadDataRefSignal(CORBA::Long & refToSignal,
+			     vector<double> & dataref);
     public:
       /* ! \brief To know if the thread should be stop or not */
       bool GetEndOfThreadLoop() const;
