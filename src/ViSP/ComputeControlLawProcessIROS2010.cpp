@@ -68,6 +68,8 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_cdMoSet = false;
   m_prevLInitialized = false;
 
+  m_TimeForOneStep = 160;
+
   /* default motion test*/
   m_MotionTested=FREE;
   m_ModelHeightLimit=0;
@@ -79,10 +81,15 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_Velzero.resize(3);
   m_Velzero=0.02;
 
+  m_Ebuffer.clear();
+  m_E.resize(6);
   /*! Set to zero the integral term. */
   m_IntegralLbk.resize(6);
   for(unsigned int li=0;li<6;li++)
-    m_IntegralLbk[li] = 0.0;
+    {
+      m_IntegralLbk[li] = 0.0;
+      m_E[li] = 0.0;
+    }
     
   // load 
   vpHomogeneousMatrix cameraMhead;
@@ -96,99 +103,149 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   return 0 ;
 }
 
+void HRP2ComputeControlLawProcessIROS2010::ExtractLastSetOfValues(std::vector<double> & arrayOfData ,
+								  double & timeofmax,
+								  int & indexofmax)
+{
+  timeofmax = 0.0;
+  indexofmax = -1;
+
+  // Detect the maximum over the size of the two vectors.
+  for(unsigned int li=0;
+      li<arrayOfData.size();
+      li+=4) // The size of dcom at one time is 6 double.
+    {
+      if (timeofmax < (double)m_dcomref[li])
+	{
+	  timeofmax = (double)m_dcomref[li];
+	  indexofmax = (int)li;
+	}
+    }	  
+}
+
 void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatrix &lTIM)
 {
   if (m_CTS==0)
     return;
 
   m_CTS->ReaddComRefSignals(m_dcomref);
-  
+  m_CTS->ReaddComAttRefSignals(m_dcomattref);
+
   // Go through the vector of dcomref 
   // extract the timestamp with the highest value.
   // It will be used as the timestamp.
-  double maxts = 0.0;
-  int maxts_index=-1;
-  double average_speed[6] = {0.0,0.0,0.0,
-			     0.0,0.0,0.0};
-  for(unsigned int li=0;
-      li<m_dcomref.size();
-      li+=4) // The size of dcom at one time is 6 double.
-    {
-      cout << "m_dcomref["<<li+3<<"]" 
-	   << m_dcomref[li+3]
-	   << endl;
-      if (maxts < (double)m_dcomref[li+3])
-	{
-	  maxts = (double)m_dcomref[li+3];
-	  maxts_index = (int)li+3;
-	}
-    }	  
-  lTIM.timestamp = maxts;
+  double dcom_maxts = 0.0;
+  int dcom_index=-1;
 
-  cout << "maxts:" << maxts<< endl;
+  double dcomatt_maxts = 0.0;
+  int dcomatt_index=-1;
+
+  vpColVector average_speed(6);
+
+  ExtractLastSetOfValues(m_dcomref,dcom_maxts,dcom_index);
+  ExtractLastSetOfValues(m_dcomattref,dcomatt_maxts,dcomatt_index);
+  
+  if (dcom_maxts!=dcomatt_maxts)
+    {
+      cout << "Pb ! linear and angular velocity are taken at different time" << endl;
+      exit(-1);
+    }
+
+  lTIM.timestamp = dcom_maxts;
+
+  ODEBUG3_CONT("dcom_maxts:" << dcom_maxts << " prev: " << m_prevL.timestamp << endl);
+  ODEBUG3_CONT("dcom_index:" << dcom_index << " dcomatt_index: " << dcomatt_index << endl);
+  for(unsigned int lj=0;lj<6;lj++)
+    average_speed[lj] = 0.0;
+
   // Now try to compute the average speed 
-  // realized by the pattern generator during the two calls 
+  // realized by the pattern generator between two calls 
   // to this control law.
   if (m_prevLInitialized)
     {
-      double min_diffts=fabs(maxts-m_prevL.timestamp);
-      double max_diffts = min_diffts;
-      int prevts_index=maxts_index;
-      
-      double distance_realized[6] = {0.0,0.0,0.0, 0.0,0.0,0.0};
+      double time_computed;
 
-      for(int li=maxts_index;
+      vpColVector distance_realized(6);
+      for(unsigned int lj=0;lj<6;lj++)
+	distance_realized[lj]=0.0;
+
+      for(int li=dcom_index;
 	  li>=0;li-=4)
 	{
-	  double ldiffts = fabs(m_dcomref[li+3]-m_prevL.timestamp);
-	  if (min_diffts>ldiffts)
+	  // For any information no taken into account
+	  // since last time.
+	  if (m_dcomref[li]>m_prevL.timestamp)
 	    {
-	      min_diffts=ldiffts;
+	      distance_realized[0] += m_dcomref[li+1] * 0.005;
+	      distance_realized[1] += m_dcomref[li+2] * 0.005;
+	      distance_realized[5] += m_dcomattref[li+3] * 0.005;
 	    }
-	  distance_realized[0] += m_dcomref[li+0] * 0.005;
-	  distance_realized[1] += m_dcomref[li+1] * 0.005;
-	  distance_realized[5] += m_dcomref[li+2] * 0.005;
 	}
 
       for(int li=m_dcomref.size()-4;
-	  li>maxts_index;li-=4)
+	  li>dcom_index;li-=4)
 	{
-	  double ldiffts = fabs(m_dcomref[li+3]-m_prevL.timestamp);
-	  if (min_diffts>ldiffts)
+	  // For any information no taken into account
+	  // since last time.
+	  if (m_dcomref[li]>m_prevL.timestamp)
 	    {
-	      min_diffts=ldiffts;
+	      distance_realized[0] += m_dcomref[li+1] * 0.005;
+	      distance_realized[1] += m_dcomref[li+2] * 0.005;
+	      distance_realized[5] += m_dcomattref[li+3] * 0.005;
 	    }
-	  distance_realized[0] += m_dcomref[li+0] * 0.005;
-	  distance_realized[1] += m_dcomref[li+1] * 0.005;
-	  distance_realized[5] += m_dcomref[li+2] * 0.005;
 	}
-      cout << "max_diffts: " << max_diffts << endl;
       // The average speed realized is:
-      for(unsigned int lj=0;lj<6;lj++)
-	average_speed[lj]= distance_realized[lj]/(max_diffts*0.005);
+      if (dcom_maxts>m_prevL.timestamp)
+	{
+	  for(unsigned int lj=0;lj<6;lj++)
+	    average_speed[lj]= distance_realized[lj]/(dcom_maxts-m_prevL.timestamp);
+	}
       
     }
   else
-    for(unsigned int lj=0;lj<6;lj++)
-      average_speed[lj] = 0.0;
+    {
+      m_prevL = lTIM;
+      m_prevLInitialized = true;
+      
+    }
 
-  m_prevL = lTIM;
-  m_prevLInitialized = true;
   // Once the average speed is computed,
   // compute bk
   vpColVector bk(6);
   bk[0] = m_prevL.velref[0] - average_speed[0];
   bk[1] = m_prevL.velref[1] - average_speed[1];
   bk[2] = bk[3] = bk[4] = 0.0;
-  bk[5] = m_prevL.velref[2] - average_speed[2];
+  bk[5] = m_prevL.velref[2] - average_speed[5];
     
+  ODEBUG3_CONT("average speed: " << average_speed);
   // Compute the equivalent error in the feature space.
   vpColVector new_e;
-  cout << "m_prevL.L : " << m_prevL.L << endl
-       << "bk       : " << bk << endl;
-  new_e = m_prevL.L * bk;  
+  ODEBUG3_CONT("m_prevL.L : " << m_prevL.L << endl
+	       << "bk       : " << bk );
+  new_e =lTIM.L * bk;  
 
-  m_IntegralLbk = new_e + m_IntegralLbk;
+  m_IntegralLbk = new_e*(dcom_maxts-m_prevL.timestamp) + m_IntegralLbk;
+
+  vpColVector intOverIntegralLbk = m_IntegralLbk*(dcom_maxts-m_prevL.timestamp);
+  m_Ebuffer.push_back(intOverIntegralLbk);
+
+  m_E = intOverIntegralLbk + m_E;
+  
+  ODEBUG3("m_E: " << m_E << " m_Ebuffer.size() = " << m_Ebuffer.size());
+  // If the buffer is big enough to handle a full period.
+  if (m_Ebuffer.size()==161)
+   { 
+      vpColVector toRemoveFromE = m_Ebuffer.front();
+      m_Ebuffer.pop_front();
+      m_E=m_E-toRemoveFromE;
+      ODEBUG3("toRemoveFromE: " << toRemoveFromE <<
+	      " intOverIntegralLbk: " << intOverIntegralLbk);
+    }
+
+  // Update the value for next computation.
+  m_prevL = lTIM;
+  m_prevLInitialized = true;
+
 }
 
 int HRP2ComputeControlLawProcessIROS2010::loadcMh(vpHomogeneousMatrix& cMh)
@@ -651,8 +708,17 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
   // Store the current information for further treatment.
   lTIM.velref[0] = velref[0];  lTIM.velref[1] = velref[1];  lTIM.velref[2] = velref[2];
   m_prevL = lTIM;
+  
+  // New error with the integral of the part which is not 
+  // realized.
+  vpColVector newError = error6d - m_IntegralLbk;
 
-  vpColVector Lnew_e = m_Task.L.pseudoInverse()  * (error6d - m_IntegralLbk);
+  // Remove the constant part of the error.
+  if (m_Ebuffer.size()==m_TimeForOneStep)
+    newError = newError + m_E;
+
+  vpColVector Lnew_e = m_Task.L.pseudoInverse()  * newError;
+  
   vpColVector cVelocity2 = -m_Lambda * Lnew_e;
 
   

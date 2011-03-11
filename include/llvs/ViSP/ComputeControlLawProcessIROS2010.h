@@ -16,7 +16,7 @@
 
 /*! System includes */
 #include <iostream>
-
+#include <deque>
 /*! LLVS includes */
 #include "VisionBasicProcess.h"
 
@@ -147,6 +147,10 @@ public:
   /*!load the cameraHeadTransform*/
   int loadcMh(vpHomogeneousMatrix &M);
   
+  /*! \brief Search lastest vector of data in a set of timestamped data provided by the coshell */
+  void ExtractLastSetOfValues(std::vector<double > &arrayOfData,
+			      double & timeofmax,
+			      int & indexofmax);
    
   /*Stop*/
   int stop(double * VelRef);
@@ -230,6 +234,12 @@ public:
   /**/ 
   std::string m_internalState; 
 
+  /*! \brief Array of Integral Lbk to remove constant part of the control law. */
+  std::deque<vpColVector > m_Ebuffer;
+
+  /*! \brief Estimation of constant part. */
+  vpColVector m_E;
+
   /*! \brief Additional term to compute the integral term of the control law. */
   vpColVector m_IntegralLbk;
 
@@ -241,6 +251,12 @@ public:
 
   /*! \brief History of com speed reference. */
   vector<double> m_dcomref;
+
+  /*! \brief History of com att speed reference. */
+  vector<double> m_dcomattref;
+
+  /*! \brief Time for one step in number of control steps. */
+  unsigned int m_TimeForOneStep;
 };
 
 
