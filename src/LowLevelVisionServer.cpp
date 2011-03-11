@@ -723,15 +723,7 @@ LowLevelVisionServer::SetImagesGrabbedSize(CORBA::Long SemanticCameraID, CORBA::
   m_VFGBforTheFrameGrabber._width = lw;
   m_VFGBforTheFrameGrabber._height = lh;
 #endif
-  /*
-    ct3001_image_set_size((CT3001_SYSCONF*)(m_VFGBforTheFrameGrabber._sys),
-    m_VFGBforTheFrameGrabber._width,
-    m_VFGBforTheFrameGrabber._height);
-  */
-  //  FreeBinaryImages();
 
-
-  unsigned char ** local_BinaryImages;
   if (m_Cameras[SemanticCameraID]!=0)
     m_Cameras[SemanticCameraID]->SetAcquisitionSize(m_Width[SemanticCameraID],m_Height[SemanticCameraID]);
 
@@ -963,14 +955,12 @@ CORBA::Long
 LowLevelVisionServer::ApplyingProcess()
 {
   static double LastProcessTime = 0.0;
-  static double WaistedTime = 0.0;
   static double PureProcess=0.0;
   static double BufferTime=0.0;
   static double CompleteProcessTime=0.0;
   static double ElapsedTime = 0.0;
   static double Variance=0.0, PrevBufferTime;
   static int IndexBuffer=0;
-  static int MissedFrame = 0;
   static unsigned char FirstTime = 1;
 
   ODEBUG( __FILE__ << " " << __LINE__ );
@@ -1153,7 +1143,6 @@ LowLevelVisionServer::ApplyingProcess()
 
 
   gettimeofday(&after,0);
-  double waisted_time = (before2.tv_sec - before.tv_sec) + 0.000001*(before2.tv_usec - before.tv_usec);
   double current_time = (after.tv_sec - before.tv_sec) + 0.000001*(after.tv_usec - before.tv_usec);
   double current_time2 = (after.tv_sec - before2.tv_sec) + 0.000001*(after.tv_usec - before2.tv_usec);
   double current_time3 = (after.tv_sec - before3.tv_sec) + 0.000001*(after.tv_usec - before3.tv_usec);
@@ -1528,7 +1517,7 @@ CORBA::Long LowLevelVisionServer::LoadCalibrationInformation()
   char pathname[512];
 
   /* load camera parameters */
-  int i,lw,lh;
+  int i;
   for(i=0;i<3;i++)
     {
 
@@ -1690,7 +1679,7 @@ void LowLevelVisionServer::ReadRbtCalib()
 
   /* Now read the information linking the vision reference frame to
      the head reference frame */
-  aifstream.open((char *)aFileName.c_str(),ifstream::in);
+  aifstream.open((const char *)aFileName.c_str(),ifstream::in);
 
   if (aifstream.is_open())
     {
@@ -2268,7 +2257,6 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
-  int i,j, index =0 ;
 
   ODEBUG("getImage :" << SemanticCamera << " " << string(Format) << " " <<
 	 m_BinaryImages.size());
@@ -2301,11 +2289,11 @@ CORBA::Long LowLevelVisionServer::getImage(CORBA::Long SemanticCamera, ImageData
 
 
   unsigned char *pt = m_BinaryImages[SemanticCamera];
-  for(j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
+  for(int j=0;j<(int)(m_Height[SemanticCamera]*m_Width[SemanticCamera]*m_depth[SemanticCamera]);j++)
     an2Image->octetData[j] = *pt++;
 
   an2Image->longData[0] = (long)m_timestamps[SemanticCamera];
-  an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
+  an2Image->longData[1] = (long)((m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6);
 
   anImage = an2Image._retn();
 
@@ -2318,7 +2306,6 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
-  int i,j, index =0;
 
   unsigned size =
     m_Height[SemanticCamera] *
@@ -2352,7 +2339,7 @@ CORBA::Long LowLevelVisionServer::getRectifiedImage(CORBA::Long SemanticCamera, 
   an2Image->longData.length(2);
   an2Image->format=GRAY;
   an2Image->longData[0] =(long) m_timestamps[SemanticCamera];
-  an2Image->longData[1] = (long)(m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6;
+  an2Image->longData[1] = (long)((m_timestamps[SemanticCamera]-an2Image->longData[0])*1e6);
 
   
   unsigned char *pt =0;
@@ -2404,8 +2391,6 @@ CORBA::Long LowLevelVisionServer::getEdgeImage(CORBA::Long SemanticCamera, Image
   throw(CORBA::SystemException)
 {
   ImageData_var an2Image = new ImageData;
-  int i,j, index =0 ;
-
 
   if ((SemanticCamera<0) || ((unsigned int)SemanticCamera>m_ImagesInputMethod->GetNumberOfCameras())
 #if (LLVS_HAVE_VVV>0)
@@ -2682,7 +2667,6 @@ CORBA::Long LowLevelVisionServer::getImageDerivative(CORBA::Long CameraID,
 #else
   void *aFlow=0;
 #endif
-  int index = 0;
   FloatBuffer_var ImageDerivativeVar;
 
   ODEBUG2("Ici 1");
@@ -2812,7 +2796,6 @@ CORBA::Long LowLevelVisionServer::getOpticalFlow(CORBA::Long CameraID,
   MMXFlow *aFlow;
   MM_F_32 *p_DerivativeImage[4];
 #endif
-  int index = 0;
   FloatBuffer_var OpticalFlowVar;
   FloatBuffer_var ConfidenceVar;
 
@@ -2886,8 +2869,6 @@ CORBA::Long LowLevelVisionServer::getHarrisDetector(CORBA::Long CameraID,
 #else
   void * aFlow =0;
 #endif
-
-  int index = 0;
   FloatBuffer_var HarrisVar;
 
   HarrisVar = new FloatBuffer;
@@ -3068,7 +3049,6 @@ CORBA::Long LowLevelVisionServer::GetProcessParameter(const char * aProcessName,
   throw(CORBA::SystemException)
 {
   int index=-1;
-  int NbOfParameters=0;
 
   HRP2LowLevelVisionParametersSeq_var ParametersSeq_var = new HRP2LowLevelVisionParametersSeq;
   HRP2LowLevelVisionParametersSeq_var ParametersValueSeq_var = new HRP2LowLevelVisionParametersSeq;
@@ -3480,7 +3460,6 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
       ODEBUG3("lUpperLimit: " << lUpperLimit);
       for(unsigned int i=0; i<lUpperLimit; i++)
 	{
-	  int k,l;
 	  unsigned char *pt = m_StoredImages+i*lMaxWidth*lMaxHeight*lMaxDepth;
 	  char Buffer[1024];
 	  bzero(Buffer,1024);
@@ -3513,16 +3492,6 @@ void LowLevelVisionServer::RecordImagesOnDisk(int image)
 	      ODEBUG("m_Height[0] * m_Width[0] * m_depth[0] = " 
 		      << lMaxHeight << " * " << lMaxWidth << " * " << lMaxDepth );
 	      fwrite(pt,lMaxHeight * lMaxWidth * lMaxDepth ,1,fp);
-	      /*
-		for(l=0;l<m_Height;l++)
-		{
-		for(k=0;k<m_Width;k++)
-		{
-		for(int m=0;m<m_SizeOfPixelForStack;m++)
-		fprintf(fp,"%c",*pt++);
-		}
-		}
-	      */
 	      fclose(fp);
 	    }
 	}
