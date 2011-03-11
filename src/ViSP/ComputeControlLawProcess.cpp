@@ -1,3 +1,4 @@
+
 /** @doc This object implements a visual process to get a disparity map.
 
     Copyright (c) 2010, 
@@ -74,7 +75,7 @@ int HRP2ComputeControlLawProcess::init()
   m_RyLimit=0;
 
   m_Velmax.resize(3);
-  m_Velmax=0.1;
+  m_Velmax=0.2;
   m_Velzero.resize(3);
   m_Velzero=0.02;
 
@@ -268,7 +269,6 @@ void HRP2ComputeControlLawProcess::SetcdMo ( vpHomogeneousMatrix acdMo)
   m_cdMoSet = true;
 
   double headprpy[6];
-  double waistprpy[6];
  
   // Read nom information from SoT.
   if (m_CTS!=0)
@@ -417,7 +417,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
       <<"# TimeStamp (1 value) / Pose cMo(6 values)/ |Error| (1 value)"
       <<" / Error Vectot (6 values)/ Pose fMo(6 values) "
       <<"/ Control in camera Frame(6 values) / Control in waist Frame(6 values)"
-      <<"/ Control send to SoT (3 values) / Control from SoT in ref frame (2 values) "
+      <<"/ Control send to SoT (3 values) / Control from PG in ref frame (3 values) "
       <<"/ Theta out pg (1 value)/ Control from SoT in robot frame (2 values) " <<endl;
   
   aof.close();
@@ -432,6 +432,7 @@ int HRP2ComputeControlLawProcess:: pInitializeTheProcess()
   -------------------------------------*/
 int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 {
+
   m_ComputeV.resize(6);
   m_ControlLawComputed = false;
   int r=-1;
@@ -478,7 +479,7 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
       m_FThU->buildFrom(m_cdMc) ;
       
   
-      ODEBUG("Before Task.computecontroLaw!");
+      ODEBUG("Before Task.computecontrolLaw!");
       cVelocity = m_Task.computeControlLaw() ;
       
       ODEBUG("Before SumSquare!");
@@ -563,9 +564,10 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
     }
 
 
-  double waistcom[3];
   double comattitude[3];
-  
+  double dcom[3];  
+  double dcomatt[3];
+
   if (m_CTS!=0)
     {
       ODEBUG("velref : " << velref[0] << " "<< velref[1] << " "<< velref[2] );
@@ -573,17 +575,28 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
       m_CTS-> WriteObjectCoG(projectedCoG);
 
-      m_CTS-> ReaddComRefSignals(waistcom);
+      m_CTS-> ReaddComRefSignals(dcom);
 
+      ODEBUG("dcom: " 
+	      << dcom[0] << " " 
+	      << dcom[1] << " " 
+	      << dcom[2] );
       m_CTS-> ReadComAttitudeSignals(comattitude);
+
+      m_CTS-> ReaddComAttRefSignals(dcomatt);
+      ODEBUG("dcomatt: " 
+	      << dcomatt[0] << " " 
+	      << dcomatt[1] << " " 
+	      << dcomatt[2] );
       
     }
   else
     {
       for (int i=0; i<3;++i)
 	{
-	  waistcom[i]=0;
-	  comattitude[i]=0;
+	  dcom[i]=0.0;
+	  dcomatt[i] = 0.0;
+	  comattitude[i]=0.0;
 	}
     }
 
@@ -611,9 +624,10 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
   vpVelocityTwistMatrix comVref(refMcom.inverse());
 
   vpColVector waistCtlVelinRef(6);
-  waistCtlVelinRef[0]=waistcom[0];
-  waistCtlVelinRef[1]=waistcom[1];
-  
+  waistCtlVelinRef[0]=dcom[0];
+  waistCtlVelinRef[1]=dcom[1];
+  waistCtlVelinRef[5]=dcomatt[2];
+
   vpColVector waistCtlVelRobot(6);
   waistCtlVelRobot=comVref*waistCtlVelinRef;
   
@@ -630,11 +644,12 @@ int HRP2ComputeControlLawProcess::pRealizeTheProcess()
 
   if (m_CTS!=0)
     {
-      aof << wVelocity[0]<<"  "<<wVelocity[1]<<"  "<<wVelocity[2]<<"  "
-	  << wVelocity[3]<<"  "<<wVelocity[4]<<"  "<<wVelocity[5]<<"  "
-	  << velref[0]<<"  "<< velref[1]<<"  "<<velref[2]<<"  "
-	  << waistcom[0] <<"  " << waistcom[1]<<"  "<< comattitude[2]<<"  "
-	  << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<<endl;
+      aof << wVelocity[0] << "  " << wVelocity[1] << "  " << wVelocity[2] << "  "
+	  << wVelocity[3] << "  " << wVelocity[4] << "  " << wVelocity[5] << "  "
+	  << velref[0]    << "  " << velref[1]    << "  " << velref[2]    << "  "
+	  << dcom[0]      << "  " << dcom[1]      << "  " << dcomatt[2]   << "  "
+	  << comattitude[2]<<"  "
+	  << waistCtlVelRobot[0]<<"  " <<waistCtlVelRobot[1]<<"  "<< waistCtlVelRobot[5] << endl;
     }
   else
     {
