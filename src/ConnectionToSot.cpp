@@ -2,7 +2,7 @@
     Low Level Vision on the HRP-2 Vision processor.
 
 
-    Copyright (c) 2003-2006,
+    Copyright (c) 2003-2010,
     @author Olivier Stasse
 
     JRL-Japan, CNRS/AIST
@@ -432,7 +432,7 @@ void ConnectionToSot::ReaddComAttRefSignals(vector<double> & dcomattref)
 void ConnectionToSot::ReadDataRefSignal(CORBA::Long & refToSignal,
 					vector<double> &dataref)
 {
-  ODEBUG("Enter ReadComSignals ");
+  ODEBUG("Enter ReadDataRefSignals ");
 
   try
     {
@@ -463,6 +463,28 @@ void ConnectionToSot::ReadDataRefSignal(CORBA::Long & refToSignal,
   ODEBUG("Go out of  ReaddatarefSignals ");
 }
 
+void ConnectionToSot::ReadActivationCompensationSignal(double &value)
+{
+  ODEBUG("Enter ReadDataRefSignals ");
+
+  try
+    {
+      nsCorba::DoubleSeq_var DSdataref;
+      m_SOT_Server_Command->readInputVectorSignal(m_compensationActivationSignalRank,
+						  DSdataref);
+      
+      if (DSdataref->length()==1)
+	value= DSdataref[0];
+    }
+  catch(...)
+    {
+      cout << "Unable to read dataref for control signal read activation compensation"
+	   << endl;
+      exit(1);
+    }
+  ODEBUG("Go out of  ReaddatarefSignals ");
+  
+}
 
 void ConnectionToSot::ReadComAttitudeSignals(double comattitude[3])
 {
@@ -495,6 +517,12 @@ bool ConnectionToSot::Init()
   bool status;
   status = SetCorbaReference();
 
+  status = status & InitInputSignals();
+
+  status = status & InitOutputSignals();
+
+  status = status & InitExecuteCommands();
+
   ODEBUG("Status: " << status);
   if (!status)
     return status;
@@ -505,51 +533,67 @@ bool ConnectionToSot::Init()
       cerr << "Failed to narrow the root naming context." << endl;
       return false;
     }
+}
 
-  string CstSignaux[7]={"waistpositionabsolute",
+bool ConnectionToSot::InitInputSignals()
+{
+  string CstSignaux[8]={"waistpositionabsolute",
 			"waistattitudeabsolute",
 			"Head",
 			"Waist",
                         "dComRef",
                         "comattitudeabsolute",
-                        "dComAttRef"};
+                        "dComAttRef",
+                        "compensationActivation"};
 
-  string OutSignal[2] = {"VelRef",
-                         "ObjectCoG"};
-  ODEBUG("Before creating the signals: " << status);
-  for(unsigned int li=0;li<7;li++)
+  // Creating the input signals.
+  for(unsigned int li=0;li<8;li++)
     {
 
-      /*      
-      aCS->length(CstSignaux[li].size());
-      for(unsigned int j=0;j<CstSignaux[li].size();j++)
-      aCS[j] = CstSignaux[li][j];*/
-
       try{
+
 	if (li==0)
 	  m_WaistPositionSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==1)
 	  m_WaistAttitudeSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==2)
 	  m_HeadPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==3)
 	  m_WaistPRPYSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==4)
 	  m_dComRefSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==5)
 	  m_ComAttitudeSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
 	else if (li==6)
 	  m_dComAttRefSignalRank = m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
+
+	else if (li==7)
+	  m_compensationActivationSignalRank = 
+	    m_SOT_Server_Command->createInputVectorSignal(CstSignaux[li].c_str());
 
       }
       catch(...)
 
 	{
 	  cerr << "Tried to create signal " << CstSignaux[li] << endl;
+	  return false;
 	}
 
       ODEBUG("Creation of signal: " << CstSignaux[li]);
     }
+  return true;
+}
+
+bool ConnectionToSot::InitOutputSignals()
+{
+  string OutSignal[2] = {"VelRef",
+                         "ObjectCoG"};
 
   for(unsigned int li=0;li<2;li++)
     {
@@ -577,6 +621,11 @@ bool ConnectionToSot::Init()
   
   ODEBUG("After creating the signals: " );
   
+}
+
+
+bool ConnectionToSot::InitExecuteCommands()
+{
 #if 0
 #define NBCOMMANDS 4
   string SotCommand[4]= {
@@ -585,8 +634,9 @@ bool ConnectionToSot::Init()
     "OpenHRP.periodicCall addSignal pg.waistpositionabsolute",
     "OpenHRP.periodicCall addSignal pg.waistattitudeabsolute"};
 #else
-#define NBCOMMANDS 22
+#define NBCOMMANDS 23
   string SotCommand[NBCOMMANDS]= {
+    "set coshell.compensationActivation [1](0.0)",
     "OpenHRP.periodicCall addSignal pg.comattitude",
     "OpenHRP.periodicCall addSignal pg.dcomattitude",
     "plug ffposition_from_pg.out coshell.waistpositionabsolute",

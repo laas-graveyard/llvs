@@ -67,6 +67,7 @@ int HRP2ComputeControlLawProcessIROS2010::init()
   m_RealiseControlLaw= true;
   m_cdMoSet = false;
   m_prevLInitialized = false;
+  m_CompensationActivated = false;
 
   m_TimeForOneStep = 160;
 
@@ -153,8 +154,12 @@ void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatri
 
   lTIM.timestamp = dcom_maxts;
 
-  ODEBUG3_CONT("dcom_maxts:" << dcom_maxts << " prev: " << m_prevL.timestamp << endl);
-  ODEBUG3_CONT("dcom_index:" << dcom_index << " dcomatt_index: " << dcomatt_index << endl);
+  ODEBUG3_CONT("dcom_maxts:" << dcom_maxts << 
+	       " prev: " << m_prevL.timestamp << endl);
+
+  ODEBUG3_CONT("dcom_index:" << dcom_index << 
+	       " dcomatt_index: " << dcomatt_index << endl);
+
   for(unsigned int lj=0;lj<6;lj++)
     average_speed[lj] = 0.0;
 
@@ -212,11 +217,16 @@ void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatri
   // Once the average speed is computed,
   // compute bk
   vpColVector bk(6);
-  bk[0] = m_prevL.velref[0] - average_speed[0];
-  bk[1] = m_prevL.velref[1] - average_speed[1];
-  bk[2] = bk[3] = bk[4] = 0.0;
-  bk[5] = m_prevL.velref[2] - average_speed[5];
-    
+  if (m_CompensationActivated)
+    {
+      bk[0] = m_prevL.velref[0] - average_speed[0];
+      bk[1] = m_prevL.velref[1] - average_speed[1];
+      bk[2] = bk[3] = bk[4] = 0.0;
+      bk[5] = m_prevL.velref[2] - average_speed[5];
+    }
+  else
+    { for(int li=0;li<6;bk[li++] = 0.0); }
+      
   ODEBUG3_CONT("average speed: " << average_speed);
   // Compute the equivalent error in the feature space.
   vpColVector new_e;
@@ -231,10 +241,11 @@ void HRP2ComputeControlLawProcessIROS2010::DealWithDComRef(TimedInteractionMatri
 
   m_E = intOverIntegralLbk + m_E;
   
-  ODEBUG3("m_E: " << m_E << " m_Ebuffer.size() = " << m_Ebuffer.size());
+  ODEBUG3("m_E: " << m_E << 
+	  " m_Ebuffer.size() = " << m_Ebuffer.size());
   // If the buffer is big enough to handle a full period.
   if (m_Ebuffer.size()==161)
-   { 
+    { 
       vpColVector toRemoveFromE = m_Ebuffer.front();
       m_Ebuffer.pop_front();
       m_E=m_E-toRemoveFromE;
@@ -292,9 +303,9 @@ int HRP2ComputeControlLawProcessIROS2010::loadcMh(vpHomogeneousMatrix& cMh)
   MOTION_PLAN
 
   VEL_MAX
--------------------------------------*/
+  -------------------------------------*/
 int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter, 
-					       std::string aValue)
+							std::string aValue)
 {
   // use of the generic function to add the parameter in the parameter list
   // A parameter can be or cannot be associated with a value, 
@@ -335,7 +346,7 @@ int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter,
                  
       SetMotionTest(ON_GROUND,limit);
     }
- else if (aParameter=="MOTION_PLAN")
+  else if (aParameter=="MOTION_PLAN")
     { 
       int found=0;
       string tmp;
@@ -354,7 +365,7 @@ int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter,
                  
       SetMotionTest(PLAN_MOTION,limit);
     }
- else if (aParameter=="MOTION_HL")
+  else if (aParameter=="MOTION_HL")
     { 
  
       vector<double> limit(1);
@@ -364,7 +375,7 @@ int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter,
                        
       SetMotionTest(HEIGHT_LIMITED,limit);
     }
- else if (aParameter=="VEL_MAX")
+  else if (aParameter=="VEL_MAX")
     { 
       int found=0;
       string tmp;
@@ -381,7 +392,7 @@ int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter,
 	}
              
     }
- else if (aParameter=="VEL_ZERO")
+  else if (aParameter=="VEL_ZERO")
     { 
       int found=0;
       string tmp;
@@ -398,11 +409,11 @@ int HRP2ComputeControlLawProcessIROS2010::pSetParameter(std::string aParameter,
 	}
              
     }
- else if (aParameter=="INTERNAL_STATE")
+  else if (aParameter=="INTERNAL_STATE")
     { 
       m_internalState=aValue;             
     }
- else
+  else 
     {
       cout << "Warning : unknown parameter :"<< aParameter << endl; 
       return -1;
@@ -461,9 +472,9 @@ void HRP2ComputeControlLawProcessIROS2010::SetConnectionToSot (ConnectionToSot *
   m_CTS = aCTS;
 }
 
- /*! Set the type of test on motion*/
+/*! Set the type of test on motion*/
 void  HRP2ComputeControlLawProcessIROS2010::SetMotionTest(typeMotion aMotion,
-						  const vector<double> &limits)
+							  const vector<double> &limits)
 {
   m_MotionTested = aMotion;
   
@@ -687,6 +698,15 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
 	      cerr << "Error in Compute control law >> object motion out of limit !!!" << endl; 
 	      r=-1;
 	    }
+
+	  /*! Check if the compensation is activated.*/
+	  double lCompensationActivated=0.0;
+	  m_CTS->ReadActivationCompensationSignal(lCompensationActivated);
+	  
+	  if (lCompensationActivated==0.0)
+	    m_CompensationActivated=false;
+	  else if (lCompensationActivated==1.0)
+	    m_CompensationActivated=true;
 	}
       else 
 	{
@@ -702,8 +722,6 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
     }
   
   VelocitySaturation(m_ComputeV,velref);
-
-  
   
   // Store the current information for further treatment.
   lTIM.velref[0] = velref[0];  lTIM.velref[1] = velref[1];  lTIM.velref[2] = velref[2];
@@ -711,16 +729,20 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
   
   // New error with the integral of the part which is not 
   // realized.
-  vpColVector newError = error6d - m_IntegralLbk;
+  vpColVector newError = error6d;
 
-  // Remove the constant part of the error.
-  if (m_Ebuffer.size()==m_TimeForOneStep)
-    newError = newError + m_E;
+  if (m_CompensationActivated)
+    {
+      newError = newError - m_IntegralLbk;
+
+      // Remove the constant part of the error.
+      if (m_Ebuffer.size()==m_TimeForOneStep)
+	newError = newError + m_E;
+    }
 
   vpColVector Lnew_e = m_Task.L.pseudoInverse()  * newError;
   
   vpColVector cVelocity2 = -m_Lambda * Lnew_e;
-
   
   double velref2[3];
   VelocitySaturation(cVelocity2,velref2);
@@ -763,9 +785,9 @@ int HRP2ComputeControlLawProcessIROS2010::pRealizeTheProcess()
     }
 
 
-  ODEBUG3("Staying alive !");
 #if 1
-  
+
+  // Debugging: output a set of data to generate graphs.
   vpTranslationVector cTo(m_cMo[0][3],m_cMo[1][3],m_cMo[2][3]);
   vpThetaUVector cThUo(m_cMo);
   vpRxyzVector cRxyzo (cThUo);
@@ -842,32 +864,32 @@ int  HRP2ComputeControlLawProcessIROS2010::pCleanUpTheProcess()
 } 
 
 /*
- Change the velocity frame
+  Change the velocity frame
  
- \brief :
- The velocity results from the visual servoing control
- law. It is basically expressed in the camera frame
- Using the current measurements, we can compute the
- transformation between the camera frame in the waist
+  \brief :
+  The velocity results from the visual servoing control
+  law. It is basically expressed in the camera frame
+  Using the current measurements, we can compute the
+  transformation between the camera frame in the waist
  
- wMc and the correponding Twist wVc
+  wMc and the correponding Twist wVc
  
- and use it to change the velocity frame.
+  and use it to change the velocity frame.
 
  
- return : 0  if ok
-          -1 if the input velocity is not of size 6
+  return : 0  if ok
+  -1 if the input velocity is not of size 6
           
   
- warning : attention nothing garanties the size 
-           of   poseHeadInFoot and poseWaistInFoot
+  warning : attention nothing garanties the size 
+  of   poseHeadInFoot and poseWaistInFoot
 
- */
+*/
 int  HRP2ComputeControlLawProcessIROS2010::changeVelocityFrame(const vpColVector& velCam,
-						       vpColVector& velWaist,
-						       const double *poseHeadInFoot,
-						       const double *poseWaistInFoot,
-						       vpHomogeneousMatrix &afMh )
+							       vpColVector& velWaist,
+							       const double *poseHeadInFoot,
+							       const double *poseWaistInFoot,
+							       vpHomogeneousMatrix &afMh )
 {
   // test on the input velocity
   if(velCam.getRows()!=6)
@@ -933,7 +955,7 @@ bool HRP2ComputeControlLawProcessIROS2010::planMotion(const vpHomogeneousMatrix 
     }
   else
     {
-       return false;
+      return false;
     }
 }
 
@@ -947,7 +969,7 @@ bool HRP2ComputeControlLawProcessIROS2010::objectOnGround(const vpHomogeneousMat
       vpRxyzVector   objectInFootRxyz(objectInFootThU);
 
       if( fabs(objectInFootRxyz[0])< m_RxLimit
-	 && fabs(objectInFootRxyz[1])< m_RyLimit )
+	  && fabs(objectInFootRxyz[1])< m_RyLimit )
 	{
 	  return true;
 	}
@@ -1004,8 +1026,8 @@ bool HRP2ComputeControlLawProcessIROS2010::TestObjectMotion(const vpHomogeneousM
 
 /*! Velocity saturation
 
-   RawVel is the velocity expressed in the waist frame 6ddl : Vx Vy Vz ThetaUx ThetaUy ThetaUz
-   VelRef in the saturated velocity expressed in the waist frame 3ddl: Vx Vy Rz
+  RawVel is the velocity expressed in the waist frame 6ddl : Vx Vy Vz ThetaUx ThetaUy ThetaUz
+  VelRef in the saturated velocity expressed in the waist frame 3ddl: Vx Vy Rz
 
 */
 int HRP2ComputeControlLawProcessIROS2010::VelocitySaturation(const vpColVector &RawVel,double * VelRef )
@@ -1044,11 +1066,11 @@ int HRP2ComputeControlLawProcessIROS2010::VelocitySaturation(const vpColVector &
 	}
     }
   
-for (int i=0; i<3;++i)
+  for (int i=0; i<3;++i)
     {   
       VelRef[i]=RawVel3ddl[i]*fac;
     }
- return 0;
+  return 0;
 }
 
 /*! Put Velocity value at zero when lower than 0.02  */

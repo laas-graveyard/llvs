@@ -96,14 +96,30 @@ namespace llvs
       /*! \brief Read a sequence of dcomref velocity values from pg .*/
       void ReaddComAttRefSignals(vector<double> &dcomattref);
 
+      /*! \brief Read the signal related to the activation of the compensation */
+      void ReadActivationCompensationSignal(double &avalue);
+
       /*! \brief Write waist velocity command.*/
       void WriteVelocityReference(double velref[3]);
 
       /*! \brief Write waist velocity command.*/
       void WriteObjectCoG(double velref[2]);
 
-      /*! \brief Create the signals, and plkug them. */
+      /*! \name Initialization Methods 
+	@{ */
+      /*! \brief Global initialization method which calls the other ones. */
       bool Init();
+
+      /*! \brief Create input signals inside the SoT to get information from the control architecture */
+      bool InitInputSignals();
+      
+      /*! \brief Create output signals inside the SoT to send information to the control architecture */
+      bool InitOutputSignals();
+
+      /*! \brief Launch commands. */
+      bool InitExecuteCommands();
+
+      /*! @} */
 
       /* ! Start the thread */
       void StartThreadOnConnectionSot();
@@ -125,6 +141,10 @@ namespace llvs
       /*! Pointer on SoT server. */
       sotCorbaInterface m_SOT_Server_Command;
 
+      /*! \name Signals 
+	@{ */
+      /*! \name Input signals.
+	@{ */
       /*! \brief Store the rank of waist position signal. */
       CORBA::Long m_WaistPositionSignalRank;
 
@@ -140,14 +160,28 @@ namespace llvs
       /*! \brief Store the rank of com attitude signal. */
       CORBA::Long m_ComAttitudeSignalRank;
 
-      CORBA::Long m_VelRefSignalRank;
-      CORBA::Long m_ObjectCoGSignalRank;
-
       /*! \brief Store the rank of waist linear velocity control signal. */
       CORBA::Long m_dComRefSignalRank;
 
       /*! \brief Store the rank of waist angular velocity control signal. */
       CORBA::Long m_dComAttRefSignalRank;
+
+      /*! \brief Store the rank of the signal allowing to start or stop the compensation signal. */
+      CORBA::Long m_compensationActivationSignalRank;
+
+      /*! @} */
+
+      /*! \name Output signals.
+	@{ */
+      /*! \brief Signal to send the reference velocity inside the SoT */
+      CORBA::Long m_VelRefSignalRank;
+      
+      /*! \brief Signal to send the position of the center of gravity to the SoT. */
+      CORBA::Long m_ObjectCoGSignalRank;
+
+      /*! @} */
+      
+      /*! @} */
 
       /*! \brief Boolean value to go out of the thread */
       bool m_EndOfThreadLoop;
@@ -160,6 +194,9 @@ namespace llvs
 
       /*! \brief Upper limit of the circular buffer. */
       unsigned int m_CircularBufferIndexMax;
+
+      /*! \brief Boolean value to activate the compensation. */
+      bool m_CompensationActivated;
 
     protected:
       /*! \brief Read the reference data signal. */

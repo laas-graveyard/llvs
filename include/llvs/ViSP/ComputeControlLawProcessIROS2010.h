@@ -249,6 +249,9 @@ public:
   /*! \brief Previous Interaction Matrix initialized ?. */
   bool m_prevLInitialized;
 
+  /*! \brief Compensation activated. */
+  bool m_CompensationActivated;
+
   /*! \brief History of com speed reference. */
   vector<double> m_dcomref;
 
