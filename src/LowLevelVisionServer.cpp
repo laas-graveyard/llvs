@@ -222,12 +222,14 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
       break;
 
     case LowLevelVisionSystem::FILES :
-      m_ImagesInputMethod = (HRP2ImagesInputMethod *) new HRP2FileImagesInputMethod(HRP2FileImagesInputMethod::DIRECTORY);
+      m_ImagesInputMethod = (HRP2ImagesInputMethod *) 
+	new HRP2FileImagesInputMethod(HRP2FileImagesInputMethod::DIRECTORY);
       ((HRP2FileImagesInputMethod *)m_ImagesInputMethod)->SetBaseName(afilename);
       break;
 
     case LowLevelVisionSystem::FILESINGLE :
-      m_ImagesInputMethod = (HRP2ImagesInputMethod *) new HRP2FileImagesInputMethod(HRP2FileImagesInputMethod::ONEIMAGE);
+      m_ImagesInputMethod = (HRP2ImagesInputMethod *) 
+	new HRP2FileImagesInputMethod(HRP2FileImagesInputMethod::ONEIMAGE);
       ((HRP2FileImagesInputMethod *)m_ImagesInputMethod)->SetBaseName(afilename);
       break;
 
@@ -454,7 +456,19 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
   m_vispUndistordedProcess[0]->SetImages(&(m_BinaryImages[CAMERA_WIDE]),
 					 m_Widecam_image_undistorded);
   m_vispUndistordedProcess[0]->SetCameraParameters(m_Widecam_param);
-  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[0]);
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_vispUndistordedProcess[0]);  
+
+  /* Create Color detection process */
+  m_ColorDetection = new HRP2ColorDetectionProcess();
+  m_ColorDetection->SetInputImages(m_BinaryImages[CAMERA_WIDE],
+				   m_Width[CAMERA_WIDE],
+				   m_Height[CAMERA_WIDE]);
+  ODEBUG("m_Width[CAMERA_WIDE] "<< m_Width[CAMERA_WIDE]<< " " <<
+	  " m_Height[CAMERA_WIDE] " <<   m_Height[CAMERA_WIDE]);
+  m_ColorDetection->InitializeTheProcess();
+  m_ColorDetection->StopProcess();
+  m_ListOfProcesses.insert(m_ListOfProcesses.end(), m_ColorDetection);  
+
   /*
   m_vispUndistordedProcess[1] = new HRP2vispUndistordedProcess(HRP2vispUndistordedProcess::RGB_VISPU8);
   m_vispUndistordedProcess[1]->InitializeTheProcess();
@@ -596,6 +610,7 @@ LowLevelVisionServer::LowLevelVisionServer(LowLevelVisionSystem::InputMode Metho
     }
 
 #if (LLVS_HAVE_VISP>0)
+  m_ColorDetection->SetConnectionToSot(m_CTS);
   m_ComputeControlLawProcess->SetConnectionToSot(m_CTS);
   m_ComputeControlLawProcessIROS2010->SetConnectionToSot(m_CTS);
 #endif

@@ -68,6 +68,7 @@ void  HRP2vispUndistordedProcess::SetImages(unsigned char ** Iraw
   m_ImgParam.width=Ivisp->getWidth();
   m_ImgParam.height=Ivisp->getHeight();
 
+
   m_tmpVispGreyImages.resize( m_ImgParam.height, m_ImgParam.width);
 
   m_ImagesInitialized	= true;

@@ -93,6 +93,7 @@
 #include "PointTracker/PointTrackingProcess.h"
 #include "PointTracker/CircularBufferPointTrackerData.h"
 
+#include "ViSP/ColorDetection.h"
 #endif
 
 
@@ -651,6 +652,10 @@ namespace llvs
 
       /* Path to the camera parmeter XML*/
       std::string             m_CamParamPath;
+
+      /*! Process to perform color detection */
+      HRP2ColorDetectionProcess * m_ColorDetection;
+      
 
 #endif
 

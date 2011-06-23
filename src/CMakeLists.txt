@@ -53,6 +53,8 @@ ADD_LLV_SOURCE(
 		ViSP/ComputeControlLawProcess.cpp
 		ViSP/ComputeControlLawProcessIROS2010.cpp
 		ViSP/vispUndistordedProcess.cpp
+		ViSP/ColorDetectionOperators.cpp
+		ViSP/ColorDetection.cpp
 		PointTracker/PointTrackingProcess.cpp
 		PointTracker/CircularBufferPointTrackerData.cpp
 		ModelTracker/nmbt/nmbtTrackingProcess.cpp
