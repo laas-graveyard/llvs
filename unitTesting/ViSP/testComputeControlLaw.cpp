@@ -52,8 +52,8 @@ using namespace std;
 #if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
 
 //tracker lib
-#include <nmbt/vpMbtTracker.h>
-
+//#include <nmbt/vpMbtTracker.h>
+#include <visp/vpMbEdgeTracker.h>
 //visp
 #include <visp/vpImage.h>
 #include <visp/vpImageIo.h>
@@ -88,10 +88,6 @@ int main(void)
   cout <<" Test Compute Control Law  Process"    << endl;
   cout << endl; 
   cout <<" ---------------------------" << endl;
-
-
-
-
   // create an image in greyscale
   vpImage<unsigned char> I ;
  
@@ -176,7 +172,8 @@ int main(void)
   tmp_stream.str("");
  
   // create a temporary tracker
-  vpMbtTracker trackerClient;
+  //vpMbtTracker trackerClient;
+  vpMbEdgeTracker trackerClient;
   trackerClient.loadModel( vrmlPath.c_str());
   trackerClient.setCameraParameters(cam);
    

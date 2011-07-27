@@ -52,7 +52,8 @@ using namespace std;
 #if LLVS_HAVE_VISP && LLVS_HAVE_NMBT
 
 //tracker lib
-#include <nmbt/vpMbtTracker.h>
+//#include <nmbt/vpMbtTracker.h>
+#include <visp/vpMbEdgeTracker.h>
 
 //visp
 #include <visp/vpImage.h>

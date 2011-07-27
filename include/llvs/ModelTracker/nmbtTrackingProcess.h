@@ -52,8 +52,8 @@
 #include <visp/vpHomogeneousMatrix.h>
 
 //include lagadic tracking lib files
-#include <visp/vpMbtTracker.h>
-
+//#include <visp/vpMbtTracker.h>
+#include <visp/vpMbEdgeTracker.h>
 
 /*!
  This class implements tracks an object model on a VISP image
@@ -173,8 +173,9 @@ private:
 protected:
 
   // lagadic tracker
-  vpMbtTracker m_tracker;
-   
+  //vpMbtTracker m_tracker;
+  vpMbEdgeTracker m_tracker; 
+ 
   /*! visp images*/
   vpImage<unsigned char> *m_inputVispImage;
   
